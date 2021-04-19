@@ -1,0 +1,109 @@
+<Escena>
+	<LucesMapa>
+		<!--Luz Comunicación-->
+		<Luz xPos="33.4432f" yPos="1.7f" zPos="-3.67246f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz Escudos-->
+		<Luz xPos="39.2174f" yPos="1.7f" zPos="7.63501f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz Administración-->
+		<Luz xPos="34.4427f" yPos="1.7f" zPos="-11.4456f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz1 Almacén-->
+		<Luz xPos="27.2224f" yPos="1.7f" zPos="-3.61657f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
+		<!--Luz2 Almacén-->
+		<Luz xPos="27.0615f" yPos="1.7f" zPos="-9.64351f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz Oxígeno-->
+		<Luz xPos="36.3501f" yPos="1.7f" zPos="-17.2979f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz Navegación-->
+		<Luz xPos="47.5512f" yPos="1.7f" zPos="-15.834f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz Armería-->
+		<Luz xPos="39.1482f" yPos="1.7f" zPos="-22.9591f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz Reactor-->
+		<Luz xPos="6.66643f" yPos="1.7f" zPos="-15.3376f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz1 Cafetería-->
+		<Luz xPos="30.619f" yPos="1.7f" zPos="-26.3768f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.6" linear="0.09" quadratic="0.04" />
+		<!--Luz2 Cafetería-->
+		<Luz xPos="30.619f" yPos="1.7f" zPos="-19.684f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.6" linear="0.09" quadratic="0.04" />
+		<!--Luz3 Cafetería-->
+		<Luz xPos="24.5815f" yPos="1.7f" zPos="-19.684f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.6" linear="0.09" quadratic="0.04" />
+		<!--Luz4 Cafetería-->
+		<Luz xPos="24.5815f" yPos="1.7f" zPos="-26.3768f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.6" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz1 Medicina-->
+		<Luz xPos="19.0612f" yPos="1.7f" zPos="-20.0304f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.6" linear="0.09" quadratic="0.04" />
+		<!--Luz2 Medicina-->
+		<Luz xPos="19.0612f" yPos="1.7f" zPos="-15.646" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.6" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz Electricidad-->
+		<Luz xPos="19.0612f" yPos="1.7f" zPos="-9.0205" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.6" linear="0.09" quadratic="0.04" />
+	
+		<!--Luz Cámaras-->
+		<Luz xPos="14.3856f" yPos="1.7f" zPos="-15.9093" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.6" linear="0.09" quadratic="0.04" />
+	</LucesMapa>
+	<LucesCharacter>
+		<Luz xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.09" quadratic="0.03" cutOff="8.0f" outerCutOff="25.0f" />
+	</LucesCharacter>
+	<LucesHall>
+		<!--Luz1 Pasillo Administración-->
+		<Luz xPos="27.173613f" yPos="0.5f" zPos="-12.345622f" xDir="0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<!--Luz2 Pasillo Administración-->
+		<Luz xPos="27.173613f" yPos="0.5f" zPos="-13.934513f" xDir="0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<!--Luz3 Pasillo Administración-->
+		<Luz xPos="27.173613f" yPos="0.5f" zPos="-15.395281f" xDir="0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<!--Luz4 Pasillo Administración-->
+		<Luz xPos="29.029375f" yPos="0.5f" zPos="-15.405938f" xDir="-0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<!--Luz5 Pasillo Administración-->
+		<Luz xPos="29.035074f" yPos="0.5f" zPos="-12.341219f" xDir="-0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<!--Luz6 Pasillo Administración-->
+		<Luz xPos="30.823282f" yPos="0.5f" zPos="-12.639383f" xDir="0.0f" yDir="-0.9f" zDir="-0.5f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<!--Luz7 Pasillo Administración-->
+		<Luz xPos="29.388685f" yPos="0.5f" zPos="-14.428721f" xDir="0.0f" yDir="-0.9f" zDir="0.5f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<!--Luz8 Pasillo Administración-->
+		<Luz xPos="30.838345f" yPos="0.5f" zPos="-14.428721f" xDir="0.0f" yDir="-0.9f" zDir="0.5f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<!--Luz9 Pasillo Administración-->
+		<Luz xPos="29.388685f" yPos="0.5f" zPos="-12.639383f" xDir="0.0f" yDir="-0.9f" zDir="-0.5f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+	</LucesHall>
+	<Sonidos>
+		<!--Sonido Reactor-->
+		<Sonido xPos="3.26469f" yPos="0.31f" zPos="-15.2284f" rut="../AudioClip/AMB_ReactorRoom.wav" minDist="1.2f" />
+
+		<!--Sonido Electricidad-->
+		<Sonido xPos="20.1999f" yPos="0.31f" zPos="-9.84019f" rut="../AudioClip/AMB_ElectricRoom.wav" minDist="1.2f" />
+
+		<!--Sonido Administración-->
+		<Sonido xPos="33.6595f" yPos="0.31f" zPos="-11.4349f" rut="../AudioClip/AMB_Admin.wav" minDist="1.2f" />
+
+		<!--Sonido Cafetería-->
+		<Sonido xPos="27.4123f" yPos="0.31f" zPos="-22.2872f" rut="../AudioClip/AMB_Cafeteria.wav" minDist="1.2f" />
+
+		<!--Sonido Comunicación-->
+		<Sonido xPos="32.0702f" yPos="0.31f" zPos="-3.42071f" rut="../AudioClip/AMB_CommsRoom.wav" minDist="1.2f" />
+
+		<!--Sonido Navegación-->
+		<Sonido xPos="47.9253f" yPos="0.31f" zPos="-16.0923f" rut="../AudioClip/AMB_CommsRoom.wav" minDist="1.2f" />
+
+		<!--Sonido Medicina-->
+		<Sonido xPos="18.8523f" yPos="0.31f" zPos="-17.5413f" rut="../AudioClip/AMB_MedbayRoom.wav" minDist="1.2f" />
+
+		<!--Sonido Seguridad-->
+		<Sonido xPos="14.2558f" yPos="0.31f" zPos="-15.7111f" rut="../AudioClip/AMB_SecurityRoom.wav" minDist="1.2f" />
+
+		<!--Sonido Almcacén-->
+		<Sonido xPos="26.92f" yPos="0.31f" zPos="-6.22256f" rut="../AudioClip/AMB_Storage.wav" minDist="1.2f" />
+
+		<!--Sonido Oxígeno-->
+		<Sonido xPos="36.116f" yPos="0.31f" zPos="-17.5989f" rut="../AudioClip/AMB_Oxygen.wav" minDist="1.2f" />
+
+		<!--Sonido Escudos-->
+		<Sonido xPos="38.6812f" yPos="0.31f" zPos="-7.05172" rut="../AudioClip/AMB_ShieldRoom.wav" minDist="1.2f" />
+
+		<!--Sonido Armas-->
+		<Sonido xPos="39.8768f" yPos="0.31f" zPos="-23.8903f" rut="../AudioClip/AMB_Weapons.wav" minDist="1.2f" />
+	</Sonidos>
+</Escena>
