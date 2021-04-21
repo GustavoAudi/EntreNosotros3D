@@ -14,7 +14,7 @@
 #include "glm\gtc\quaternion.hpp"
 
 #include "mesh.h"
-#include "shader.h"
+#include "../Shaders/shader.h"
 #include "camera.h"
 #include "../octree_code/octree.h"
 

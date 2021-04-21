@@ -71,39 +71,39 @@
 	</LucesHall>
 	<Sonidos>
 		<!--Sonido Reactor-->
-		<Sonido xPos="3.26469f" yPos="0.31f" zPos="-15.2284f" rut="../AudioClip/AMB_ReactorRoom.wav" minDist="1.2f" />
+		<Sonido xPos="3.26469f" yPos="0.31f" zPos="-15.2284f" rut="../Include/AudioClip/AMB_ReactorRoom.wav" minDist="1.2f" />
 
 		<!--Sonido Electricidad-->
-		<Sonido xPos="20.1999f" yPos="0.31f" zPos="-9.84019f" rut="../AudioClip/AMB_ElectricRoom.wav" minDist="1.2f" />
+		<Sonido xPos="20.1999f" yPos="0.31f" zPos="-9.84019f" rut="../Include/AudioClip/AMB_ElectricRoom.wav" minDist="1.2f" />
 
 		<!--Sonido Administración-->
-		<Sonido xPos="33.6595f" yPos="0.31f" zPos="-11.4349f" rut="../AudioClip/AMB_Admin.wav" minDist="1.2f" />
+		<Sonido xPos="33.6595f" yPos="0.31f" zPos="-11.4349f" rut="../Include/AudioClip/AMB_Admin.wav" minDist="1.2f" />
 
 		<!--Sonido Cafetería-->
-		<Sonido xPos="27.4123f" yPos="0.31f" zPos="-22.2872f" rut="../AudioClip/AMB_Cafeteria.wav" minDist="1.2f" />
+		<Sonido xPos="27.4123f" yPos="0.31f" zPos="-22.2872f" rut="../Include/AudioClip/AMB_Cafeteria.wav" minDist="1.2f" />
 
 		<!--Sonido Comunicación-->
-		<Sonido xPos="32.0702f" yPos="0.31f" zPos="-3.42071f" rut="../AudioClip/AMB_CommsRoom.wav" minDist="1.2f" />
+		<Sonido xPos="32.0702f" yPos="0.31f" zPos="-3.42071f" rut="../Include/AudioClip/AMB_CommsRoom.wav" minDist="1.2f" />
 
 		<!--Sonido Navegación-->
-		<Sonido xPos="47.9253f" yPos="0.31f" zPos="-16.0923f" rut="../AudioClip/AMB_CommsRoom.wav" minDist="1.2f" />
+		<Sonido xPos="47.9253f" yPos="0.31f" zPos="-16.0923f" rut="../Include/AudioClip/AMB_CommsRoom.wav" minDist="1.2f" />
 
 		<!--Sonido Medicina-->
-		<Sonido xPos="18.8523f" yPos="0.31f" zPos="-17.5413f" rut="../AudioClip/AMB_MedbayRoom.wav" minDist="1.2f" />
+		<Sonido xPos="18.8523f" yPos="0.31f" zPos="-17.5413f" rut="../Include/AudioClip/AMB_MedbayRoom.wav" minDist="1.2f" />
 
 		<!--Sonido Seguridad-->
-		<Sonido xPos="14.2558f" yPos="0.31f" zPos="-15.7111f" rut="../AudioClip/AMB_SecurityRoom.wav" minDist="1.2f" />
+		<Sonido xPos="14.2558f" yPos="0.31f" zPos="-15.7111f" rut="../Include/AudioClip/AMB_SecurityRoom.wav" minDist="1.2f" />
 
 		<!--Sonido Almcacén-->
-		<Sonido xPos="26.92f" yPos="0.31f" zPos="-6.22256f" rut="../AudioClip/AMB_Storage.wav" minDist="1.2f" />
+		<Sonido xPos="26.92f" yPos="0.31f" zPos="-6.22256f" rut="../Include/AudioClip/AMB_Storage.wav" minDist="1.2f" />
 
 		<!--Sonido Oxígeno-->
-		<Sonido xPos="36.116f" yPos="0.31f" zPos="-17.5989f" rut="../AudioClip/AMB_Oxygen.wav" minDist="1.2f" />
+		<Sonido xPos="36.116f" yPos="0.31f" zPos="-17.5989f" rut="../Include/AudioClip/AMB_Oxygen.wav" minDist="1.2f" />
 
 		<!--Sonido Escudos-->
-		<Sonido xPos="38.6812f" yPos="0.31f" zPos="-7.05172" rut="../AudioClip/AMB_ShieldRoom.wav" minDist="1.2f" />
+		<Sonido xPos="38.6812f" yPos="0.31f" zPos="-7.05172" rut="../Include/AudioClip/AMB_ShieldRoom.wav" minDist="1.2f" />
 
 		<!--Sonido Armas-->
-		<Sonido xPos="39.8768f" yPos="0.31f" zPos="-23.8903f" rut="../AudioClip/AMB_Weapons.wav" minDist="1.2f" />
+		<Sonido xPos="39.8768f" yPos="0.31f" zPos="-23.8903f" rut="../Include/AudioClip/AMB_Weapons.wav" minDist="1.2f" />
 	</Sonidos>
 </Escena>

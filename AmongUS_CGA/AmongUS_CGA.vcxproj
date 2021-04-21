@@ -19,20 +19,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\model_loading.fs" />
-    <None Include="..\model_loading.vs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\glad.c" />
+    <ClCompile Include="..\Config\tinyxml2.cpp" />
+    <ClCompile Include="..\Include\glad.c" />
     <ClCompile Include="..\main.cpp" />
-    <ClCompile Include="..\tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\mesh.h" />
-    <ClInclude Include="..\Model.h" />
-    <ClInclude Include="..\shader.h" />
-    <ClInclude Include="..\stb_image.h" />
-    <ClInclude Include="..\tinyxml2.h" />
+    <ClInclude Include="..\Config\tinyxml2.h" />
+    <ClInclude Include="..\Include\mesh.h" />
+    <ClInclude Include="..\Include\Model.h" />
+    <ClInclude Include="..\Include\stb_image.h" />
+    <ClInclude Include="..\Shaders\shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\model_loading.fs" />
+    <None Include="..\Shaders\model_loading.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\Config\Escena\escena.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -94,6 +97,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\Include\libraries\irrKlang\include;..\Include\libraries\assimp;..\Include\libraries\Freeimage;..\Include\libraries\SDL2-2.0.12\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\Include\libraries\irrKlang\lib;..\Include\libraries\assimp;..\Include\libraries\SDL2-2.0.12\lib\x64;..\Include\libraries\Freeimage;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -134,10 +140,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\Include\libraries\assimp;..\Include\libraries\glad;..\Include\libraries\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>assimp-vc120-mt.lib;FreeImage.lib;opengl32.lib;glu32.lib;SDL2.lib;SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;irrKlang.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

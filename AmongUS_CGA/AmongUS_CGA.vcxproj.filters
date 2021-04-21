@@ -15,39 +15,44 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\model_loading.fs">
-      <Filter>Archivos de origen</Filter>
-    </None>
-    <None Include="..\model_loading.vs">
-      <Filter>Archivos de origen</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\glad.c">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="..\main.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="..\tinyxml2.cpp">
+    <ClCompile Include="..\Include\glad.c">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Config\tinyxml2.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\mesh.h">
+    <ClInclude Include="..\Include\mesh.h">
       <Filter>Archivos de origen</Filter>
     </ClInclude>
-    <ClInclude Include="..\Model.h">
+    <ClInclude Include="..\Include\Model.h">
       <Filter>Archivos de origen</Filter>
     </ClInclude>
-    <ClInclude Include="..\shader.h">
+    <ClInclude Include="..\Include\stb_image.h">
       <Filter>Archivos de origen</Filter>
     </ClInclude>
-    <ClInclude Include="..\stb_image.h">
+    <ClInclude Include="..\Shaders\shader.h">
       <Filter>Archivos de origen</Filter>
     </ClInclude>
-    <ClInclude Include="..\tinyxml2.h">
+    <ClInclude Include="..\Config\tinyxml2.h">
       <Filter>Archivos de origen</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\model_loading.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\model_loading.vs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\Config\Escena\escena.xml">
+      <Filter>Archivos de origen</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

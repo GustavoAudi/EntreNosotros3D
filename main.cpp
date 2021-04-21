@@ -9,12 +9,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Model.h"
+#include "Include/Model.h"
 #include <irrKlang.h>
 
 #include <iostream>
 #include <fstream>
-#include "tinyxml2.h"
+#include "Config/tinyxml2.h"
 
 #define SCR_H 720 
 #define SCR_W 1024
@@ -388,28 +388,28 @@ void iniciarSonidos(ISoundEngine*& engine) {
 
 void cargarSonidoPasos(ISoundEngine*& engine, ISoundSource* pasos[8]) {
 	
-	ISoundSource* paso1 = engine->addSoundSourceFromFile("../AudioClip/FootstepMetal01.wav");
+	ISoundSource* paso1 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal01.wav");
 	paso1->forceReloadAtNextUse();
 	paso1->setDefaultVolume(0.5f);
-	ISoundSource* paso2 = engine->addSoundSourceFromFile("../AudioClip/FootstepMetal02.wav");
+	ISoundSource* paso2 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal02.wav");
 	paso2->forceReloadAtNextUse();
 	paso2->setDefaultVolume(0.5f);
-	ISoundSource* paso3 = engine->addSoundSourceFromFile("../AudioClip/FootstepMetal03.wav");
+	ISoundSource* paso3 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal03.wav");
 	paso3->forceReloadAtNextUse();
 	paso3->setDefaultVolume(0.5f);
-	ISoundSource* paso4 = engine->addSoundSourceFromFile("../AudioClip/FootstepMetal04.wav");
+	ISoundSource* paso4 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal04.wav");
 	paso4->forceReloadAtNextUse();
 	paso4->setDefaultVolume(0.5f);
-	ISoundSource* paso5 = engine->addSoundSourceFromFile("../AudioClip/FootstepMetal05.wav");
+	ISoundSource* paso5 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal05.wav");
 	paso5->forceReloadAtNextUse();
 	paso5->setDefaultVolume(0.5f);
-	ISoundSource* paso6 = engine->addSoundSourceFromFile("../AudioClip/FootstepMetal06.wav");
+	ISoundSource* paso6 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal06.wav");
 	paso6->forceReloadAtNextUse();
 	paso6->setDefaultVolume(0.5f);
-	ISoundSource* paso7 = engine->addSoundSourceFromFile("../AudioClip/FootstepMetal07.wav");
+	ISoundSource* paso7 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal07.wav");
 	paso7->forceReloadAtNextUse();
 	paso7->setDefaultVolume(0.5f);
-	ISoundSource* paso8 = engine->addSoundSourceFromFile("../AudioClip/FootstepMetal08.wav");
+	ISoundSource* paso8 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal08.wav");
 	paso8->forceReloadAtNextUse();
 	paso8->setDefaultVolume(0.5f);
 
@@ -476,7 +476,7 @@ int main(int argc, char* argv[]) {
 
 	//Load xml file
 	tinyxml2::XMLDocument xmlDoc;
-	xmlDoc.LoadFile("../Escena/escena.xml");
+	xmlDoc.LoadFile("../Config/Escena/escena.xml");
 	pEscena = xmlDoc.FirstChild();
 	pLucesHall = pEscena->FirstChildElement("LucesHall");
 	pLucesMapa = pEscena->FirstChildElement("LucesMapa");
@@ -502,14 +502,14 @@ int main(int argc, char* argv[]) {
 	glEnable(GL_DEPTH_CLAMP);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// enable depth testing
-	Shader ourShader("../model_loading.vs", "../model_loading.fs");
-	Shader skyboxShader("../skybox_render.vs", "../skybox_render.fs");
+	Shader ourShader("../Shaders/model_loading.vs", "../Shaders/model_loading.fs");
+	Shader skyboxShader("../Shaders/skybox_render.vs", "../Shaders/skybox_render.fs");
 
-	Model ourModel("../model/c.obj");
+	Model ourModel("../Include/model/c.obj");
 	//Shader animShader("../animated_model.vert", "../model_loading.fs");
-	Model cuerpo1("../model/astronaut.dae");
-	Model muerto("../model/dead.obj");
-	Model fantasma("../model/ghost.dae");
+	Model cuerpo1("../Include/model/astronaut.dae");
+	Model muerto("../Include/model/dead.obj");
+	Model fantasma("../Include/model/ghost.dae");
 
 	//setup model Octree
 	ourModel.GenerateOctree();
@@ -517,12 +517,12 @@ int main(int argc, char* argv[]) {
 
 	//setup cubeMap
 	vector<std::string> faces{
-		"../skybox/right.png",
-		"../skybox/left.png",
-		"../skybox/top.png",
-		"../skybox/bottom.png",
-		"../skybox/front.png",
-		"../skybox/back.png"
+		"../Include/skybox/right.png",
+		"../Include/skybox/left.png",
+		"../Include/skybox/top.png",
+		"../Include/skybox/bottom.png",
+		"../Include/skybox/front.png",
+		"../Include/skybox/back.png"
 	};
 	float skyboxVertices[] = {
 		// positions          
@@ -662,10 +662,10 @@ int main(int argc, char* argv[]) {
 	ISoundEngine* engine = createIrrKlangDevice();
 	iniciarSonidos(engine);
 
-	ISoundSource* sirenSound = engine->addSoundSourceFromFile("../AudioClip/SabotageSiren.wav");
+	ISoundSource* sirenSound = engine->addSoundSourceFromFile("../Include/AudioClip/SabotageSiren.wav");
 	sirenSound->setDefaultVolume(0.2f);
 	sirenSound->forceReloadAtNextUse();
-	ISoundSource* ligthOffSound = engine->addSoundSourceFromFile("../AudioClip/panel_reactor_manifoldfail.wav");
+	ISoundSource* ligthOffSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_reactor_manifoldfail.wav");
 	ligthOffSound->setDefaultVolume(1.0f);
 	ligthOffSound->forceReloadAtNextUse();
 	

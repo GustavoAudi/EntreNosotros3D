@@ -1,12 +1,13 @@
 #ifndef MESH_H
 #define MESH_H
+#pragma warning(disable : 5208)
 
 #include <glad/glad.h> // holds all OpenGL type declarations
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "shader.h"
+#include "../Shaders/shader.h"
 #include <iostream>
 #include <string>
 #include <vector>
