@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Include/Model.h"
+#include "Include/camera.h"
 #include "Include/ErrorsMSG.h"
 #include <irrKlang.h>
 
@@ -60,14 +61,15 @@ struct movement {
 	bool moving_down = false;
 };
 
-void move(movement mv, glm::vec3& cameraPos, float cameraSpeed, glm::vec3 cameraFront, Model& ourModel, ISoundEngine* &engine, ISoundSource* pasos[], int &ultimoPaso, bool modoLibre) {
+void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine* &engine, ISoundSource* pasos[], int &ultimoPaso, bool modoLibre) {
+	glm::vec3 cameraPos = camera->getPos();
 	glm::vec3 camAux = cameraPos;
 	if (mv.spedUp) {
 		cameraSpeed = cameraSpeed * 2;
 	}
 	glm::vec2 direction;
 	if (mv.moving_forward || mv.moving_back) {
-		direction = glm::normalize(glm::vec2(cameraFront.x, cameraFront.z));
+		direction = glm::normalize(glm::vec2(camera->getFront().x, camera->getFront().z));
 	}
 	if (mv.moving_forward) {
 		cameraPos.x += cameraSpeed * direction.x;
@@ -86,14 +88,14 @@ void move(movement mv, glm::vec3& cameraPos, float cameraSpeed, glm::vec3 camera
 		}
 	}
 	if (mv.moving_left) {
-		cameraPos -= glm::normalize(glm::cross(cameraFront, glm::vec3(0, 1, 0))) * cameraSpeed;
+		cameraPos -= glm::normalize(glm::cross(camera->getFront(), glm::vec3(0, 1, 0))) * cameraSpeed;
 		if (!engine->isCurrentlyPlaying(pasos[ultimoPaso]) && !modoLibre) {
 			engine->play2D(pasos[(ultimoPaso + 1) % 8]);
 			ultimoPaso = (ultimoPaso + 1) % 8;
 		}
 	}
 	if (mv.moving_right) {
-		cameraPos += glm::normalize(glm::cross(cameraFront, glm::vec3(0, 1, 0))) * cameraSpeed;
+		cameraPos += glm::normalize(glm::cross(camera->getFront(), glm::vec3(0, 1, 0))) * cameraSpeed;
 		if (!engine->isCurrentlyPlaying(pasos[ultimoPaso]) && !modoLibre) {
 			engine->play2D(pasos[(ultimoPaso + 1) % 8]);
 			ultimoPaso = (ultimoPaso + 1) % 8;
@@ -111,6 +113,7 @@ void move(movement mv, glm::vec3& cameraPos, float cameraSpeed, glm::vec3 camera
 	if (ourModel.MeshCollision2(cameraPos)) {
 		cameraPos = camAux;
 	}
+	camera->setPos(cameraPos);
 }
 
 void setupLightsHall(Shader& ourShader) {
@@ -551,26 +554,18 @@ int main(int argc, char* argv[]) {
 	float sensitivity = 0.1f;
 	float zoom = 45.0f;
 
+	Camera* camera = new Camera();
+
 	glm::vec3 direction;
+	camera->Rotate(yaw, pitch, direction);
+	/*
 	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	direction.y = sin(glm::radians(pitch));
-	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-	//CamPos
-	//glm::vec3 cameraPos = glm::vec3(14.1084, 0.8, -9.35667);
-	glm::vec3 cameraPos = glm::vec3(29.26f, 0.345f, -24.32f);
-	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	//CamDir
-	//glm::vec3 cameraTarget = glm::vec3(14.1339, 0.8, -12);
-	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 12.0f);
-	glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-	//Ref Axis
-	glm::vec3 cameraRight = glm::normalize(glm::cross(cameraUp, cameraDirection));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));*/
 
 	//View matrix
 	glm::mat4 view;
-	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+	view = glm::lookAt(camera->getPos(), camera->getPos() + camera->getFront(), camera->getUp());
 	bool cortoElectricidad = false;
 	bool apagon = false;
 	bool linterna = false;
@@ -578,19 +573,19 @@ int main(int argc, char* argv[]) {
 	bool fixed_pos = false;
 	float old_yaw = 0.f;
 	glm::vec3 old_pos = glm::vec3(0.f);
-	glm::vec3 old_pos_camera = cameraPos;
-	glm::vec3 old_front_camera = cameraFront;
+	glm::vec3 old_pos_camera = camera->getPos();
+	glm::vec3 old_front_camera = camera->getFront();
 
 	ourShader.use();
 
-	ourShader.setVec3("viewPos", cameraPos);
+	ourShader.setVec3("viewPos", camera->getPos());
 	ourShader.setBool("apagon", apagon);
 	ourShader.setBool("linterna", linterna);
 	glUniform1i(glGetUniformLocation(ourShader.ID, "specular_map"), specular_map);
 
 
-	ourShader.setVec3("characterLight.position", cameraPos);
-	ourShader.setVec3("characterLight.direction", cameraFront);
+	ourShader.setVec3("characterLight.position", camera->getPos());
+	ourShader.setVec3("characterLight.direction", camera->getFront());
 
 	movement mv;
 	bool moved = false;
@@ -639,11 +634,11 @@ int main(int argc, char* argv[]) {
 		cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
 		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
-		move(mv, cameraPos, cameraSpeed, cameraFront, ourModel, engine, pasos, ultimoPaso, fixed_pos);
+		move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
 
 		//audio processing
-		engine->setListenerPosition(vec3df(cameraPos.x, cameraPos.y, cameraPos.z),
-			vec3df(-cameraFront.x, cameraFront.y, -cameraFront.z));
+		engine->setListenerPosition(vec3df(camera->getPos().x, camera->getPos().y, camera->getPos().z),
+			vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
 		
 		//render
 		glClearColor(0.0, 0.0, 1.0, 1.0); // set background colour
@@ -655,7 +650,7 @@ int main(int argc, char* argv[]) {
 		//glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		glDisable(GL_DEPTH_TEST);
 		skyboxShader.use();
-		view = glm::mat4(glm::mat3(glm::lookAt(cameraPos - cameraFront, cameraPos + cameraFront, cameraUp))); // remove translation from the view matrix
+		view = glm::mat4(glm::mat3(glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp()))); // remove translation from the view matrix
 		skyboxShader.setMat4("view", view);
 		skyboxShader.setMat4("projection", projection);
 		// skybox cube
@@ -668,7 +663,7 @@ int main(int argc, char* argv[]) {
 		//glDepthFunc(GL_LESS); // set depth function back to default
 
 		
-		view = glm::lookAt(cameraPos - cameraFront, cameraPos + cameraFront, cameraUp);
+		view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
 		//0.5 = clipping plane.
 		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
 		glm::mat4 model = glm::mat4(1.0f);
@@ -680,7 +675,7 @@ int main(int argc, char* argv[]) {
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("model", model);
-		ourShader.setVec3("viewPos", cameraPos);
+		ourShader.setVec3("viewPos", camera->getPos());
 
 		if (linterna) {
 			if (fixed_pos) {
@@ -688,8 +683,8 @@ int main(int argc, char* argv[]) {
 				ourShader.setVec3("characterLight.direction", old_front_camera);
 			}
 			else {
-				ourShader.setVec3("characterLight.position", cameraPos);
-				ourShader.setVec3("characterLight.direction", cameraFront);
+				ourShader.setVec3("characterLight.position", camera->getPos());
+				ourShader.setVec3("characterLight.direction", camera->getFront());
 			}
 		}
 		ourShader.setBool("linterna", linterna);
@@ -764,7 +759,7 @@ int main(int argc, char* argv[]) {
 		//DRAW DEL MODELO
 		model = glm::mat4(1.0f);
 		ourShader.setMat4("model", model);
-		if (glm::distance(cameraPos, glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
+		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
 			ourModel.Draw(ourShader,false);
 		}
 
@@ -779,7 +774,7 @@ int main(int argc, char* argv[]) {
 
 		//DRAW DEL ASTRONAUTA
 		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
-		view = glm::lookAt(cameraPos - cameraFront, cameraPos + cameraFront, cameraUp);
+		view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
 
 		modelAnim = glm::mat4(1.f);
 		if (fixed_pos) {
@@ -787,12 +782,12 @@ int main(int argc, char* argv[]) {
 			modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
 		}
 		else {
-			modelAnim = glm::translate(modelAnim, glm::vec3(cameraPos.x, cameraPos.y - 0.3, cameraPos.z));
+			modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
 			modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
 			old_yaw = -yaw + 90;
-			old_pos = glm::vec3(cameraPos.x, cameraPos.y - 0.3, cameraPos.z);
-			old_pos_camera = cameraPos;
-			old_front_camera = cameraFront;
+			old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
+			old_pos_camera = camera->getPos();
+			old_front_camera = camera->getFront();
 		}
 		if (!(mv.moving_forward || mv.moving_back)) {
 			modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
@@ -838,11 +833,7 @@ int main(int argc, char* argv[]) {
 					pitch = -89.0f;
 
 				glm::vec3 direction;
-
-				direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-				direction.y = sin(glm::radians(pitch));
-				direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-				cameraFront = glm::normalize(direction);
+				camera->Rotate(yaw, pitch, direction);
 
 					break;
 				}
@@ -894,8 +885,8 @@ int main(int argc, char* argv[]) {
 						mv.spedUp = true;
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_c) {
-						cout << "X: " << cameraPos.x << " Y: " << cameraPos.y << " Z: " << cameraPos.z << endl;
-						cout << "X: " << cameraFront.x << " Y: " << cameraFront.y << " Z: " << cameraFront.z << endl;
+						cout << "X: " << camera->getPos().x << " Y: " << camera->getPos().y << " Z: " << camera->getPos().z << endl;
+						cout << "X: " << camera->getFront().x << " Y: " << camera->getFront().y << " Z: " << camera->getFront().z << endl;
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
 						running = false;
@@ -929,8 +920,8 @@ int main(int argc, char* argv[]) {
 						count = 0;
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_e) {
-						if (cameraPos.x > 33.1f && cameraPos.x < 33.5f && cameraPos.z < -24.0f && cameraPos.z > -24.9f)
-							if (cameraFront.x > 0.5f && cameraFront.x < 0.7f && cameraFront.z < -0.6f && cameraFront.z > -0.8f)
+						if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
+							if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
 								cortoElectricidad = !cortoElectricidad;
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_l) {
@@ -942,7 +933,7 @@ int main(int argc, char* argv[]) {
 					if (sdlEvent.key.keysym.sym == SDLK_TAB) {
 						fixed_pos = !fixed_pos;
 						if (!fixed_pos)
-							cameraPos = old_pos_camera;
+							camera->setPos(old_pos_camera);
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_F11) {
 						if(fullScreen)

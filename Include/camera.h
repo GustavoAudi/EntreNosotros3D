@@ -15,36 +15,40 @@
 
 class Camera {
 public:
-    enum class MoveDirectionType {
-        kForward,
-        kBackward,
-        kLeftward,
-        kRightward,
-        kUpward,
-        kDownward
-    };
-    Camera() = delete;
-    Camera(glm::vec3 position, double width_height_ratio, double alpha = -glm::pi<double>() / 2, double beta = 0);
-    void Rotate(double delta_alpha, double delta_beta);
-    void Move(MoveDirectionType direction, float time);
-    glm::vec3 position() const;
-    void set_position(glm::vec3 position);
-    glm::mat4 view_matrix() const;
-    void set_width_height_ratio(double width_height_ratio);
-    glm::mat4 projection_matrix() const;
-    double alpha() const;
-    double beta() const;
-    void set_alpha(double alpha);
-    void set_beta(double beta);
-    glm::vec3 front() const;
-    void set_front(glm::vec3 new_front);
-    glm::vec3 center() const;
-    void set_center(glm::vec3 new_center);
+    Camera();
+    //SETTERS
+    void setPos(glm::vec3 p);
+    void setFront(glm::vec3 fr);
+    void setUp(glm::vec3 u);
+    void setTarget(glm::vec3 tar);
+    void setDirection(glm::vec3 dir);
+    void setRight(glm::vec3 r);
+    //GETTERS
+    glm::vec3 getPos();
+    glm::vec3 getFront();
+    glm::vec3 getUp();
+    glm::vec3 getTarget();
+    glm::vec3 getDirection();
+    glm::vec3 getRight();
     
+    void Rotate(double y, double p, glm::vec3& direction);
+
 private:
-    static const double kMaxElevationAngle;
-    const glm::vec3 up_ = glm::vec3(0, 1, 0);
-    glm::vec3 position_;
-    double alpha_, beta_, width_height_ratio_;
+    /*
+    //Cam Rotation
+    float yaw = -90.0f;
+    float pitch = 0.0f;
+    float speed = 2.5f;
+    const float sensitivity = 0.1f;
+    float zoom = 45.0f;*/
+
+    glm::vec3 pos;
+    glm::vec3 front;
+    glm::vec3 up; 
+    //CamDir
+    glm::vec3 target;
+    glm::vec3 direction;
+    //Ref Axis
+    glm::vec3 right;
     
 };

@@ -12,99 +12,48 @@
 
 using namespace glm;
 
-const double Camera::kMaxElevationAngle = 5 * pi<double>() / 12;
+//const double Camera::kMaxElevationAngle = 5 * pi<double>() / 12;
 
-mat4 Camera::projection_matrix() const {
-    return perspective(radians(45.0f), 1.0f * (float) width_height_ratio_, 0.1f, 1000.0f);
+Camera::Camera() {
+    pos = glm::vec3(29.26f, 0.345f, -24.32f);
+    front = glm::vec3(0.0f, 0.0f, -1.0f);
+    up = glm::vec3(0.0f, 1.0f, 0.0f);
+    target = glm::vec3(0.0f, 0.0f, 12.0f); //glm::vec3(14.1339, 0.8, -12);
+    direction = glm::normalize(pos - target);
+    right = glm::normalize(glm::cross(up, direction));
 }
 
-void Camera::set_width_height_ratio(double width_height_ratio) {
-    width_height_ratio_ = width_height_ratio;
+void Camera::setPos(glm::vec3 p) {
+    this->pos = p;
+}
+void Camera::setFront(glm::vec3 fr) {
+    this->front = fr;
+}
+void Camera::setUp(glm::vec3 u) {
+    this->up = u;
+}
+void Camera::setTarget(glm::vec3 tar) {
+    this->target = tar;
+}
+void Camera::setDirection(glm::vec3 dir) {
+    this->direction = dir;
+}
+void Camera::setRight(glm::vec3 r) {
+this->right = r;
 }
 
-Camera::Camera(vec3 position, double width_height_ratio, double alpha, double beta) {
-    position_ = position;
-    alpha_ = alpha;
-    beta_ = beta;
-    width_height_ratio_ = width_height_ratio;
-}
+glm::vec3 Camera::getPos() { return this->pos; }
+glm::vec3 Camera::getFront() { return this->front; }
+glm::vec3 Camera::getUp() { return this->up; }
+glm::vec3 Camera::getTarget() { return this->target; }
+glm::vec3 Camera::getDirection() { return this->direction; }
+glm::vec3 Camera::getRight() { return this->right; }
 
-double Camera::alpha() const {
-    return alpha_;
-}
+void Camera::Rotate(double y, double p, glm::vec3& direction) {
 
-double Camera::beta() const {
-    return beta_;
-}
-
-void Camera::set_alpha(double alpha) {
-    alpha_ = alpha;
-}
-
-void Camera::set_beta(double beta) {
-    beta_ = beta;
-}
-
-void Camera::Rotate(double delta_alpha, double delta_beta) {
-    alpha_ += delta_alpha;
-    beta_ += delta_beta;
-    beta_ = std::min(kMaxElevationAngle, beta_);
-    beta_ = std::max(-kMaxElevationAngle, beta_);
-}
-
-vec3 Camera::position() const {
-    return position_;
-}
-
-void Camera::set_position(vec3 position) {
-    position_ = position;
-}
-
-vec3 Camera::front() const {
-    return vec3(cos(alpha_) * cos(beta_), sin(beta_), sin(alpha_) * cos(beta_));
-}
-
-void Camera::set_front(vec3 new_front) {
-    new_front = normalize(new_front);
-    beta_ = asin(new_front.y);
-    alpha_ = acos(new_front.x / pow(pow(new_front.x, 2) + pow(new_front.z, 2), 0.5));
-    if (new_front.z < 0) alpha_ = 2 * pi<double>() - alpha_;
-}
-
-void Camera::Move(MoveDirectionType direction, float time) {
-    auto left = cross(up_, front());
-    auto right = -left;
-    switch (direction) {
-        case MoveDirectionType::kForward:
-            position_ += front() * time;
-            break;
-        case MoveDirectionType::kBackward:
-            position_ -= front() * time;
-            break;
-        case MoveDirectionType::kLeftward:
-            position_ += left * time;
-            break;
-        case MoveDirectionType::kRightward:
-            position_ += right * time;
-            break;
-        case MoveDirectionType::kUpward:
-            position_ += up_ * time;
-            break;
-        case MoveDirectionType::kDownward:
-            position_ -= up_ * time;
-    }
-}
-
-mat4 Camera::view_matrix() const {
-    return lookAt(position(), position() + front(), up_);
-}
-
-vec3 Camera::center() const {
-    return position() + front();
-}
-
-void Camera::set_center(vec3 new_center) {
-    auto new_front = new_center - position_;
-    set_front(new_front);
+    direction.x = cos(glm::radians(y)) * cos(glm::radians(p));
+    direction.y = sin(glm::radians(p));
+    direction.z = sin(glm::radians(y)) * cos(glm::radians(p));
+    this->front= glm::normalize(direction);
 }
 
