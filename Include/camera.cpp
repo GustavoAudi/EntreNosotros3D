@@ -15,7 +15,7 @@ using namespace glm;
 //const double Camera::kMaxElevationAngle = 5 * pi<double>() / 12;
 
 Camera::Camera() {
-    pos = glm::vec3(29.26f, 0.345f, -24.32f);
+    pos = glm::vec3(29.26f, 0.31f, -24.32f);
     front = glm::vec3(0.0f, 0.0f, -1.0f);
     up = glm::vec3(0.0f, 1.0f, 0.0f);
     target = glm::vec3(0.0f, 0.0f, 12.0f); //glm::vec3(14.1339, 0.8, -12);
@@ -49,11 +49,11 @@ glm::vec3 Camera::getTarget() { return this->target; }
 glm::vec3 Camera::getDirection() { return this->direction; }
 glm::vec3 Camera::getRight() { return this->right; }
 
-void Camera::Rotate(double y, double p, glm::vec3& direction) {
+void Camera::Rotate(double y, double p) {
 
-    direction.x = cos(glm::radians(y)) * cos(glm::radians(p));
-    direction.y = sin(glm::radians(p));
-    direction.z = sin(glm::radians(y)) * cos(glm::radians(p));
-    this->front= glm::normalize(direction);
+    this->direction.x = cos(glm::radians(y)) * cos(glm::radians(p));
+    this->direction.y = sin(glm::radians(p));
+    this->direction.z = sin(glm::radians(y)) * cos(glm::radians(p));
+    this->front = glm::normalize(this->direction);
 }
 

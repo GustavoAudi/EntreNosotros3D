@@ -73,7 +73,7 @@ public:
     }
 
     // draws the model, and thus all its meshes
-    void Draw(Shader& shader, bool anim)
+    void Draw(Shader& shader, bool anim, unsigned int buffer, unsigned int buffer2)
     {
         if (scene->HasAnimations() && anim) {
             vector<aiMatrix4x4> transforms;
@@ -84,7 +84,7 @@ public:
             }
         }
         for (unsigned int i = 0; i < meshes.size(); i++) {
-            meshes[i].Draw(shader);
+            meshes[i].Draw(shader, buffer, buffer2);
         }
     }
     
@@ -872,7 +872,7 @@ unsigned int TextureFromFile(const char* path, const string& directory, bool gam
             format = GL_RGBA;
 
         glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

@@ -1,0 +1,2 @@
+C:/Users/gusta/Desktop/EntreNosotros3d/EntreNosotros3D/Include/libraries/glm/glm/out/build/x64-Debug (predeterminado)/CMakeFiles/edit_cache.dir
+C:/Users/gusta/Desktop/EntreNosotros3d/EntreNosotros3D/Include/libraries/glm/glm/out/build/x64-Debug (predeterminado)/CMakeFiles/rebuild_cache.dir

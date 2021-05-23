@@ -143,8 +143,13 @@ void main()
         alphaLOD = (maxLODdist-depth)/maxLODdist;
       }
 
+      float brightness = dot(result, vec3(0.2126, 0.7152, 0.0722));
+      if(material.Emissive != vec3(0.0))
+          BrightColor = vec4(result, transparent);
+      else
+          BrightColor = vec4(0.0, 0.0, 0.0, transparent);
 
-      FragColor = vec4(result*vec3(fadeout),transparent*(alphaLOD));   
+      FragColor = vec4(result,transparent);   
       
 }
 

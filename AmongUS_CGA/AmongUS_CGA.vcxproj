@@ -20,17 +20,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Config\tinyxml2.cpp" />
+    <ClCompile Include="..\Include\camera.cpp" />
     <ClCompile Include="..\Include\glad.c" />
     <ClCompile Include="..\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Config\tinyxml2.h" />
+    <ClInclude Include="..\Include\camera.h" />
     <ClInclude Include="..\Include\mesh.h" />
     <ClInclude Include="..\Include\Model.h" />
     <ClInclude Include="..\Include\stb_image.h" />
     <ClInclude Include="..\Shaders\shader.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Shaders\antialiasing.fs" />
+    <None Include="..\Shaders\bloom_final.fs" />
+    <None Include="..\Shaders\blur.fs" />
+    <None Include="..\Shaders\blur.vs" />
     <None Include="..\Shaders\model_loading.fs" />
     <None Include="..\Shaders\model_loading.vs" />
   </ItemGroup>

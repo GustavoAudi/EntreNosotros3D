@@ -24,6 +24,9 @@
     <ClCompile Include="..\Config\tinyxml2.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="..\Include\camera.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\mesh.h">
@@ -41,12 +44,27 @@
     <ClInclude Include="..\Config\tinyxml2.h">
       <Filter>Archivos de origen</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\camera.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\model_loading.fs">
       <Filter>Archivos de origen</Filter>
     </None>
     <None Include="..\Shaders\model_loading.vs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\blur.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\blur.vs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\bloom_final.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\antialiasing.fs">
       <Filter>Archivos de origen</Filter>
     </None>
   </ItemGroup>
