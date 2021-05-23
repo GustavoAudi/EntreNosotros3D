@@ -434,9 +434,14 @@ int main(int argc, char* argv[]) {
 	SDL_GLContext gl_context;
 	SDL_Window* window = NULL;
 	float maxSamples;
+	bool activate = false;
 	tinyxml2::XMLElement* pMSAA = pConfig->FirstChildElement("MSAA");
+	pMSAA->QueryBoolAttribute("activate", &activate);
 	pMSAA->QueryFloatAttribute("samples", &maxSamples);
 	if (maxSamples > 16) maxSamples = 16;
+	if (maxSamples < 2) maxSamples = 2;
+	if (!activate) maxSamples = 1;
+
 	// Config Multisample Render
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, maxSamples);
