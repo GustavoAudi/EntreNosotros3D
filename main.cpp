@@ -28,6 +28,7 @@ tinyxml2::XMLNode* pEscena;
 tinyxml2::XMLNode* pLucesHall;
 tinyxml2::XMLNode* pLucesMapa;
 tinyxml2::XMLNode* pLucesCharacter;
+tinyxml2::XMLNode* pConfig;
 tinyxml2::XMLElement* pLuz;
 tinyxml2::XMLNode* pSonidos;
 tinyxml2::XMLElement* pSonido;
@@ -61,7 +62,7 @@ struct movement {
 	bool moving_down = false;
 };
 
-void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine* &engine, ISoundSource* pasos[], int &ultimoPaso, bool modoLibre) {
+void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine*& engine, ISoundSource* pasos[], int& ultimoPaso, bool modoLibre) {
 	glm::vec3 cameraPos = camera->getPos();
 	glm::vec3 camAux = cameraPos;
 	if (mv.spedUp) {
@@ -101,7 +102,7 @@ void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoun
 			ultimoPaso = (ultimoPaso + 1) % 8;
 		}
 	}
-	if(mv.moving_up || mv.moving_down){
+	if (mv.moving_up || mv.moving_down) {
 		engine->stopAllSoundsOfSoundSource(pasos[ultimoPaso]);
 		if (mv.moving_up) {
 			cameraPos.y += cameraSpeed;
@@ -207,7 +208,7 @@ void setupLightsCharacter(Shader& ourShader) {
 	float* quadratic = new float();
 	float* cutOff = new float();
 	float* outerCutOff = new float();
-		
+
 	pLuz->QueryFloatAttribute("xAmb", &ambient->x);
 	pLuz->QueryFloatAttribute("yAmb", &ambient->y);
 	pLuz->QueryFloatAttribute("zAmb", &ambient->z);
@@ -296,7 +297,7 @@ void configLightsMap(Shader& ourShader, glm::vec3 diffuse, glm::vec3 specular) {
 	pLuz = pLucesMapa->FirstChildElement("Luz");
 
 	int i = 0;
-	while(pLuz != nullptr) {
+	while (pLuz != nullptr) {
 		string ligthName = "pointLights[" + std::to_string(i);
 
 		ourShader.setVec3(ligthName + "].diffuse", diffuse);
@@ -319,7 +320,7 @@ void iniciarSonidos(ISoundEngine*& engine) {
 	engine->setSoundVolume(0);
 
 	pSonido = pSonidos->FirstChildElement("Sonido");
-	
+
 	glm::vec3* posicion = new glm::vec3();
 	float* minVol = new float();
 	const char* rut;
@@ -343,7 +344,7 @@ void iniciarSonidos(ISoundEngine*& engine) {
 }
 
 void cargarSonidoPasos(ISoundEngine*& engine, ISoundSource* pasos[8]) {
-	
+
 	ISoundSource* paso1 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal01.wav");
 	paso1->forceReloadAtNextUse();
 	paso1->setDefaultVolume(0.5f);
@@ -413,31 +414,39 @@ unsigned int loadCubemap(vector<std::string> faces)
 
 
 int main(int argc, char* argv[]) {
+	//Load xml file
+	tinyxml2::XMLDocument xmlDoc;
+	xmlDoc.LoadFile("../Config/Escena/escena.xml");
+	pEscena = xmlDoc.FirstChild();
+	pConfig = pEscena->FirstChildElement("Config");
+	pLucesHall = pEscena->FirstChildElement("LucesHall");
+	pLucesMapa = pEscena->FirstChildElement("LucesMapa");
+	pLucesCharacter = pEscena->FirstChildElement("LucesCharacter");
+	pSonidos = pEscena->FirstChildElement("Sonidos");
+
 	//INICIALIZACION
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
 		SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
 		return 1;
 	}
 
-	SDL_Window* window = NULL;
 	SDL_GLContext gl_context;
+	SDL_Window* window = NULL;
+	float maxSamples;
+	tinyxml2::XMLElement* pMSAA = pConfig->FirstChildElement("MSAA");
+	pMSAA->QueryFloatAttribute("samples", &maxSamples);
+
+	if (maxSamples > 16) maxSamples = 16;
+
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, maxSamples);
 
 	window = SDL_CreateWindow("EntreNosotros3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		SCR_W, SCR_H, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-	//SDL_SetRelativeMouseMode(SDL_TRUE); //mouse position relative to screen
 
 	bool fullScreen = false;
-	
-	SDL_DisplayMode DM;
 
-	//Load xml file
-	tinyxml2::XMLDocument xmlDoc;
-	xmlDoc.LoadFile("../Config/Escena/escena.xml");
-	pEscena = xmlDoc.FirstChild();
-	pLucesHall = pEscena->FirstChildElement("LucesHall");
-	pLucesMapa = pEscena->FirstChildElement("LucesMapa");
-	pLucesCharacter = pEscena->FirstChildElement("LucesCharacter");
-	pSonidos = pEscena->FirstChildElement("Sonidos");
+	SDL_DisplayMode DM;
 
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
@@ -445,9 +454,9 @@ int main(int argc, char* argv[]) {
 
 	//disable limit of 60fps
 	SDL_GL_SetSwapInterval(0);
+	gladLoadGLLoader(SDL_GL_GetProcAddress);
 	// Check OpenGL properties
 	printf("OpenGL loaded\n");
-	gladLoadGLLoader(SDL_GL_GetProcAddress);
 	printf("Vendor:   %s\n", glGetString(GL_VENDOR));
 	printf("Renderer: %s\n", glGetString(GL_RENDERER));
 	printf("Version:  %s\n", glGetString(GL_VERSION));
@@ -457,9 +466,21 @@ int main(int argc, char* argv[]) {
 	glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
 	glEnable(GL_DEPTH_CLAMP);
 	glEnable(GL_BLEND);
+	glEnable(GL_MULTISAMPLE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// enable depth testing
 	Shader ourShader("../Shaders/model_loading.vs", "../Shaders/model_loading.fs");
 	Shader skyboxShader("../Shaders/skybox_render.vs", "../Shaders/skybox_render.fs");
+	Shader blur("../Shaders/blur.vs", "../Shaders/blur.fs");
+	Shader bloomFinal("../Shaders/blur.vs", "../Shaders/bloom_final.fs");
+
+	bool bloom = true;
+	bool antialiasing = true;
+	float exposure = 1.0f;
+	blur.use();
+	blur.setInt("image", 0);
+	bloomFinal.use();
+	bloomFinal.setInt("scene", 0);
+	bloomFinal.setInt("bloomBlur", 1);
 
 	Model ourModel("../Include/model/c.obj");
 	//Shader animShader("../animated_model.vert", "../model_loading.fs");
@@ -536,8 +557,6 @@ int main(int argc, char* argv[]) {
 
 	//load textures
 	unsigned int cubemapTexture = loadCubemap(faces);
-	skyboxShader.use();
-	skyboxShader.setInt("skybox", 0);
 
 
 	bool running = true; // set running to true
@@ -556,12 +575,8 @@ int main(int argc, char* argv[]) {
 
 	Camera* camera = new Camera();
 
-	glm::vec3 direction;
-	camera->Rotate(yaw, pitch, direction);
-	/*
-	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	direction.y = sin(glm::radians(pitch));
-	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));*/
+	//glm::vec3 direction = camera->getDirection();
+	camera->Rotate(yaw, pitch);
 
 	//View matrix
 	glm::mat4 view;
@@ -594,7 +609,7 @@ int main(int argc, char* argv[]) {
 	int timeAux = 0;
 	int diff = 0;
 	int timeN = 0;
-	
+
 	// Iniciar Luces
 	glm::vec3 ambient = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 diffuse = glm::vec3(0.8f);
@@ -616,14 +631,142 @@ int main(int argc, char* argv[]) {
 	ISoundSource* ligthOffSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_reactor_manifoldfail.wav");
 	ligthOffSound->setDefaultVolume(1.0f);
 	ligthOffSound->forceReloadAtNextUse();
-	
+
 	ISoundSource* pasos[8];
-	cargarSonidoPasos(engine,pasos);
+	cargarSonidoPasos(engine, pasos);
 	int ultimoPaso = 0;
 
 	glm::mat4 modelAnim = glm::mat4(1.0f);
 	modelAnim = glm::translate(modelAnim, glm::vec3(29.26f, 0.0f, -24.32f));
 	modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
+	/*
+		//NEW- SHADOWS
+			// configure depth map FBO
+		// -----------------------
+			unsigned int depthMapFBO;
+			glGenFramebuffers(1, &depthMapFBO);
+			// create depth texture
+			unsigned int depthMap;
+			glGenTextures(1, &depthMap);
+			glBindTexture(GL_TEXTURE_2D, depthMap);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_W, SCR_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+			// attach depth texture as FBO's depth buffer
+			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
+
+
+			// configure (floating point) framebuffers
+		// ---------------------------------------
+				//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	unsigned int hdrFBO;
+	glGenFramebuffers(1, &hdrFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+	// create 2 floating point color buffers (1 for normal rendering, other for brightness threshold values)
+	unsigned int colorBuffers[2];
+	glGenTextures(2, colorBuffers);
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_W, SCR_H, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		// attach texture to framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
+	}
+
+	// create and attach depth buffer (renderbuffer)
+	unsigned int rboDepth;
+	glGenRenderbuffers(1, &rboDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_W, SCR_H);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachments);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Framebuffer not complete111!" << std::endl;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	// ping-pong-framebuffer for blurring
+	unsigned int pingpongFBO[2];
+	unsigned int pingpongColorbuffers[2];
+	glGenFramebuffers(2, pingpongFBO);
+	glGenTextures(2, pingpongColorbuffers);
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
+		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_W, SCR_H, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0);
+		// also check if framebuffers are complete (no need for depth buffer)
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "Framebuffer not complete!" << std::endl;
+	}
+
+	// create a multisampled color attachment texture
+	//unsigned int textureColorBufferMultiSampled;
+	//glGenTextures(1, &textureColorBufferMultiSampled);
+	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled);
+	//glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, ExtensionCount, GL_RGB, SCR_W, SCR_H, GL_TRUE);
+	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled, 0);
+	// create a (also multisampled) renderbuffer object for depth and stencil attachments
+	/*unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, ExtensionCount, GL_DEPTH24_STENCIL8, SCR_W, SCR_H);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+	*/
+
+	unsigned int framebuffer;
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	unsigned int textureColorBufferMultiSampled[2];
+	glGenTextures(2, textureColorBufferMultiSampled);
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled[i]);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, maxSamples, GL_RGB, SCR_W, SCR_H, GL_TRUE);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled[i], 0);
+	}
+
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, SCR_W, SCR_H);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+
+	unsigned int attachmentsMS[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachmentsMS);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Framebuffer not comp!" << std::endl;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//																		LOOP PRINCIPAL
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	cout << (2^128) << endl;
 	while (running)		// the event loop
 	{
 		//frame time logic
@@ -631,7 +774,7 @@ int main(int argc, char* argv[]) {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		timeN = currentFrame / 15;
-		cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
+		//cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
 		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
 		move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
@@ -639,10 +782,12 @@ int main(int argc, char* argv[]) {
 		//audio processing
 		engine->setListenerPosition(vec3df(camera->getPos().x, camera->getPos().y, camera->getPos().z),
 			vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
-		
+
 		//render
-		glClearColor(0.0, 0.0, 1.0, 1.0); // set background colour
+		glClearColor(0.0, 0.0, 0.0, 1.0); // set background colour
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window*/
+
+
 
 		// draw skybox as last
 		glm::mat4 projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
@@ -660,9 +805,9 @@ int main(int argc, char* argv[]) {
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glEnable(GL_DEPTH_TEST);
-		//glDepthFunc(GL_LESS); // set depth function back to default
+		//glDepthFunc(GL_LESS); // set depth function back to default 
 
-		
+
 		view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
 		//0.5 = clipping plane.
 		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
@@ -756,21 +901,67 @@ int main(int argc, char* argv[]) {
 		configLightsHall(ourShader, ambient, diffuseHall, specularHall);
 		ourShader.setBool("anim", false);
 
-		//DRAW DEL MODELO
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
 		model = glm::mat4(1.0f);
 		ourShader.setMat4("model", model);
 		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
-			ourModel.Draw(ourShader,false);
+			ourModel.Draw(ourShader, false, 0, 0);
 		}
 
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFBO);
+		glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_W, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//DRAW DEL MODELO
+
+
+		bool horizontal = true, first_iteration = true;
+		unsigned int amount = 10;
+		blur.use();
+		blur.setMat4("projection", projection);
+		blur.setMat4("view", view);
+		blur.setMat4("model", model);
+
+		glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
+		for (unsigned int i = 0; i < amount; i++)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+			blur.setInt("horizontal", horizontal);
+			// bind texture of other framebuffer (or scene if first iteration)
+			ourModel.Draw(blur, false, 1, 1);
+			glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[horizontal]);
+			horizontal = !horizontal;
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//ourModel.Draw(blur, false, 1, 1);
+		// 3. now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		bloomFinal.use();
+		bloomFinal.setMat4("projection", projection);
+		bloomFinal.setMat4("view", view);
+		bloomFinal.setMat4("model", model);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, SCR_W, SCR_H, GL_TRUE);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+		bloomFinal.setInt("bloom", bloom);
+		bloomFinal.setFloat("exposure", exposure);
+
+		ourModel.Draw(bloomFinal, false, 1, 1);
+
+
 		//DRAW DEL CADAVER
+		ourShader.use();
 		model = glm::translate(model, glm::vec3(21.0f, 0.0f, -12.6f));
 		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
 		model = glm::mat4(glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0)));
 		ourShader.setBool("anim", true);
 		ourShader.setBool("moove", false);
 		ourShader.setMat4("model", model);
-		muerto.Draw(ourShader, false);
+		muerto.Draw(ourShader, false, 0, 0);
 
 		//DRAW DEL ASTRONAUTA
 		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
@@ -797,13 +988,12 @@ int main(int argc, char* argv[]) {
 		ourShader.setMat4("view", view);
 		//ourShader.setMat4("projection", projection);
 
-		glm::mat4 matr_normals_cube =  glm::mat4(glm::transpose(glm::inverse(modelAnim)));
+		glm::mat4 matr_normals_cube = glm::mat4(glm::transpose(glm::inverse(modelAnim)));
 		ourShader.setMat4("normals_matrix", matr_normals_cube);
 		ourShader.setBool("anim", true);
 		ourShader.setBool("moove", (mv.moving_forward || mv.moving_back));
 		cuerpo1.initBonesForShader(ourShader);
-		cuerpo1.Draw(ourShader, (mv.moving_forward || mv.moving_back));
-
+		cuerpo1.Draw(ourShader, (mv.moving_forward || mv.moving_back), 0, 0);
 
 		//DRAW DEL FANTASMA
 		model = glm::mat4(1.0f);
@@ -812,7 +1002,7 @@ int main(int argc, char* argv[]) {
 		ourShader.setMat4("model", model);
 		ourShader.setBool("moove", true);
 		fantasma.initBonesForShader(ourShader);
-		fantasma.Draw(ourShader, true);
+		fantasma.Draw(ourShader, true, 0, 0);
 
 		while (SDL_PollEvent(&sdlEvent)) {
 			switch (sdlEvent.type) {
@@ -832,114 +1022,123 @@ int main(int argc, char* argv[]) {
 				if (pitch < -89.0f)
 					pitch = -89.0f;
 
-				glm::vec3 direction;
-				camera->Rotate(yaw, pitch, direction);
+				camera->Rotate(yaw, pitch);
 
-					break;
+				break;
+			}
+			case SDL_MOUSEWHEEL: {
+				//if (sdlEvent.wheel.y > 0) // scroll up
+				//{
+				float yoffset = sdlEvent.wheel.y;
+				zoom -= (float)yoffset;
+				if (zoom < 1.0f)
+					zoom = 1.0f;
+				if (zoom > 45.0f)
+					zoom = 45.0f;
+				//cout << "Moví la ruedita" << endl;
+				break;
+
+			}
+			case SDL_QUIT: {
+				running = false;
+				break;
+			}
+			case SDL_KEYUP: {
+				if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
+					mv.spedUp = false;
 				}
-				case SDL_MOUSEWHEEL: {
-					//if (sdlEvent.wheel.y > 0) // scroll up
-					//{
-					float yoffset = sdlEvent.wheel.y;
-					zoom -= (float)yoffset;
-					if (zoom < 1.0f)
-						zoom = 1.0f;
-					if (zoom > 45.0f)
-						zoom = 45.0f;
-					//cout << "Moví la ruedita" << endl;
-					break;
-					
+				if (sdlEvent.key.keysym.sym == SDLK_w) {
+					mv.moving_forward = false;
 				}
-				case SDL_QUIT: {
-					running = false;
-					break;
+				if (sdlEvent.key.keysym.sym == SDLK_a) {
+					mv.moving_left = false;
 				}
-				case SDL_KEYUP: {
-					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
-						mv.spedUp = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_w) {
-						mv.moving_forward= false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_a) {
-						mv.moving_left = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_d) {
-						mv.moving_right = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_s) {
-						mv.moving_back = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
-						if (fixed_pos)
+				if (sdlEvent.key.keysym.sym == SDLK_d) {
+					mv.moving_right = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_s) {
+					mv.moving_back = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
+					if (fixed_pos)
 						mv.moving_up = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
-						if (fixed_pos)
-						mv.moving_down = false;
-					}
-					break;
 				}
-				case SDL_KEYDOWN: {
-					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
-						mv.spedUp = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_c) {
-						cout << "X: " << camera->getPos().x << " Y: " << camera->getPos().y << " Z: " << camera->getPos().z << endl;
-						cout << "X: " << camera->getFront().x << " Y: " << camera->getFront().y << " Z: " << camera->getFront().z << endl;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
-						running = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_i) {
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_k) {
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_a) {
-						mv.moving_left = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_d) {
-						mv.moving_right = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_s) {
-						mv.moving_back = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_w) {
-						mv.moving_forward= true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
-						if(fixed_pos)
-							mv.moving_up = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
-						if (fixed_pos)
-							mv.moving_down = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_x) {
-						cortoElectricidad = !cortoElectricidad;
-						count = 0;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_e) {
-						if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
-							if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
-								cortoElectricidad = !cortoElectricidad;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_l) {
-						linterna = !linterna;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_1) {
-						specular_map = !specular_map;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_TAB) {
-						fixed_pos = !fixed_pos;
-						if (!fixed_pos)
-							camera->setPos(old_pos_camera);
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_F11) {
-						if(fullScreen)
-							SDL_SetWindowFullscreen(window, SDL_FALSE);
-						else
-							SDL_SetWindowFullscreen(window, SDL_TRUE);
+				if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
+					if (fixed_pos)
+						mv.moving_down = false;
+				}
+				break;
+			}
+			case SDL_KEYDOWN: {
+				if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
+					mv.spedUp = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_c) {
+					cout << "X: " << camera->getPos().x << " Y: " << camera->getPos().y << " Z: " << camera->getPos().z << endl;
+					cout << "X: " << camera->getFront().x << " Y: " << camera->getFront().y << " Z: " << camera->getFront().z << endl;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
+					running = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_i) {
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_k) {
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_a) {
+					mv.moving_left = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_d) {
+					mv.moving_right = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_s) {
+					mv.moving_back = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_w) {
+					mv.moving_forward = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
+					if (fixed_pos)
+						mv.moving_up = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
+					if (fixed_pos)
+						mv.moving_down = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_x) {
+					cortoElectricidad = !cortoElectricidad;
+					count = 0;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_e) {
+					if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
+						if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
+							cortoElectricidad = !cortoElectricidad;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_l) {
+					linterna = !linterna;
+				}if (sdlEvent.key.keysym.sym == SDLK_b) {
+					bloom = !bloom;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_m) {
+					if (antialiasing)
+						glDisable(GL_MULTISAMPLE);
+					else
+						glEnable(GL_MULTISAMPLE);
+
+					antialiasing = !antialiasing;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_1) {
+					specular_map = !specular_map;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_TAB) {
+					fixed_pos = !fixed_pos;
+					if (!fixed_pos)
+						camera->setPos(old_pos_camera);
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_F11) {
+					if (fullScreen)
+						SDL_SetWindowFullscreen(window, SDL_FALSE);
+					else
+						SDL_SetWindowFullscreen(window, SDL_TRUE);
 
 					fullScreen = !fullScreen;
 
@@ -948,7 +1147,7 @@ int main(int argc, char* argv[]) {
 					SDL_GetCurrentDisplayMode(0, &DM);
 					auto Width = DM.w;
 					auto Height = DM.h;
-					if(fullScreen)
+					if (fullScreen)
 						glViewport(0, 0, Width, Height); //update viewport
 					else
 						glViewport(0, 0, SCR_W, SCR_H);

@@ -143,6 +143,11 @@ void main()
         alphaLOD = (maxLODdist-depth)/maxLODdist;
       }
 
+      float brightness = dot(result, vec3(0.2126, 0.7152, 0.0722));
+        if(brightness > 1.0)
+            BrightColor = vec4(result*vec3(fadeout), transparent*(alphaLOD));
+        else
+            BrightColor = vec4(0.0, 0.0, 0.0, transparent*(alphaLOD));
 
       FragColor = vec4(result*vec3(fadeout),transparent*(alphaLOD));   
       

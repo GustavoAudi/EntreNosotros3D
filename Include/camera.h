@@ -31,7 +31,7 @@ public:
     glm::vec3 getDirection();
     glm::vec3 getRight();
     
-    void Rotate(double y, double p, glm::vec3& direction);
+    void Rotate(double y, double p);
 
 private:
     /*

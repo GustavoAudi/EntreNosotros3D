@@ -1,4 +1,7 @@
 <Escena>
+	<Config>
+        <MSAA samples="2"/> <!--x2, x4, x16-->
+    </Config>
 	<LucesMapa>
 		<!--Luz Comunicación-->
 		<Luz xPos="33.4432f" yPos="1.7f" zPos="-3.67246f" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.5" linear="0.09" quadratic="0.04" />
