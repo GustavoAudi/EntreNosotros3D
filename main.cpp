@@ -580,7 +580,7 @@ int main(int argc, char* argv[]) {
 
 	bool running = true;
 	bool fullScreen = false;
-	bool bloom = true;
+	bool bloom = false;
 	bool antialiasing = true;
 	float exposure = 2.0f;
 	bool cortoElectricidad = false;
@@ -726,7 +726,7 @@ int main(int argc, char* argv[]) {
 	for (unsigned int i = 0; i < 2; i++)
 	{
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, ColorBuffersMultiSampled[i]);
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, maxSamples, GL_RGB, SCR_W, SCR_H, GL_TRUE);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, maxSamples, GL_RGBA, SCR_W, SCR_H, GL_TRUE);
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, ColorBuffersMultiSampled[i], 0);
 	}
@@ -875,41 +875,55 @@ int main(int argc, char* argv[]) {
 		ourShader.setVec3("viewPos", camera->getPos());
 		
 		// DRAW MODEL
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
-			ourModel.Draw(ourShader, false, 0, 0);
+
+		if (!antialiasing) {
+			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+			if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
+				ourModel.Draw(ourShader, false, 0, 0);
+			}
 		}
+		else {
+			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
+				ourModel.Draw(ourShader, false, 0, 0);
+			}
 
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		MSAA.use();
-		MSAA.setMat4("projection", projection);
-		MSAA.setMat4("view", view);
-		MSAA.setMat4("model", model);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, ColorBuffersMultiSampled[0]);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, ColorBuffersMultiSampled[1]);
-		ourModel.Draw(MSAA, false, 1, 1);
-
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferMultisampledFBO);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferFBO);
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+			glReadBuffer(GL_COLOR_ATTACHMENT1);
+			glDrawBuffer(GL_COLOR_ATTACHMENT1);
+			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+			
+			glDrawBuffers(2, attachments);
+		
+		}
+		
 		bool horizontal = true;
-		unsigned int amount = 10;
-		blur.use();
-		blur.setMat4("projection", projection);
-		blur.setMat4("view", view);
-		blur.setMat4("model", model);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
-		for (unsigned int i = 0; i < amount; i++)
-		{
-			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
-			blur.setInt("horizontal", horizontal);
-			// bind texture of other framebuffer
-			ourModel.Draw(blur, false, 1, 1);
-			glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[horizontal]);
-			horizontal = !horizontal;
+		if (bloom) {
+			unsigned int amount = 5;
+			blur.use();
+			blur.setMat4("projection", projection);
+			blur.setMat4("view", view);
+			blur.setMat4("model", model);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
+			for (unsigned int i = 0; i < amount; i++)
+			{
+				glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				blur.setInt("horizontal", horizontal);
+				// bind texture of other framebuffer
+				ourModel.Draw(blur, false, 1, 1);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[horizontal]);
+				horizontal = !horizontal;
+			}
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1083,11 +1097,6 @@ int main(int argc, char* argv[]) {
 						bloom = !bloom;
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_m) {
-						if (antialiasing)
-							glDisable(GL_MULTISAMPLE);
-						else
-							glEnable(GL_MULTISAMPLE);
-
 						antialiasing = !antialiasing;
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_1) {
