@@ -85,7 +85,7 @@ void main()
       vec3 result = vec3(0.0f);
    
       if(!apagon){
-      
+          
           //result = CalcDirLight(dirLight, norm, viewDir);
 
            for(int i = 0; i < NR_POINT_LIGHTS; i++){
@@ -114,6 +114,9 @@ void main()
         emission = material.Emissive;
       }else{
         emission = material.Emissive * tex.rgb;
+      }
+      if(material.Diffuse == vec3(0.360784, 0.683922, 0.690196)){
+         emission = spotLights[0].diffuse;
       }
 
       if (result.x + result.y + result.z < 0.f){
@@ -162,7 +165,7 @@ float LinearizeDepth(float depth)
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 {
-    vec3 tex =  vec3(texture(texture_diffuse1, TexCoords));
+    vec3 tex = vec3(texture(texture_diffuse1, TexCoords));
 
     vec3 lightDir = normalize(-light.direction);
 
@@ -174,11 +177,15 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.Shininess);
 
     // combine results
-    vec3 ambient = light.ambient * material.Diffuse;
+    vec3 newDiffuse = material.Diffuse;
+    if(material.Diffuse == vec3(0.360784, 0.683922, 0.690196)){
+           newDiffuse = spotLights[0].diffuse;
+    }
+    vec3 ambient = light.ambient * newDiffuse;
     if(tex != vec3(0.f))
             ambient = light.ambient * tex;
 
-    vec3 diffuse = light.diffuse * diff * material.Diffuse;
+    vec3 diffuse = light.diffuse * diff * newDiffuse;
     if(tex != vec3(0.f))
             diffuse =  light.diffuse * diff *  tex;
 
@@ -220,11 +227,15 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
     
     // combine results
-    vec3 ambient = light.ambient * material.Diffuse;
+    vec3 newDiffuse = material.Diffuse;
+    if(material.Diffuse == vec3(0.360784, 0.683922, 0.690196)){
+           newDiffuse = spotLights[0].diffuse;
+    }
+    vec3 ambient = light.ambient * newDiffuse;
     if(tex != vec3(0.f))
             ambient = light.ambient * tex;
 
-    vec3 diffuse = light.diffuse * diff * material.Diffuse;
+    vec3 diffuse = light.diffuse * diff * newDiffuse;
     if(tex != vec3(0.f))
             diffuse =  light.diffuse * diff *  tex;
     
@@ -273,11 +284,15 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
     // combine results
-    vec3 ambient = light.ambient * material.Diffuse;
+    vec3 newDiffuse = material.Diffuse;
+    if(material.Diffuse == vec3(0.360784, 0.683922, 0.690196)){
+           newDiffuse = spotLights[0].diffuse;
+    }
+    vec3 ambient = light.ambient * newDiffuse;
      if(tex != vec3(0.f))
             ambient = light.ambient * tex;
 
-    vec3 diffuse = light.diffuse * diff * material.Diffuse;
+    vec3 diffuse = light.diffuse * diff * newDiffuse;
      if(tex != vec3(0.f))
             diffuse =  light.diffuse * diff *  tex;
 

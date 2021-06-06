@@ -467,7 +467,7 @@ int main(int argc, char* argv[]) {
 	glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
 	glEnable(GL_DEPTH_CLAMP);
 	glEnable(GL_BLEND);
-	//glEnable(GL_MULTISAMPLE);
+	glDisable(GL_MULTISAMPLE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// enable depth testing
 
 	// Setup Shaders
@@ -475,12 +475,7 @@ int main(int argc, char* argv[]) {
 	Shader skyboxShader("../Shaders/skybox_render.vs", "../Shaders/skybox_render.fs");
 	Shader blur("../Shaders/blur.vs", "../Shaders/blur.fs");
 	Shader bloomFinal("../Shaders/blur.vs", "../Shaders/bloom_final.fs");
-	Shader MSAA("../Shaders/blur.vs", "../Shaders/antialiasing.fs");
 
-	MSAA.use();
-	MSAA.setInt("image", 0);
-	MSAA.setInt("bright", 1);
-	MSAA.setInt("samples", maxSamples);
 	blur.use();
 	blur.setInt("image", 0);
 	bloomFinal.use();
@@ -721,15 +716,13 @@ int main(int argc, char* argv[]) {
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
 
 	// create a multisampled color attachment texture
-	unsigned int ColorBuffersMultiSampled[2];
-	glGenTextures(2, ColorBuffersMultiSampled);
-	for (unsigned int i = 0; i < 2; i++)
-	{
-		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, ColorBuffersMultiSampled[i]);
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, maxSamples, GL_RGBA, SCR_W, SCR_H, GL_TRUE);
-		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, ColorBuffersMultiSampled[i], 0);
-	}
+	unsigned int ColorBufferMultiSampled;
+	glGenTextures(1, &ColorBufferMultiSampled);
+
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, maxSamples, GL_RGBA, SCR_W, SCR_H, GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled, 0);
 
 	// create a (also multisampled) renderbuffer object for depth and stencil attachments
 	unsigned int rboDepthMultisampled;
@@ -739,8 +732,8 @@ int main(int argc, char* argv[]) {
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthMultisampled);
 
-	unsigned int attachmentsMultisampled[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-	glDrawBuffers(2, attachmentsMultisampled);
+	unsigned int attachmentsMultisampled[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, attachmentsMultisampled);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Framebuffer not complete111!" << std::endl;
 
@@ -875,16 +868,15 @@ int main(int argc, char* argv[]) {
 		ourShader.setVec3("viewPos", camera->getPos());
 		
 		// DRAW MODEL
-
-		if (!antialiasing) {
-			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-			if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
+		glDisable(GL_MULTISAMPLE);
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
 				ourModel.Draw(ourShader, false, 0, 0);
-			}
 		}
-		else {
+		
+		if (antialiasing) {
+			glEnable(GL_MULTISAMPLE);
 			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
@@ -895,14 +887,12 @@ int main(int argc, char* argv[]) {
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferFBO);
 			glReadBuffer(GL_COLOR_ATTACHMENT0);
 			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+			glClear(GL_COLOR_BUFFER_BIT);
 			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-			glReadBuffer(GL_COLOR_ATTACHMENT1);
-			glDrawBuffer(GL_COLOR_ATTACHMENT1);
-			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-			
+
 			glDrawBuffers(2, attachments);
-		
 		}
+		
 		
 		bool horizontal = true;
 		if (bloom) {
