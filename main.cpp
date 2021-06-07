@@ -122,15 +122,21 @@ void setupLightsHall(Shader& ourShader) {
 
 	glm::vec3* posicion = new glm::vec3();
 	glm::vec3* direction = new glm::vec3();
-	glm::vec3* ambient = new glm::vec3();
-	glm::vec3* diffuse = new glm::vec3();
-	glm::vec3* specular = new glm::vec3();
-	float* constant = new float();
-	float* linear = new float();
-	float* quadratic = new float();
-	float* cutOff = new float();
-	float* outerCutOff = new float();
+	glm::vec3 ambient = glm::vec3(0.0f);
+	glm::vec3 diffuse = glm::vec3(1.0f);
+	glm::vec3 specular = glm::vec3(1.0f);
+	float constant = 1.0f;
+	float linear = 0.0f;
+	float quadratic = 1.0f;
+	float cutOff = 8.0f;
+	float outerCutOff = 50.0f;
 	int i = 0;
+
+	ourShader.setFloat("constantSpot", constant);
+	ourShader.setFloat("linearSpot", linear);
+	ourShader.setFloat("quadraticSpot", quadratic);
+	ourShader.setFloat("cutOffSpot", glm::cos(glm::radians(cutOff)));
+	ourShader.setFloat("outerCutOffSpot", glm::cos(glm::radians(outerCutOff)));
 
 	while (pLuz != nullptr) {
 		pLuz->QueryFloatAttribute("xPos", &posicion->x);
@@ -139,62 +145,21 @@ void setupLightsHall(Shader& ourShader) {
 		pLuz->QueryFloatAttribute("xDir", &direction->x);
 		pLuz->QueryFloatAttribute("yDir", &direction->y);
 		pLuz->QueryFloatAttribute("zDir", &direction->z);
-		pLuz->QueryFloatAttribute("xAmb", &ambient->x);
-		pLuz->QueryFloatAttribute("yAmb", &ambient->y);
-		pLuz->QueryFloatAttribute("zAmb", &ambient->z);
-		pLuz->QueryFloatAttribute("xDif", &diffuse->x);
-		pLuz->QueryFloatAttribute("yDif", &diffuse->y);
-		pLuz->QueryFloatAttribute("zDif", &diffuse->z);
-		pLuz->QueryFloatAttribute("xSpec", &specular->x);
-		pLuz->QueryFloatAttribute("ySpec", &specular->y);
-		pLuz->QueryFloatAttribute("zSpec", &specular->z);
-		pLuz->QueryFloatAttribute("constant", constant);
-		pLuz->QueryFloatAttribute("linear", linear);
-		pLuz->QueryFloatAttribute("quadratic", quadratic);
-		pLuz->QueryFloatAttribute("cutOff", cutOff);
-		pLuz->QueryFloatAttribute("outerCutOff", outerCutOff);
 
 		string ligthName = "spotLights[" + std::to_string(i);
 
 		ourShader.setVec3(ligthName + "].position", *posicion);
 		ourShader.setVec3(ligthName + "].direction", *direction);
-		ourShader.setVec3(ligthName + "].ambient", *ambient);
-		ourShader.setVec3(ligthName + "].diffuse", *diffuse);
-		ourShader.setVec3(ligthName + "].specular", *specular);
-		ourShader.setFloat(ligthName + "].constant", *constant);
-		ourShader.setFloat(ligthName + "].linear", *linear);
-		ourShader.setFloat(ligthName + "].quadratic", *quadratic);
-		ourShader.setFloat(ligthName + "].cutOff", glm::cos(glm::radians(*cutOff)));
-		ourShader.setFloat(ligthName + "].outerCutOff", glm::cos(glm::radians(*outerCutOff)));
 
 		pLuz = pLuz->NextSiblingElement("Luz");
 		i++;
-		posicion = new glm::vec3();
-		ambient = new glm::vec3();
-		diffuse = new glm::vec3();
-		specular = new glm::vec3();
-		constant = new float();
-		linear = new float();
-		quadratic = new float();
-		cutOff = new float();
-		outerCutOff = new float();
 	}
 }
 
 void configLightsHall(Shader& ourShader, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular) {
-	pLuz = pLucesHall->FirstChildElement("Luz");
-
-	int i = 0;
-	while (pLuz != nullptr) {
-		string ligthName = "spotLights[" + std::to_string(i);
-
-		ourShader.setVec3(ligthName + "].diffuse", diffuse);
-		ourShader.setVec3(ligthName + "].specular", specular);
-		ourShader.setVec3(ligthName + "].ambient", ambient);
-
-		i++;
-		pLuz = pLuz->NextSiblingElement("Luz");
-	}
+	ourShader.setVec3("diffuseSpot", diffuse);
+	ourShader.setVec3("specularSpot", specular);
+	ourShader.setVec3("ambientSpot", ambient);
 }
 
 void setupLightsCharacter(Shader& ourShader) {
@@ -285,12 +250,6 @@ void setupLightsMap(Shader& ourShader) {
 		linear = new float();
 		quadratic = new float();
 	}
-
-	//luz direccional prueba
-	ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-	ourShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-	ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-	ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 }
 
 void configLightsMap(Shader& ourShader, glm::vec3 diffuse, glm::vec3 specular) {

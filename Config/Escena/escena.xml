@@ -54,23 +54,23 @@
 	</LucesCharacter>
 	<LucesHall>
 		<!--Luz1 Pasillo Administración-->
-		<Luz xPos="27.173613f" yPos="0.5f" zPos="-12.345622f" xDir="0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="0.360784f" yDif="0.683922f" zDif="0.690196f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<Luz xPos="27.173613f" yPos="0.5f" zPos="-12.345622f" xDir="0.5f" yDir="-0.9f" zDir="0.0f"/>
 		<!--Luz2 Pasillo Administración-->
-		<Luz xPos="27.173613f" yPos="0.5f" zPos="-13.934513f" xDir="0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="0.360784f" yDif="0.683922f" zDif="0.690196f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<Luz xPos="27.173613f" yPos="0.5f" zPos="-13.934513f" xDir="0.5f" yDir="-0.9f" zDir="0.0f"/>
 		<!--Luz3 Pasillo Administración-->
-		<Luz xPos="27.173613f" yPos="0.5f" zPos="-15.395281f" xDir="0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="0.360784f" yDif="0.683922f" zDif="0.690196f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<Luz xPos="27.173613f" yPos="0.5f" zPos="-15.395281f" xDir="0.5f" yDir="-0.9f" zDir="0.0f"/>
 		<!--Luz4 Pasillo Administración-->
-		<Luz xPos="29.029375f" yPos="0.5f" zPos="-15.405938f" xDir="-0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="0.360784f" yDif="0.683922f" zDif="0.690196f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<Luz xPos="29.029375f" yPos="0.5f" zPos="-15.405938f" xDir="-0.5f" yDir="-0.9f" zDir="0.0f"/>
 		<!--Luz5 Pasillo Administración-->
-		<Luz xPos="29.035074f" yPos="0.5f" zPos="-12.341219f" xDir="-0.5f" yDir="-0.9f" zDir="0.0f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="0.360784f" yDif="0.683922f" zDif="0.690196f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<Luz xPos="29.035074f" yPos="0.5f" zPos="-12.341219f" xDir="-0.5f" yDir="-0.9f" zDir="0.0f"/>
 		<!--Luz6 Pasillo Administración-->
-		<Luz xPos="30.823282f" yPos="0.5f" zPos="-12.639383f" xDir="0.0f" yDir="-0.9f" zDir="-0.5f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="0.360784f" yDif="0.683922f" zDif="0.690196f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<Luz xPos="30.823282f" yPos="0.5f" zPos="-12.639383f" xDir="0.0f" yDir="-0.9f" zDir="-0.5f"/>
 		<!--Luz7 Pasillo Administración-->
-		<Luz xPos="29.388685f" yPos="0.5f" zPos="-14.428721f" xDir="0.0f" yDir="-0.9f" zDir="0.5f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="0.360784f" yDif="0.683922f" zDif="0.690196f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<Luz xPos="29.388685f" yPos="0.5f" zPos="-14.428721f" xDir="0.0f" yDir="-0.9f" zDir="0.5f"/>
 		<!--Luz8 Pasillo Administración-->
-		<Luz xPos="30.838345f" yPos="0.5f" zPos="-14.428721f" xDir="0.0f" yDir="-0.9f" zDir="0.5f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="0.360784f" yDif="0.683922f" zDif="0.690196f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<Luz xPos="30.838345f" yPos="0.5f" zPos="-14.428721f" xDir="0.0f" yDir="-0.9f" zDir="0.5f"/>
 		<!--Luz9 Pasillo Administración-->
-		<Luz xPos="29.388685f" yPos="0.5f" zPos="-12.639383f" xDir="0.0f" yDir="-0.9f" zDir="-0.5f" xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="0.360784f" yDif="0.683922f" zDif="0.690196f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.0" quadratic="2" cutOff="8.0f" outerCutOff="50.0f" />
+		<Luz xPos="29.388685f" yPos="0.5f" zPos="-12.639383f" xDir="0.0f" yDir="-0.9f" zDir="-0.5f"/>
 
 	</LucesHall>
 	<Sonidos>
