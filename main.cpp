@@ -707,7 +707,7 @@ int main(int argc, char* argv[]) {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		timeN = currentFrame / 15;
-		cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
+		//cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
 		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
 		move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
@@ -826,6 +826,17 @@ int main(int argc, char* argv[]) {
 		ourShader.setMat4("view", view);
 		ourShader.setVec3("viewPos", camera->getPos());
 		
+		/**
+		* 
+		* LUCES ANDAN BIEN:
+		* anti bloom funciona
+		* si    si     no
+		* si    no     si
+		* no    si     no
+		* no    no     no
+		* 
+		**/
+
 		// DRAW MODEL
 		glDisable(GL_MULTISAMPLE);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
