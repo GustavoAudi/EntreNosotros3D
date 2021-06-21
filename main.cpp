@@ -707,7 +707,7 @@ int main(int argc, char* argv[]) {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		timeN = currentFrame / 15;
-		//cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
+		cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
 		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
 		move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
