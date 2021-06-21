@@ -52,7 +52,7 @@ struct SpotLightCharacter {
 };
 
 #define NR_POINT_LIGHTS 17
-#define NR_SPOT_LIGHTS 10
+#define NR_SPOT_LIGHTS 20
 
 uniform bool apagon;
 uniform bool linterna;
