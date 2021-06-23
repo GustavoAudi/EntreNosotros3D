@@ -765,8 +765,8 @@ int main(int argc, char* argv[]) {
 					engine->play2D(ligthOffSound);
 				}
 				if (diff != timeN) {
-					diffuse = glm::vec3(diffuse.x - 0.025f * diff);
-					specular = glm::vec3(specular.x - 0.025f * diff);
+					diffuse = glm::vec3(diffuse.x - 0.013f * diff);
+					specular = glm::vec3(specular.x - 0.013f * diff);
 					diffuseHall = diffuse;
 					specularHall = specular;
 					count += diff;
@@ -782,8 +782,8 @@ int main(int argc, char* argv[]) {
 
 			if (apagon) {
 				if (count < 130) {
-					diffuseHall = glm::vec3(diffuseHall.x + 0.025f * diff, 0.f, 0.f);
-					specularHall = glm::vec3(specularHall.x + 0.025f * diff, 0.f, 0.f);
+					diffuseHall = glm::vec3(diffuseHall.x + 0.02f * diff, 0.f, 0.f);
+					specularHall = glm::vec3(specularHall.x + 0.02f * diff, 0.f, 0.f);
 					count += diff;
 					if (count >= 85 && count < 85 + diff)
 						engine->play2D(sirenSound);

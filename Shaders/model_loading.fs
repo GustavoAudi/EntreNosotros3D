@@ -77,7 +77,6 @@ uniform Material material;
 uniform sampler2D texture_diffuse1;
 
 // function prototypes
-vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLightCharacter(SpotLightCharacter light, vec3 normal, vec3 fragPos, vec3 viewDir);
@@ -153,7 +152,6 @@ void main()
         alphaLOD = (maxLODdist-depth)/maxLODdist;
       }
 
-      float brightness = dot(result, vec3(0.2126, 0.7152, 0.0722));
       if(material.Emissive != vec3(0.0))
           BrightColor = vec4(result, transparent);
       else
@@ -167,52 +165,6 @@ float LinearizeDepth(float depth)
 {
     float z = depth * 2.0 - 1.0; // back to NDC 
     return (2.0 * near * far) / (far + near - z * (far - near));	
-}
-
-
-vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
-{
-    vec3 tex = vec3(texture(texture_diffuse1, TexCoords));
-
-    vec3 lightDir = normalize(-light.direction);
-
-    // diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
-
-    // specular shading
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.Shininess);
-
-    // combine results
-    vec3 newDiffuse = material.Diffuse;
-    if(material.Diffuse == vec3(0.360784, 0.683922, 0.690196)){
-           newDiffuse = diffuseSpot;
-    }
-    vec3 ambient = light.ambient * newDiffuse;
-    if(tex != vec3(0.f))
-            ambient = light.ambient * tex;
-
-    vec3 diffuse = light.diffuse * diff * newDiffuse;
-    if(tex != vec3(0.f))
-            diffuse =  light.diffuse * diff *  tex;
-
-    //vec3 specular = light.specular * spec * material.Specular;
-    vec3 specular = light.specular * spec * material.Specular;
-    if(specular_map){
-       if(tex != vec3(0.f)){
-            float tex_depth = (tex.x + tex.y + tex.z)/3;
-            if (tex_depth < 0.5f){
-                tex_depth = 0.05;
-            }
-            if (tex_depth > 0.5){
-                tex_depth = 0.95;
-            }
-            vec3 tex_specular = normalize(vec3(tex_depth*tex_depth*tex_depth));
-            specular = light.specular * spec * tex_specular;
-        }
-    }
-
-    return (ambient + diffuse + specular);
 }
 
 
@@ -235,8 +187,10 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     
     // combine results
     vec3 newDiffuse = material.Diffuse;
+    vec3 newSpecular = material.Specular;
     if(material.Diffuse == vec3(0.360784, 0.683922, 0.690196)){
            newDiffuse = diffuseSpot;
+           newSpecular = specularSpot;
     }
     vec3 ambient = light.ambient * newDiffuse;
     if(tex != vec3(0.f))
@@ -246,7 +200,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     if(tex != vec3(0.f))
             diffuse =  light.diffuse * diff *  tex;
     
-    vec3 specular = light.specular * spec * material.Specular;
+    vec3 specular = light.specular * spec * newSpecular;
     if(specular_map){
         if(tex != vec3(0.f)){
             float tex_depth = (tex.x + tex.y + tex.z)/3;
@@ -292,8 +246,10 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 
     // combine results
     vec3 newDiffuse = material.Diffuse;
+    vec3 newSpecular = material.Specular;
     if(material.Diffuse == vec3(0.360784, 0.683922, 0.690196)){
            newDiffuse = diffuseSpot;
+           newSpecular = specularSpot;
     }
     vec3 ambient = ambientSpot * newDiffuse;
      if(tex != vec3(0.f))
@@ -304,7 +260,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
             diffuse =  diffuseSpot * diff *  tex;
 
     //vec3 specular = light.specular * spec * material.Specular;
-    vec3 specular = specularSpot * spec * material.Specular;
+    vec3 specular = specularSpot * spec * newSpecular;
     if(specular_map){
        if(tex != vec3(0.f)){
             float tex_depth = (tex.x + tex.y + tex.z)/3;
@@ -350,16 +306,21 @@ vec3 CalcSpotLightCharacter(SpotLightCharacter light, vec3 normal, vec3 fragPos,
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
     // combine results
-    vec3 ambient = light.ambient * light.diffuse;
+    vec3 newDiffuse = material.Diffuse;
+    vec3 newSpecular = material.Specular;
+    if(material.Diffuse == vec3(0.360784, 0.683922, 0.690196)){
+           newDiffuse = diffuseSpot;
+           newSpecular = specularSpot;
+    }
+    vec3 ambient = light.ambient * newDiffuse;
      if(tex != vec3(0.f))
             ambient = light.ambient * tex;
 
-    vec3 diffuse = light.diffuse * diff;
+    vec3 diffuse = light.diffuse * diff * newDiffuse;
      if(tex != vec3(0.f))
             diffuse =  light.diffuse * diff *  tex;
 
-    //vec3 specular = light.specular * spec * material.Specular;
-    vec3 specular = light.specular * spec * material.Specular;
+    vec3 specular = light.specular * spec * newSpecular;
     if(specular_map){
        if(tex != vec3(0.f)){
             float tex_depth = (tex.x + tex.y + tex.z)/3;
@@ -373,7 +334,6 @@ vec3 CalcSpotLightCharacter(SpotLightCharacter light, vec3 normal, vec3 fragPos,
             specular = light.specular * spec * tex_specular;
         }
     }
-
 
     ambient *= attenuation * intensity;
     diffuse *= attenuation * intensity;
