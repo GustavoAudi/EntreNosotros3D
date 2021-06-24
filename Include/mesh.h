@@ -145,16 +145,8 @@ public:
             glUniform1f(glGetUniformLocation(shader.ID, "material.Shininess"), materials[0].Shininess);
             glUniform1f(glGetUniformLocation(shader.ID, "material.Transparent"), materials[0].Transparent);
         }
-        /*
-        if (GL_FRAMEBUFFER_UNDEFINED == glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-            cout << " framebuffer is the default read or draw framebuffer, but the default framebuffer does not exist." << endl;
-        }
-        if (GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT == glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-            cout << " any of the framebuffer attachment points are framebuffer incomplete" << endl;
-        }
-        if (GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-            cout << "es todo ok" << endl;
-        }*/
+        glUniform1f(glGetUniformLocation(shader.ID, "transparent"), materials[0].Transparent);
+
         // draw mesh
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, GLsizei(indices.size()), GL_UNSIGNED_INT, 0);
