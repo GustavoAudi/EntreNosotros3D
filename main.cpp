@@ -302,6 +302,18 @@ void iniciarSonidos(ISoundEngine*& engine) {
 	engine->setSoundVolume(0.8);
 }
 
+void pausarSonidos(ISoundEngine*& engine) {
+
+	pSonido = pSonidos->FirstChildElement("Sonido");
+	const char* rut;
+
+	while (pSonido != nullptr) {
+		rut = pSonido->Attribute("rut");
+		engine->stopAllSoundsOfSoundSource(engine->getSoundSource(rut));
+		pSonido = pSonido->NextSiblingElement("Sonido");
+	}
+}
+
 void cargarSonidoPasos(ISoundEngine*& engine, ISoundSource* pasos[8]) {
 	
 	ISoundSource* paso1 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal01.wav");
@@ -532,6 +544,7 @@ int main(int argc, char* argv[]) {
 	modelAnim = glm::translate(modelAnim, glm::vec3(29.26f, 0.0f, -24.32f));
 	modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
 
+	bool sonido = false;
 	bool running = true;
 	bool fullScreen = false;
 	bool bloom = false;
@@ -710,8 +723,6 @@ int main(int argc, char* argv[]) {
 		cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
 		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
-		move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
-
 		//audio processing
 		engine->setListenerPosition(vec3df(camera->getPos().x, camera->getPos().y, camera->getPos().z),
 			vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
@@ -759,9 +770,10 @@ int main(int argc, char* argv[]) {
 		timeAux = timeN;
 
 		if (cortoElectricidad) {
+			sonido = true;
 			if (count < 65) {
 				if (count == 0) {
-					engine->setAllSoundsPaused(true);
+					pausarSonidos(engine);
 					engine->play2D(ligthOffSound);
 				}
 				if (diff != timeN) {
@@ -802,16 +814,21 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		else {
-			engine->setAllSoundsPaused(false);
 			engine->stopAllSoundsOfSoundSource(sirenSound);
 			engine->stopAllSoundsOfSoundSource(ligthOffSound);
 			diffuse = glm::vec3(0.8f);
 			specular = glm::vec3(0.6f);
 			diffuseHall = glm::vec3(1.0f, 1.0f, 1.0f);
 			specularHall = glm::vec3(1.0f, 1.0f, 1.0f);
+			if (sonido) {
+				iniciarSonidos(engine);
+				sonido = false;
+			}
 			apagon = false;
 			count = 0;
 		}
+
+		move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
 
 		ourShader.setBool("apagon", apagon);
 		configLightsMap(ourShader, diffuse, specular);
@@ -826,17 +843,6 @@ int main(int argc, char* argv[]) {
 		ourShader.setMat4("view", view);
 		ourShader.setVec3("viewPos", camera->getPos());
 		
-		/**
-		* 
-		* LUCES ANDAN BIEN:
-		* anti bloom funciona
-		* si    si     no
-		* si    no     si
-		* no    si     no
-		* no    no     no
-		* 
-		**/
-
 		// DRAW MODEL
 		glDisable(GL_MULTISAMPLE);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
