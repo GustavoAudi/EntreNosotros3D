@@ -20,17 +20,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Config\tinyxml2.cpp" />
+    <ClCompile Include="..\Include\camera.cpp" />
     <ClCompile Include="..\Include\glad.c" />
     <ClCompile Include="..\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Config\tinyxml2.h" />
+    <ClInclude Include="..\Include\camera.h" />
     <ClInclude Include="..\Include\mesh.h" />
     <ClInclude Include="..\Include\Model.h" />
     <ClInclude Include="..\Include\stb_image.h" />
     <ClInclude Include="..\Shaders\shader.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Shaders\antialiasing.fs" />
+    <None Include="..\Shaders\bloom_final.fs" />
+    <None Include="..\Shaders\blur.fs" />
+    <None Include="..\Shaders\blur.vs" />
     <None Include="..\Shaders\model_loading.fs" />
     <None Include="..\Shaders\model_loading.vs" />
   </ItemGroup>
@@ -103,8 +109,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\libraries\assimp;..\libraries\Freeimage;..\libraries\SDL2-2.0.12\include;..\libraries\irrKlang\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\libraries\assimp;..\libraries\SDL2-2.0.12\lib\x64;..\libraries\Freeimage;..\libraries\irrKlang\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\Include\libraries\irrKlang\include;..\Include\libraries\assimp;..\Include\libraries\Freeimage;..\Include\libraries\SDL2-2.0.12\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\Include\libraries\irrKlang\lib;..\Include\libraries\assimp;..\Include\libraries\SDL2-2.0.12\lib\x64;..\Include\libraries\Freeimage;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -156,7 +163,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\libraries\assimp;..\libraries\glad;..\libraries\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Include\libraries\assimp;..\Include\libraries\glad;..\Include\libraries\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>5208</DisableSpecificWarnings>
     </ClCompile>
     <Link>

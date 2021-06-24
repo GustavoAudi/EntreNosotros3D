@@ -133,7 +133,7 @@ public:
                 else if (name == "texture_height")
                     number = std::to_string(heightNr++); // transfer unsigned int to stream
                 // now set the sampler to the correct texture unit
-                //glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
+                glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
                 // and finally bind the texture
                 glBindTexture(GL_TEXTURE_2D, textures[i].id);
             }
@@ -155,20 +155,17 @@ public:
         if (GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
             cout << "es todo ok" << endl;
         }*/
-
         // draw mesh
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, GLsizei(indices.size()), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
-/*
-        for (GLuint i = 0; i < this->textures.size(); i++)
+
+    /*    for (GLuint i = 0; i < this->textures.size(); i++)
         {
             glActiveTexture(GL_TEXTURE0 + i);
             //glBindTexture(GL_TEXTURE_2D, 0);
         }*/
-
-        
 
     }
 

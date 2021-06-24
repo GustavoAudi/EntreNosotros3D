@@ -54,6 +54,6 @@ void Camera::Rotate(double y, double p) {
     this->direction.x = cos(glm::radians(y)) * cos(glm::radians(p));
     this->direction.y = sin(glm::radians(p));
     this->direction.z = sin(glm::radians(y)) * cos(glm::radians(p));
-    this->front= glm::normalize(this->direction);
+    this->front = glm::normalize(this->direction);
 }
 

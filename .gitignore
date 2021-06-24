@@ -344,8 +344,25 @@ MigrationBackup/
 .vs/
 /libraries/glm/glm/out/build/x64-Debug (default)
 /OpenGl-basico/OpenGL-basico.vcxproj
-Lab1/Debug/
 
+AmongUS_CGA/x64/
+AmongUS_CGA/x64/Debug/AmongUS_CGA.exe.recipe
+AmongUS_CGA/x64/Debug/AmongUS_CGA.tlog/AmongUS_CGA.lastbuildstate
+AmongUS_CGA/x64/Debug/AmongUS_CGA.tlog/CL.command.1.tlog
+AmongUS_CGA/x64/Debug/AmongUS_CGA.tlog/CL.read.1.tlog
+AmongUS_CGA/x64/Debug/AmongUS_CGA.tlog/CL.write.1.tlog
+AmongUS_CGA/x64/Debug/AmongUS_CGA.tlog/link.command.1.tlog
+AmongUS_CGA/x64/Debug/AmongUS_CGA.tlog/link.read.1.tlog
+AmongUS_CGA/x64/Debug/AmongUS_CGA.tlog/link.write.1.tlog
+AmongUS_CGA/x64/Debug/glad.obj
+AmongUS_CGA/x64/Debug/main.obj
+AmongUS_CGA/x64/Debug/tinyxml2.obj
+AmongUS_CGA/x64/Debug/vc142.idb
+AmongUS_CGA/x64/Release/AmongUS_CGA.tlog/link.read.1.tlog
+AmongUS_CGA/x64/Release/main.obj
+Config/Escena/escena.xml
+x64/Debug/AmongUS_CGA.exe
+x64/Release/AmongUS_CGA.exe
 
 
 /model/Unnecessary
