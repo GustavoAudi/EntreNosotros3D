@@ -242,7 +242,7 @@ void setupLightsMap(Shader& ourShader) {
 
 		pLuz = pLuz->NextSiblingElement("Luz");
 		i++;
-		posicion = new glm::vec3();
+		posicion= new glm::vec3();
 		ambient = new glm::vec3();
 		diffuse = new glm::vec3();
 		specular = new glm::vec3();
@@ -445,7 +445,7 @@ int main(int argc, char* argv[]) {
 	
 	// SETUP MODELS
 	Model ourModel("../Include/model/c.obj");
-	Model cuerpo1("../Include/model/astronaut.dae");
+	Model cuerpo1("../Include/model/impos3.dae");
 	Model muerto("../Include/model/dead.obj");
 	Model fantasma("../Include/model/ghost.dae");
 	
@@ -805,8 +805,8 @@ int main(int argc, char* argv[]) {
 			engine->setAllSoundsPaused(false);
 			engine->stopAllSoundsOfSoundSource(sirenSound);
 			engine->stopAllSoundsOfSoundSource(ligthOffSound);
-			diffuse = glm::vec3(0.8f);
-			specular = glm::vec3(0.6f);
+			diffuse = glm::vec3(0.5f);
+			specular = glm::vec3(0.2f);
 			diffuseHall = glm::vec3(1.0f, 1.0f, 1.0f);
 			specularHall = glm::vec3(1.0f, 1.0f, 1.0f);
 			apagon = false;
