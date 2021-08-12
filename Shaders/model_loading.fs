@@ -101,7 +101,10 @@ void main()
       }
 
       for(int i = 0; i < NR_SPOT_LIGHTS; i++){
-           result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
+         float distance = length(spotLights[i].position - viewPos);
+         if(distance < 7f){
+              result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
+         }
       }
 
       
