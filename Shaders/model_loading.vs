@@ -41,6 +41,7 @@ else{
 		bone_transform += bones[bone_ids[1]] * weights[1];
 		bone_transform += bones[bone_ids[2]] * weights[2];
 		bone_transform += bones[bone_ids[3]] * weights[3];
+
 	}
 	else  {bone_transform = mat4(1.0f);}
 
