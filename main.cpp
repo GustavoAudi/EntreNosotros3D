@@ -62,7 +62,7 @@ struct movement {
 	bool moving_down = false;
 };
 
-void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine*& engine, ISoundSource* pasos[], int& ultimoPaso, bool modoLibre) {
+void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine* &engine, ISoundSource* pasos[], int &ultimoPaso, bool modoLibre) {
 	glm::vec3 cameraPos = camera->getPos();
 	glm::vec3 camAux = cameraPos;
 	if (mv.spedUp) {
@@ -102,7 +102,7 @@ void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoun
 			ultimoPaso = (ultimoPaso + 1) % 8;
 		}
 	}
-	if (mv.moving_up || mv.moving_down) {
+	if(mv.moving_up || mv.moving_down){
 		engine->stopAllSoundsOfSoundSource(pasos[ultimoPaso]);
 		if (mv.moving_up) {
 			cameraPos.y += cameraSpeed;
@@ -173,7 +173,7 @@ void setupLightsCharacter(Shader& ourShader) {
 	float* quadratic = new float();
 	float* cutOff = new float();
 	float* outerCutOff = new float();
-
+		
 	pLuz->QueryFloatAttribute("xAmb", &ambient->x);
 	pLuz->QueryFloatAttribute("yAmb", &ambient->y);
 	pLuz->QueryFloatAttribute("zAmb", &ambient->z);
@@ -256,7 +256,7 @@ void configLightsMap(Shader& ourShader, glm::vec3 diffuse, glm::vec3 specular) {
 	pLuz = pLucesMapa->FirstChildElement("Luz");
 
 	int i = 0;
-	while (pLuz != nullptr) {
+	while(pLuz != nullptr) {
 		string ligthName = "pointLights[" + std::to_string(i);
 
 		ourShader.setVec3(ligthName + "].diffuse", diffuse);
@@ -279,7 +279,7 @@ void iniciarSonidos(ISoundEngine*& engine) {
 	engine->setSoundVolume(0);
 
 	pSonido = pSonidos->FirstChildElement("Sonido");
-
+	
 	glm::vec3* posicion = new glm::vec3();
 	float* minVol = new float();
 	const char* rut;
@@ -315,7 +315,7 @@ void pausarSonidos(ISoundEngine*& engine) {
 }
 
 void cargarSonidoPasos(ISoundEngine*& engine, ISoundSource* pasos[8]) {
-
+	
 	ISoundSource* paso1 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal01.wav");
 	paso1->forceReloadAtNextUse();
 	paso1->setDefaultVolume(0.5f);
@@ -407,11 +407,13 @@ int main(int argc, char* argv[]) {
 	float maxSamples;
 	bool activate = false;
 	tinyxml2::XMLElement* pMSAA = pConfig->FirstChildElement("MSAA");
-	pMSAA->QueryBoolAttribute("activate", &activate);
 	pMSAA->QueryFloatAttribute("samples", &maxSamples);
 	if (maxSamples > 16) maxSamples = 16;
 	if (maxSamples < 2) maxSamples = 2;
-	if (!activate) maxSamples = 1;
+
+	float amount;
+	tinyxml2::XMLElement* pBloom = pConfig->FirstChildElement("BLOOM");
+	pBloom->QueryFloatAttribute("amount", &amount);
 
 	// Config Multisample Render
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -419,11 +421,11 @@ int main(int argc, char* argv[]) {
 
 	window = SDL_CreateWindow("EntreNosotros3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		SCR_W, SCR_H, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-
+	
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
 	gl_context = SDL_GL_CreateContext(window);
-
+	
 	// Disable limit of 60fps
 	SDL_GL_SetSwapInterval(0);
 
@@ -452,15 +454,15 @@ int main(int argc, char* argv[]) {
 	bloomFinal.use();
 	bloomFinal.setInt("scene", 0);
 	bloomFinal.setInt("bloomBlur", 1);
-
+	
 	//stbi_set_flip_vertically_on_load(true);
-
+	
 	// SETUP MODELS
 	Model ourModel("../Include/model/c.obj");
 	Model cuerpo1("../Include/model/astronaut.dae");
 	Model muerto("../Include/model/dead.obj");
 	Model fantasma("../Include/model/ghost.dae");
-
+	
 	// Setup model Octree
 	ourModel.GenerateOctree();
 
@@ -528,7 +530,7 @@ int main(int argc, char* argv[]) {
 	// Time tracking
 	Uint32 deltaTime = 0;	// Time between current frame and last frame
 	Uint32 lastFrame = 0; // Time of last frame
-
+	
 	// Cam Rotation
 	float yaw = -90.0f;
 	float pitch = 0.0f;
@@ -541,14 +543,13 @@ int main(int argc, char* argv[]) {
 	// View, Model and Projection Matrix
 	glm::mat4 view, model, projection;
 	glm::mat4 modelAnim = glm::mat4(1.0f);
-	glm::mat4 modelImpos = glm::mat4(1.0f);
 	modelAnim = glm::translate(modelAnim, glm::vec3(29.26f, 0.0f, -24.32f));
 	modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
 
 	bool sonido = false;
 	bool running = true;
 	bool fullScreen = false;
-	bool bloom = false;
+	bool bloom = true;
 	bool antialiasing = true;
 	float exposure = 2.0f;
 	bool cortoElectricidad = false;
@@ -566,7 +567,7 @@ int main(int argc, char* argv[]) {
 	int timeAux = 0;
 	int diff = 0;
 	int timeN = 0;
-
+	
 	// Setup lights
 	glm::vec3 ambient = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 diffuse = glm::vec3(0.8f);
@@ -589,40 +590,40 @@ int main(int argc, char* argv[]) {
 	ISoundSource* ligthOffSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_reactor_manifoldfail.wav");
 	ligthOffSound->setDefaultVolume(1.0f);
 	ligthOffSound->forceReloadAtNextUse();
-
+	
 	ISoundSource* pasos[8];
-	cargarSonidoPasos(engine, pasos);
+	cargarSonidoPasos(engine,pasos);
 	int ultimoPaso = 0;
 
-	/*
-		//NEW- SHADOWS
-			// configure depth map FBO
-		// -----------------------
-			unsigned int depthMapFBO;
-			glGenFramebuffers(1, &depthMapFBO);
-			// create depth texture
-			unsigned int depthMap;
-			glGenTextures(1, &depthMap);
-			glBindTexture(GL_TEXTURE_2D, depthMap);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_W, SCR_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-			// attach depth texture as FBO's depth buffer
-			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-			glDrawBuffer(GL_NONE);
-			glReadBuffer(GL_NONE);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	*/
+/*
+	//NEW- SHADOWS
+        // configure depth map FBO
+    // -----------------------
+        unsigned int depthMapFBO;
+        glGenFramebuffers(1, &depthMapFBO);
+        // create depth texture
+        unsigned int depthMap;
+        glGenTextures(1, &depthMap);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_W, SCR_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+        // attach depth texture as FBO's depth buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+*/
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//																		FRAME BUFFERS																				 //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	// Skybox VAO
 	unsigned int skyboxVAO, skyboxVBO;
 	glGenVertexArrays(1, &skyboxVAO);
@@ -651,7 +652,7 @@ int main(int argc, char* argv[]) {
 		// attach texture to framebuffer
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
 	}
-
+	
 	// create and attach depth buffer (renderbuffer)
 	unsigned int rboDepth;
 	glGenRenderbuffers(1, &rboDepth);
@@ -662,7 +663,7 @@ int main(int argc, char* argv[]) {
 	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, attachments);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Framebuffer not complete111!" << std::endl;
+		std::cout << "Framebuffer not complete111!" << std::endl; 
 
 	// ping-pong-framebuffer for blurring
 	unsigned int pingpongFBO[2];
@@ -689,13 +690,15 @@ int main(int argc, char* argv[]) {
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
 
 	// create a multisampled color attachment texture
-	unsigned int ColorBufferMultiSampled;
-	glGenTextures(1, &ColorBufferMultiSampled);
-
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, maxSamples, GL_RGBA, SCR_W, SCR_H, GL_TRUE);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled, 0);
+	unsigned int ColorBufferMultiSampled[2];
+	glGenTextures(2, ColorBufferMultiSampled);
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled[i]);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, maxSamples, GL_RGBA, SCR_W, SCR_H, GL_TRUE);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled[i], 0);
+	}
 
 	// create a (also multisampled) renderbuffer object for depth and stencil attachments
 	unsigned int rboDepthMultisampled;
@@ -705,15 +708,15 @@ int main(int argc, char* argv[]) {
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthMultisampled);
 
-	unsigned int attachmentsMultisampled[1] = { GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, attachmentsMultisampled);
+	unsigned int attachmentsMultisampled[2] = { GL_COLOR_ATTACHMENT0 , GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachmentsMultisampled);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Framebuffer not complete111!" << std::endl;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//																		LOOP PRINCIPAL																				 //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	while (running)		// the event loop
 	{
 		// frame time logic
@@ -727,7 +730,7 @@ int main(int argc, char* argv[]) {
 		//audio processing
 		engine->setListenerPosition(vec3df(camera->getPos().x, camera->getPos().y, camera->getPos().z),
 			vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
-
+		
 		//render
 		glClearColor(0.0, 0.0, 0.0, 1.0); // set background colour
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window*/
@@ -835,7 +838,7 @@ int main(int argc, char* argv[]) {
 		configLightsMap(ourShader, diffuse, specular);
 		configLightsHall(ourShader, ambient, diffuseHall, specularHall);
 		ourShader.setBool("anim", false);
-
+		
 		view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
 		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
 		model = glm::mat4(1.0f);
@@ -843,15 +846,15 @@ int main(int argc, char* argv[]) {
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
 		ourShader.setVec3("viewPos", camera->getPos());
-
+		
 		// DRAW MODEL
 		glDisable(GL_MULTISAMPLE);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
-			ourModel.Draw(ourShader, false, 0, 0);
+				ourModel.Draw(ourShader, false, 0, 0);
 		}
-
+		
 		if (antialiasing) {
 			glEnable(GL_MULTISAMPLE);
 			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
@@ -866,14 +869,15 @@ int main(int argc, char* argv[]) {
 			glDrawBuffer(GL_COLOR_ATTACHMENT0);
 			glClear(GL_COLOR_BUFFER_BIT);
 			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
+			glReadBuffer(GL_COLOR_ATTACHMENT1);
+			glDrawBuffer(GL_COLOR_ATTACHMENT1);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 			glDrawBuffers(2, attachments);
 		}
-
-
+		
 		bool horizontal = true;
 		if (bloom) {
-			unsigned int amount = 5;
 			blur.use();
 			blur.setMat4("projection", projection);
 			blur.setMat4("view", view);
@@ -905,7 +909,7 @@ int main(int argc, char* argv[]) {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
 		ourModel.Draw(bloomFinal, false, 1, 1);
-
+		
 		//DRAW DEL CADAVER
 		ourShader.use();
 		model = glm::translate(model, glm::vec3(21.0f, 0.0f, -12.6f));
@@ -914,7 +918,7 @@ int main(int argc, char* argv[]) {
 		ourShader.setBool("anim", true);
 		ourShader.setBool("moove", false);
 		ourShader.setMat4("model", model);
-		muerto.Draw(ourShader, false, 0, 0);
+		muerto.Draw(ourShader, false,0,0);
 
 		//DRAW DEL ASTRONAUTA
 		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
@@ -941,12 +945,12 @@ int main(int argc, char* argv[]) {
 		ourShader.setMat4("view", view);
 		//ourShader.setMat4("projection", projection);
 
-		glm::mat4 matr_normals_cube = glm::mat4(glm::transpose(glm::inverse(modelAnim)));
+		glm::mat4 matr_normals_cube =  glm::mat4(glm::transpose(glm::inverse(modelAnim)));
 		ourShader.setMat4("normals_matrix", matr_normals_cube);
 		ourShader.setBool("anim", true);
 		ourShader.setBool("moove", (mv.moving_forward || mv.moving_back));
 		cuerpo1.initBonesForShader(ourShader);
-		cuerpo1.Draw(ourShader, (mv.moving_forward || mv.moving_back), 0, 0);
+		cuerpo1.Draw(ourShader, (mv.moving_forward || mv.moving_back),0,0);
 
 		//DRAW DEL FANTASMA
 		model = glm::mat4(1.0f);
@@ -955,143 +959,143 @@ int main(int argc, char* argv[]) {
 		ourShader.setMat4("model", model);
 		ourShader.setBool("moove", true);
 		fantasma.initBonesForShader(ourShader);
-		fantasma.Draw(ourShader, true, 0, 0);
+		fantasma.Draw(ourShader, true,0,0);
 
 		// EVENTS
 		while (SDL_PollEvent(&sdlEvent)) {
 			switch (sdlEvent.type) {
-			case SDL_MOUSEMOTION: {
-				int x, y;
-				SDL_GetMouseState(&x, &y);
-				int xoffset = x - SCR_W / 2;
-				int yoffset = SCR_H / 2 - y; // reversed since y-coordinates range from bottom to top
+				case SDL_MOUSEMOTION: {
+					int x, y;
+					SDL_GetMouseState(&x, &y);
+					int xoffset = x - SCR_W / 2;
+					int yoffset = SCR_H / 2 - y; // reversed since y-coordinates range from bottom to top
 
-				xoffset *= sensitivity;
-				yoffset *= sensitivity;
-				yaw += xoffset;
-				pitch += yoffset;
+					xoffset *= sensitivity;
+					yoffset *= sensitivity;
+					yaw += xoffset;
+					pitch += yoffset;
 
-				if (pitch > 89.0f)
-					pitch = 89.0f;
-				if (pitch < -89.0f)
-					pitch = -89.0f;
+					if (pitch > 89.0f)
+						pitch = 89.0f;
+					if (pitch < -89.0f)
+						pitch = -89.0f;
 
-				camera->Rotate(yaw, pitch);
-				break;
-			}
-			case SDL_MOUSEWHEEL: {
-				float yoffset = sdlEvent.wheel.y;
-				zoom -= (float)yoffset;
-				if (zoom < 1.0f)
-					zoom = 1.0f;
-				if (zoom > 45.0f)
-					zoom = 45.0f;
-				break;
-			}
-			case SDL_QUIT: {
-				running = false;
-				break;
-			}
-			case SDL_KEYUP: {
-				if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
-					mv.spedUp = false;
+					camera->Rotate(yaw, pitch);
+					break;
 				}
-				if (sdlEvent.key.keysym.sym == SDLK_w) {
-					mv.moving_forward = false;
+				case SDL_MOUSEWHEEL: {
+					float yoffset = sdlEvent.wheel.y;
+					zoom -= (float)yoffset;
+					if (zoom < 1.0f)
+						zoom = 1.0f;
+					if (zoom > 45.0f)
+						zoom = 45.0f;
+					break;
 				}
-				if (sdlEvent.key.keysym.sym == SDLK_a) {
-					mv.moving_left = false;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_d) {
-					mv.moving_right = false;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_s) {
-					mv.moving_back = false;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
-					if (fixed_pos)
-						mv.moving_up = false;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
-					if (fixed_pos)
-						mv.moving_down = false;
-				}
-				break;
-			}
-			case SDL_KEYDOWN: {
-				if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
-					mv.spedUp = true;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_c) {
-					cout << "X: " << camera->getPos().x << " Y: " << camera->getPos().y << " Z: " << camera->getPos().z << endl;
-					cout << "X: " << camera->getFront().x << " Y: " << camera->getFront().y << " Z: " << camera->getFront().z << endl;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
+				case SDL_QUIT: {
 					running = false;
+					break;
 				}
-				if (sdlEvent.key.keysym.sym == SDLK_a) {
-					mv.moving_left = true;
+				case SDL_KEYUP: {
+					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
+						mv.spedUp = false;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_w) {
+						mv.moving_forward= false;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_a) {
+						mv.moving_left = false;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_d) {
+						mv.moving_right = false;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_s) {
+						mv.moving_back = false;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
+						if (fixed_pos)
+						mv.moving_up = false;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
+						if (fixed_pos)
+						mv.moving_down = false;
+					}
+					break;
 				}
-				if (sdlEvent.key.keysym.sym == SDLK_d) {
-					mv.moving_right = true;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_s) {
-					mv.moving_back = true;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_w) {
-					mv.moving_forward = true;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
-					if (fixed_pos)
-						mv.moving_up = true;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
-					if (fixed_pos)
-						mv.moving_down = true;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_x) {
-					cortoElectricidad = !cortoElectricidad;
-					count = 0;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_e) {
-					if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
-						if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
-							cortoElectricidad = !cortoElectricidad;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_l) {
-					linterna = !linterna;
-				}if (sdlEvent.key.keysym.sym == SDLK_b) {
-					bloom = !bloom;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_m) {
-					antialiasing = !antialiasing;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_1) {
-					specular_map = !specular_map;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_2) {
-					exposure -= 0.02;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_3) {
-					exposure += 0.02;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_TAB) {
-					fixed_pos = !fixed_pos;
-					if (!fixed_pos)
-						camera->setPos(old_pos_camera);
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_F11) {
-					if (fullScreen)
-						SDL_SetWindowFullscreen(window, SDL_FALSE);
-					else
-						SDL_SetWindowFullscreen(window, SDL_TRUE);
+				case SDL_KEYDOWN: {
+					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
+						mv.spedUp = true;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_c) {
+						cout << "X: " << camera->getPos().x << " Y: " << camera->getPos().y << " Z: " << camera->getPos().z << endl;
+						cout << "X: " << camera->getFront().x << " Y: " << camera->getFront().y << " Z: " << camera->getFront().z << endl;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
+						running = false;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_a) {
+						mv.moving_left = true;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_d) {
+						mv.moving_right = true;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_s) {
+						mv.moving_back = true;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_w) {
+						mv.moving_forward= true;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
+						if(fixed_pos)
+							mv.moving_up = true;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
+						if (fixed_pos)
+							mv.moving_down = true;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_x) {
+						cortoElectricidad = !cortoElectricidad;
+						count = 0;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_e) {
+						if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
+							if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
+								cortoElectricidad = !cortoElectricidad;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_l) {
+						linterna = !linterna;
+					}if (sdlEvent.key.keysym.sym == SDLK_b) {
+						bloom = !bloom;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_m) {
+						antialiasing = !antialiasing;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_1) {
+						specular_map = !specular_map;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_2) {
+						exposure -= 0.02;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_3) {
+						exposure += 0.02;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_TAB) {
+						fixed_pos = !fixed_pos;
+						if (!fixed_pos)
+							camera->setPos(old_pos_camera);
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_F11) {
+						if(fullScreen)
+							SDL_SetWindowFullscreen(window, SDL_FALSE);
+						else
+							SDL_SetWindowFullscreen(window, SDL_TRUE);
 
 					fullScreen = !fullScreen;
 
 					SDL_GetCurrentDisplayMode(0, &DM);
 					auto Width = DM.w;
 					auto Height = DM.h;
-					if (fullScreen)
+					if(fullScreen)
 						glViewport(0, 0, Width, Height); //update viewport
 					else
 						glViewport(0, 0, SCR_W, SCR_H);
@@ -1109,7 +1113,6 @@ int main(int argc, char* argv[]) {
 		/*if (diff > 0) {
 			SDL_Delay(diff);
 		}*/
-
 
 	}
 

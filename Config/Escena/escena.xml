@@ -1,6 +1,7 @@
 <Escena>
 	<Config>
-		<MSAA activate="1" samples="16"/> <!--x2, x4, x16-->
+		<MSAA samples="16"/> <!--x2, x4, x16-->
+		<BLOOM amount="4"/> <!--x2, x4, x6, x8, x10-->
 	</Config>
 	<LucesMapa>
 		<!--Luz Comunicación-->
@@ -50,7 +51,7 @@
 		<Luz xPos="14.3856f" yPos="1.7f" zPos="-15.9093" xAmb="0.05f" yAmb="0.05f" zAmb="0.05f" xDif="0.8f" yDif="0.8f" zDif="0.8" xSpec="0.6f" ySpec="0.6f" zSpec="0.6f" constant="0.6" linear="0.09" quadratic="0.04" />
 	</LucesMapa>
 	<LucesCharacter>
-		<Luz xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="1.0f" linear="0.09" quadratic="0.03" cutOff="8.0f" outerCutOff="25.0f" />
+		<Luz xAmb="0.0f" yAmb="0.0f" zAmb="0.0f" xDif="1.0f" yDif="1.0f" zDif="1.0f" xSpec="1.0f" ySpec="1.0f" zSpec="1.0f" constant="0.5f" linear="0.09" quadratic="0.03" cutOff="8.0f" outerCutOff="25.0f" />
 	</LucesCharacter>
 	<LucesHall>
 		<Luz xPos="10.962852f" yPos="0.5f" zPos="-13.934703555555554f" xDir="-0.5f" yDir="-0.9f" zDir="0.0f"/>
