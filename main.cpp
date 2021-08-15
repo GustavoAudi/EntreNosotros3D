@@ -407,11 +407,13 @@ int main(int argc, char* argv[]) {
 	float maxSamples;
 	bool activate = false;
 	tinyxml2::XMLElement* pMSAA = pConfig->FirstChildElement("MSAA");
-	pMSAA->QueryBoolAttribute("activate", &activate);
 	pMSAA->QueryFloatAttribute("samples", &maxSamples);
 	if (maxSamples > 16) maxSamples = 16;
 	if (maxSamples < 2) maxSamples = 2;
-	if (!activate) maxSamples = 1;
+
+	float amount;
+	tinyxml2::XMLElement* pBloom = pConfig->FirstChildElement("BLOOM");
+	pBloom->QueryFloatAttribute("amount", &amount);
 
 	// Config Multisample Render
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -547,7 +549,7 @@ int main(int argc, char* argv[]) {
 	bool sonido = false;
 	bool running = true;
 	bool fullScreen = false;
-	bool bloom = false;
+	bool bloom = true;
 	bool antialiasing = true;
 	float exposure = 2.0f;
 	bool cortoElectricidad = false;
@@ -688,13 +690,15 @@ int main(int argc, char* argv[]) {
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
 
 	// create a multisampled color attachment texture
-	unsigned int ColorBufferMultiSampled;
-	glGenTextures(1, &ColorBufferMultiSampled);
-
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, maxSamples, GL_RGBA, SCR_W, SCR_H, GL_TRUE);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled, 0);
+	unsigned int ColorBufferMultiSampled[2];
+	glGenTextures(2, ColorBufferMultiSampled);
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled[i]);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, maxSamples, GL_RGBA, SCR_W, SCR_H, GL_TRUE);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, ColorBufferMultiSampled[i], 0);
+	}
 
 	// create a (also multisampled) renderbuffer object for depth and stencil attachments
 	unsigned int rboDepthMultisampled;
@@ -704,15 +708,15 @@ int main(int argc, char* argv[]) {
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthMultisampled);
 
-	unsigned int attachmentsMultisampled[1] = { GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, attachmentsMultisampled);
+	unsigned int attachmentsMultisampled[2] = { GL_COLOR_ATTACHMENT0 , GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachmentsMultisampled);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Framebuffer not complete111!" << std::endl;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//																		LOOP PRINCIPAL																				 //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	while (running)		// the event loop
 	{
 		// frame time logic
@@ -865,14 +869,15 @@ int main(int argc, char* argv[]) {
 			glDrawBuffer(GL_COLOR_ATTACHMENT0);
 			glClear(GL_COLOR_BUFFER_BIT);
 			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
+			glReadBuffer(GL_COLOR_ATTACHMENT1);
+			glDrawBuffer(GL_COLOR_ATTACHMENT1);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 			glDrawBuffers(2, attachments);
 		}
 		
-		
 		bool horizontal = true;
 		if (bloom) {
-			unsigned int amount = 5;
 			blur.use();
 			blur.setMat4("projection", projection);
 			blur.setMat4("view", view);
@@ -1108,7 +1113,6 @@ int main(int argc, char* argv[]) {
 		/*if (diff > 0) {
 			SDL_Delay(diff);
 		}*/
-	
 
 	}
 

@@ -91,18 +91,17 @@ void main()
       vec3 viewDir = normalize(viewPos - FragPos);
       vec4 tex = texture(texture_diffuse1, TexCoords);
       float depth = LinearizeDepth(gl_FragCoord.z); // divide by far for demonstration      float ndc = depth * 2.0 - 1.0; 
-
       vec3 result = vec3(0.0f);
    
       if(!apagon){   
            for(int i = 0; i < NR_POINT_LIGHTS; i++){
-                result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
-           }   
+               result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+           }
       }
 
       for(int i = 0; i < NR_SPOT_LIGHTS; i++){
          float distance = length(spotLights[i].position - viewPos);
-         if(distance < 7f){
+         if(distance < 8f){
               result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
          }
       }
