@@ -755,18 +755,6 @@ int main(int argc, char* argv[]) {
 		// CONFIG LIGHTS
 		ourShader.use();
 
-		if (linterna) {
-			if (fixed_pos) {
-				ourShader.setVec3("characterLight.position", old_pos_camera);
-				ourShader.setVec3("characterLight.direction", old_front_camera);
-			}
-			else {
-				ourShader.setVec3("characterLight.position", camera->getPos());
-				ourShader.setVec3("characterLight.direction", camera->getFront());
-			}
-		}
-		ourShader.setBool("linterna", linterna);
-
 		glUniform1i(glGetUniformLocation(ourShader.ID, "specular_map"), specular_map);
 
 		// Diff real time - iteration time
@@ -833,6 +821,18 @@ int main(int argc, char* argv[]) {
 		}
 
 		move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
+
+		if (linterna) {
+			if (fixed_pos) {
+				ourShader.setVec3("characterLight.position", old_pos_camera);
+				ourShader.setVec3("characterLight.direction", old_front_camera);
+			}
+			else {
+				ourShader.setVec3("characterLight.position", camera->getPos());
+				ourShader.setVec3("characterLight.direction", camera->getFront());
+			}
+		}
+		ourShader.setBool("linterna", linterna);
 
 		ourShader.setBool("apagon", apagon);
 		configLightsMap(ourShader, diffuse, specular);
