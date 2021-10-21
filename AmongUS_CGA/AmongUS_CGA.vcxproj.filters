@@ -67,6 +67,24 @@
     <None Include="..\Shaders\antialiasing.fs">
       <Filter>Archivos de origen</Filter>
     </None>
+    <None Include="..\Shaders\skybox_render.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\skybox_render.vs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\shadow.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\shadow.vs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\debugShadow.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\debugShadow.vs">
+      <Filter>Archivos de origen</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\Config\Escena\escena.xml">

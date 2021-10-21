@@ -38,6 +38,36 @@ GLuint shaderprogram; // handle for shader program
 GLuint vao, vbo[2]; // handles for our VAO and two VBOs
 float r = 0;
 
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+	if (quadVAO == 0)
+	{
+		float quadVertices[] = {
+			// positions        // texture Coords
+			0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+			0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		};
+		// setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+}
+
 void cleanup(void)
 {
 	glUseProgram(0);
@@ -383,6 +413,36 @@ unsigned int loadCubemap(vector<std::string> faces)
 	return textureID;
 }
 
+unsigned int loadTexture(string path) {
+	unsigned int texture1;
+	// texture 1
+	// ---------
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load image, create texture and generate mipmaps
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+	unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		//glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+	return texture1;
+}
+
 
 int main(int argc, char* argv[]) {
 
@@ -410,7 +470,7 @@ int main(int argc, char* argv[]) {
 	pMSAA->QueryFloatAttribute("samples", &maxSamples);
 	if (maxSamples > 16) maxSamples = 16;
 	if (maxSamples < 2) maxSamples = 2;
-
+	
 	float amount;
 	tinyxml2::XMLElement* pBloom = pConfig->FirstChildElement("BLOOM");
 	pBloom->QueryFloatAttribute("amount", &amount);
@@ -448,12 +508,21 @@ int main(int argc, char* argv[]) {
 	Shader skyboxShader("../Shaders/skybox_render.vs", "../Shaders/skybox_render.fs");
 	Shader blur("../Shaders/blur.vs", "../Shaders/blur.fs");
 	Shader bloomFinal("../Shaders/blur.vs", "../Shaders/bloom_final.fs");
+	Shader shadowMapProgram("../Shaders/shadow.vs", "../Shaders/shadow.fs");
+	Shader ShadowDebug("../Shaders/debugShadow.vs", "../Shaders/debugShadow.fs");
 
 	blur.use();
 	blur.setInt("image", 0);
 	bloomFinal.use();
 	bloomFinal.setInt("scene", 0);
 	bloomFinal.setInt("bloomBlur", 1);
+
+	ShadowDebug.use();
+	ShadowDebug.setInt("game", 1);
+
+	skyboxShader.use();
+	skyboxShader.setInt("sun", 0);
+	skyboxShader.setInt("skybox", 1);
 	
 	//stbi_set_flip_vertically_on_load(true);
 	
@@ -461,6 +530,7 @@ int main(int argc, char* argv[]) {
 	Model ourModel("../Include/model/c.obj");
 	Model cuerpo1("../Include/model/astronaut.dae");
 	Model muerto("../Include/model/dead.obj");
+	Model sun("../Include/model/sun.obj");
 	Model fantasma("../Include/model/ghost.dae");
 	
 	// Setup model Octree
@@ -475,6 +545,7 @@ int main(int argc, char* argv[]) {
 		"../Include/skybox/front.png",
 		"../Include/skybox/back.png"
 	};
+
 	float skyboxVertices[] = {
 		// positions          
 		-1.0f,  1.0f, -1.0f,
@@ -522,6 +593,7 @@ int main(int argc, char* argv[]) {
 
 	// load textures
 	unsigned int cubemapTexture = loadCubemap(faces);
+	unsigned int gameTexture = loadTexture("../Include/model/ma.png");
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -541,10 +613,14 @@ int main(int argc, char* argv[]) {
 	camera->Rotate(yaw, pitch);
 
 	// View, Model and Projection Matrix
-	glm::mat4 view, model, projection;
+	glm::mat4 view, model, projection, modelsun;
 	glm::mat4 modelAnim = glm::mat4(1.0f);
 	modelAnim = glm::translate(modelAnim, glm::vec3(29.26f, 0.0f, -24.32f));
 	modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
+
+	modelsun = glm::mat4(1.0f);
+	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
+	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
 	bool sonido = false;
 	bool running = true;
@@ -557,6 +633,7 @@ int main(int argc, char* argv[]) {
 	bool linterna = false;
 	bool specular_map = false;
 	bool fixed_pos = false;
+	bool mapa = false;
 	float old_yaw = 0.f;
 	glm::vec3 old_pos = glm::vec3(0.f);
 	glm::vec3 old_pos_camera = camera->getPos();
@@ -595,30 +672,7 @@ int main(int argc, char* argv[]) {
 	cargarSonidoPasos(engine,pasos);
 	int ultimoPaso = 0;
 
-/*
-	//NEW- SHADOWS
-        // configure depth map FBO
-    // -----------------------
-        unsigned int depthMapFBO;
-        glGenFramebuffers(1, &depthMapFBO);
-        // create depth texture
-        unsigned int depthMap;
-        glGenTextures(1, &depthMap);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_W, SCR_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-        // attach depth texture as FBO's depth buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-*/
+
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//																		FRAME BUFFERS																				 //
@@ -713,10 +767,54 @@ int main(int argc, char* argv[]) {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Framebuffer not complete111!" << std::endl;
 
+
+	//NEW- SHADOWS
+	// Framebuffer for Shadow Map
+	unsigned int shadowMapFBO;
+	glGenFramebuffers(1, &shadowMapFBO);
+
+	// Texture for Shadow Map FBO
+	unsigned int shadowMapWidth = 4096, shadowMapHeight = 2880;
+	unsigned int shadowMap;
+	glGenTextures(1, &shadowMap);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	// Prevents darkness outside the frustrum
+	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+	// Needed since we don't touch the color buffer
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	// Matrices needed for the light's perspective
+	glm::vec3 SunPosition = glm::vec3(26.0f, 40.0f, 35.0f); //glm::vec3(25,20, 45); 
+	glm::mat4 orthgonalProjection = glm::ortho(-24.0f, 24.0f, -15.0f, 15.0f, 50.0f, 78.0f);
+	glm::mat4 lightView = glm::lookAt(SunPosition, glm::vec3(26, -2, -30), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 lightProjection = orthgonalProjection * lightView;
+
+	shadowMapProgram.use();
+	glUniformMatrix4fv(glGetUniformLocation(shadowMapProgram.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+	model = glm::mat4(1.f);
+	shadowMapProgram.setMat4("model", model);
+
+	ShadowDebug.use();
+	ShadowDebug.setInt("shadowMap", 0);
+
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//																		LOOP PRINCIPAL																				 //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
+
 	while (running)		// the event loop
 	{
 		// frame time logic
@@ -724,7 +822,7 @@ int main(int argc, char* argv[]) {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		timeN = currentFrame / 15;
-		cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
+		//cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
 		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
 		//audio processing
@@ -739,13 +837,17 @@ int main(int argc, char* argv[]) {
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		glDisable(GL_DEPTH_TEST);
 		skyboxShader.use();
+		skyboxShader.setInt("sun", false);
 		view = glm::mat4(glm::mat3(glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp()))); // remove translation from the view matrix
 		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
 		skyboxShader.setMat4("view", view);
 		skyboxShader.setMat4("projection", projection);
+		model = glm::mat4(1.f);
+		skyboxShader.setMat4("model", model);
+
 		// SKYBOX CUBE
 		glBindVertexArray(skyboxVAO);
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
@@ -755,17 +857,6 @@ int main(int argc, char* argv[]) {
 		// CONFIG LIGHTS
 		ourShader.use();
 
-		if (linterna) {
-			if (fixed_pos) {
-				ourShader.setVec3("characterLight.position", old_pos_camera);
-				ourShader.setVec3("characterLight.direction", old_front_camera);
-			}
-			else {
-				ourShader.setVec3("characterLight.position", camera->getPos());
-				ourShader.setVec3("characterLight.direction", camera->getFront());
-			}
-		}
-		ourShader.setBool("linterna", linterna);
 
 		glUniform1i(glGetUniformLocation(ourShader.ID, "specular_map"), specular_map);
 
@@ -834,6 +925,18 @@ int main(int argc, char* argv[]) {
 
 		move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
 
+		if (linterna) {
+			if (fixed_pos) {
+				ourShader.setVec3("characterLight.position", old_pos_camera);
+				ourShader.setVec3("characterLight.direction", old_front_camera);
+			}
+			else {
+				ourShader.setVec3("characterLight.position", camera->getPos());
+				ourShader.setVec3("characterLight.direction", camera->getFront());
+			}
+		}
+		ourShader.setBool("linterna", linterna);
+
 		ourShader.setBool("apagon", apagon);
 		configLightsMap(ourShader, diffuse, specular);
 		configLightsHall(ourShader, ambient, diffuseHall, specularHall);
@@ -841,18 +944,109 @@ int main(int argc, char* argv[]) {
 		
 		view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
 		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
-		model = glm::mat4(1.0f);
-		ourShader.setMat4("model", model);
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
 		ourShader.setVec3("viewPos", camera->getPos());
+
+
+
+		//DRAW SUN
+
+		skyboxShader.use();
+		modelsun = glm::mat4(glm::rotate(modelsun, glm::radians(50.0f), glm::vec3(1.0, 1.0, 1.0)));
+		skyboxShader.setMat4("model", modelsun);
+		skyboxShader.setMat4("projection", projection);
+		skyboxShader.setMat4("view", view);
+		skyboxShader.setBool("is_sun", true);
+
+		glDisable(GL_MULTISAMPLE);
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
+			sun.Draw(skyboxShader, false, 0, 0);
+		}
+		skyboxShader.setBool("is_sun", false);
+
+		bool horizontal = true;
+		if (bloom) {
+			blur.use();
+			blur.setMat4("projection", projection);
+			blur.setMat4("view", view);
+			blur.setMat4("model", modelsun);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
+			for (unsigned int i = 0; i < amount; i++)
+			{
+				glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				blur.setInt("horizontal", horizontal);
+				// bind texture of other framebuffer
+				sun.Draw(blur, false, 1, 1);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[horizontal]);
+				horizontal = !horizontal;
+			}
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		bloomFinal.use();
+		bloomFinal.setMat4("projection", projection);
+		bloomFinal.setMat4("view", view);
+		bloomFinal.setMat4("model", modelsun);
+		bloomFinal.setInt("bloom", bloom);
+		bloomFinal.setFloat("exposure", exposure);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+		sun.Draw(bloomFinal, false, 1, 1);
 		
+
+
+		// Preparations for the Shadow Map
+		glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		// Draw scene for shadow map
+		shadowMapProgram.use();
+		ourModel.Draw(shadowMapProgram, false,1,1);
+
+		glViewport(0, 0, SCR_W, SCR_H);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
+		/*ShadowDebug.use();
+		glActiveTexture(GL_TEXTURE0 + 0);
+		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		glUniform1i(glGetUniformLocation(ShadowDebug.ID, "shadowMap"), 0);
+		renderQuad(); */
+			
+
+	
+		ourShader.use();
+		model = glm::mat4(1.0f);
+		ourShader.setMat4("model", model);
+		glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+		glActiveTexture(GL_TEXTURE13);
+		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		glUniform1i(glGetUniformLocation(ourShader.ID, "shadowMap"), 13);
+		ourModel.Draw(ourShader, false, 0, 0);
+
+	
+
 		// DRAW MODEL
+		//ourShader.use();
+		//model = glm::mat4(1.0f);
+		//ourShader.setMat4("model", model);
+
+
+
 		glDisable(GL_MULTISAMPLE);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
 				ourModel.Draw(ourShader, false, 0, 0);
+
 		}
 		
 		if (antialiasing) {
@@ -876,7 +1070,7 @@ int main(int argc, char* argv[]) {
 			glDrawBuffers(2, attachments);
 		}
 		
-		bool horizontal = true;
+		horizontal = true;
 		if (bloom) {
 			blur.use();
 			blur.setMat4("projection", projection);
@@ -909,15 +1103,18 @@ int main(int argc, char* argv[]) {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
 		ourModel.Draw(bloomFinal, false, 1, 1);
+
 		
 		//DRAW DEL CADAVER
 		ourShader.use();
 		model = glm::translate(model, glm::vec3(21.0f, 0.0f, -12.6f));
-		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+		model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
 		model = glm::mat4(glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0)));
 		ourShader.setBool("anim", true);
 		ourShader.setBool("moove", false);
 		ourShader.setMat4("model", model);
+		glm::mat4 matr_normals = glm::mat4(glm::transpose(glm::inverse(model)));
+		ourShader.setMat4("normals_matrix", matr_normals);
 		muerto.Draw(ourShader, false,0,0);
 
 		//DRAW DEL ASTRONAUTA
@@ -960,6 +1157,18 @@ int main(int argc, char* argv[]) {
 		ourShader.setBool("moove", true);
 		fantasma.initBonesForShader(ourShader);
 		fantasma.Draw(ourShader, true,0,0);
+
+		if (mapa) {
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			glDisable(GL_DEPTH_TEST);
+			ShadowDebug.use();
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, gameTexture);
+			renderQuad();
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS); // set depth function back to default 
+		}
 
 		// EVENTS
 		while (SDL_PollEvent(&sdlEvent)) {
@@ -1068,6 +1277,9 @@ int main(int argc, char* argv[]) {
 						bloom = !bloom;
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_m) {
+						mapa = !mapa;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_v) {
 						antialiasing = !antialiasing;
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_1) {

@@ -37,8 +37,14 @@
     <None Include="..\Shaders\bloom_final.fs" />
     <None Include="..\Shaders\blur.fs" />
     <None Include="..\Shaders\blur.vs" />
+    <None Include="..\Shaders\debugShadow.fs" />
+    <None Include="..\Shaders\debugShadow.vs" />
     <None Include="..\Shaders\model_loading.fs" />
     <None Include="..\Shaders\model_loading.vs" />
+    <None Include="..\Shaders\shadow.fs" />
+    <None Include="..\Shaders\shadow.vs" />
+    <None Include="..\Shaders\skybox_render.fs" />
+    <None Include="..\Shaders\skybox_render.vs" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\Config\Escena\escena.xml" />
