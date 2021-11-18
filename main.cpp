@@ -929,7 +929,6 @@ int main(int argc, char* argv[]) {
 		// CONFIG LIGHTS
 		ourShader.use();
 
-
 		glUniform1i(glGetUniformLocation(ourShader.ID, "specular_map"), specular_map);
 
 		// Diff real time - iteration time
