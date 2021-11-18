@@ -17,6 +17,9 @@
 #include <iostream>
 #include <fstream>
 #include "Config/tinyxml2.h"
+//#include <SDL.h>
+#include <SDL_ttf.h>
+using std::cerr;
 
 #define SCR_H 720 
 #define SCR_W 1024
@@ -38,26 +41,19 @@ GLuint shaderprogram; // handle for shader program
 GLuint vao, vbo[2]; // handles for our VAO and two VBOs
 float r = 0;
 
-
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
-void renderQuad()
+
+void renderQuad(float quadVertices[])
 {
-	if (quadVAO == 0)
 	{
-		float quadVertices[] = {
-			// positions        // texture Coords
-			0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-			0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		};
+
 		// setup plane VAO
 		glGenVertexArrays(1, &quadVAO);
 		glGenBuffers(1, &quadVBO);
 		glBindVertexArray(quadVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 80, &quadVertices[0], GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(1);
@@ -433,7 +429,7 @@ unsigned int loadTexture(string path) {
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		//glGenerateMipmap(GL_TEXTURE_2D);
+		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else
 	{
@@ -443,6 +439,14 @@ unsigned int loadTexture(string path) {
 	return texture1;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*																	|							 |
+																	|			MAIN			 |
+																	|							 |
+*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 int main(int argc, char* argv[]) {
 
@@ -451,6 +455,7 @@ int main(int argc, char* argv[]) {
 		SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
 		return 1;
 	}
+
 
 	// Load xml file
 	tinyxml2::XMLDocument xmlDoc;
@@ -481,6 +486,25 @@ int main(int argc, char* argv[]) {
 
 	window = SDL_CreateWindow("EntreNosotros3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		SCR_W, SCR_H, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+
+	if (TTF_Init() == 1)
+	{
+		cout << "TTF_Init() Failed: " << TTF_GetError() << endl;
+		SDL_Quit();
+		exit(1);
+	}
+	TTF_Font* font;
+	font = TTF_OpenFont("../Include/FreeSans.ttf", 20);
+	if (font == NULL)
+	{
+		cout << "TTF_OpenFont() Failed: " << TTF_GetError() << endl;
+		TTF_Quit();
+		SDL_Quit();
+		exit(1);
+	}
+
+	// Write text to surface
+	SDL_Color text_color = {64, 132, 150 };
 	
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
@@ -591,9 +615,33 @@ int main(int argc, char* argv[]) {
 		 1.0f, -1.0f,  1.0f
 	};
 
+	float upRight[] = {
+		// positions        // texture Coords
+		0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+		 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+	};
+
+	float full[] = {
+		// positions        // texture Coords
+		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+	};
+
+	float up_left[] = {
+		// positions        // texture Coords
+		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f,
+		-1.0f, 0.9f, 0.0f, 0.0f, 1.0f,
+		-0.9f,  1.0f, 0.0f, 1.0f, 0.0f,
+		-0.9f, 0.9f, 0.0f, 1.0f, 1.0f,
+	};
+
 	// load textures
 	unsigned int cubemapTexture = loadCubemap(faces);
-	unsigned int gameTexture = loadTexture("../Include/model/ma.png");
+	unsigned int gameTexture = loadTexture("../Include/model/mapa-png.png");
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -613,13 +661,24 @@ int main(int argc, char* argv[]) {
 	camera->Rotate(yaw, pitch);
 
 	// View, Model and Projection Matrix
+	glm::mat4 modelCadaver = glm::mat4(1.f);
+	modelCadaver = glm::translate(modelCadaver, glm::vec3(21.0f, 0.0f, -12.6f));
+	modelCadaver = glm::scale(modelCadaver, glm::vec3(0.3f, 0.3f, 0.3f));
+	modelCadaver = glm::mat4(glm::rotate(modelCadaver, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0)));
+	glm::mat4 matr_normals = glm::mat4(glm::transpose(glm::inverse(modelCadaver)));
+
+	glm::mat4 modelFantasma = glm::mat4(1.0f);
+	modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.3f, -12.70f));
+	modelFantasma = glm::scale(modelFantasma, glm::vec3(0.2f, 0.2f, 0.2f));
+
+
 	glm::mat4 view, model, projection, modelsun;
 	glm::mat4 modelAnim = glm::mat4(1.0f);
 	modelAnim = glm::translate(modelAnim, glm::vec3(29.26f, 0.0f, -24.32f));
 	modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
 
 	modelsun = glm::mat4(1.0f);
-	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
+	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 0.0f));//modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
 	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
 	bool sonido = false;
@@ -675,10 +734,21 @@ int main(int argc, char* argv[]) {
 
 
 
+	GLuint tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+
+
+
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//																		FRAME BUFFERS																				 //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	// Skybox VAO
 	unsigned int skyboxVAO, skyboxVBO;
 	glGenVertexArrays(1, &skyboxVAO);
@@ -804,8 +874,8 @@ int main(int argc, char* argv[]) {
 
 	shadowMapProgram.use();
 	glUniformMatrix4fv(glGetUniformLocation(shadowMapProgram.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
-	model = glm::mat4(1.f);
-	shadowMapProgram.setMat4("model", model);
+	glm::mat4 modelShadow = glm::mat4(1.f);
+	shadowMapProgram.setMat4("model", modelShadow);
 
 	ShadowDebug.use();
 	ShadowDebug.setInt("shadowMap", 0);
@@ -836,8 +906,10 @@ int main(int argc, char* argv[]) {
 			vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
 		
 		//render
-		glClearColor(0.0, 0.0, 0.0, 1.0); // set background colour
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window*/
+
+		//glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window
+		
 
 		// DRAW SKYBOX
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -862,7 +934,6 @@ int main(int argc, char* argv[]) {
 
 		// CONFIG LIGHTS
 		ourShader.use();
-
 
 		glUniform1i(glGetUniformLocation(ourShader.ID, "specular_map"), specular_map);
 
@@ -959,7 +1030,8 @@ int main(int argc, char* argv[]) {
 		//DRAW SUN
 
 		skyboxShader.use();
-		modelsun = glm::mat4(glm::rotate(modelsun, glm::radians(50.0f), glm::vec3(1.0, 1.0, 1.0)));
+		modelsun = glm::mat4(glm::rotate(modelsun, glm::radians(0.5f), glm::vec3(1.0, 0.0, 0.0)));
+		modelsun = glm::translate(modelsun, glm::vec3(0.0f, -0.8f, 1.0f));
 		skyboxShader.setMat4("model", modelsun);
 		skyboxShader.setMat4("projection", projection);
 		skyboxShader.setMat4("view", view);
@@ -1019,8 +1091,10 @@ int main(int argc, char* argv[]) {
 		ourModel.Draw(shadowMapProgram, false,1,1);
 
 		glViewport(0, 0, SCR_W, SCR_H);
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		
+		
+		//DEBUG SHADOW MAP
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		/*ShadowDebug.use();
 		glActiveTexture(GL_TEXTURE0 + 0);
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
@@ -1037,14 +1111,6 @@ int main(int argc, char* argv[]) {
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
 		glUniform1i(glGetUniformLocation(ourShader.ID, "shadowMap"), 13);
 		ourModel.Draw(ourShader, false, 0, 0);
-
-	
-
-		// DRAW MODEL
-		//ourShader.use();
-		//model = glm::mat4(1.0f);
-		//ourShader.setMat4("model", model);
-
 
 
 		glDisable(GL_MULTISAMPLE);
@@ -1113,13 +1179,9 @@ int main(int argc, char* argv[]) {
 		
 		//DRAW DEL CADAVER
 		ourShader.use();
-		model = glm::translate(model, glm::vec3(21.0f, 0.0f, -12.6f));
-		model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
-		model = glm::mat4(glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0)));
 		ourShader.setBool("anim", true);
 		ourShader.setBool("moove", false);
-		ourShader.setMat4("model", model);
-		glm::mat4 matr_normals = glm::mat4(glm::transpose(glm::inverse(model)));
+		ourShader.setMat4("model", modelCadaver);
 		ourShader.setMat4("normals_matrix", matr_normals);
 		muerto.Draw(ourShader, false,0,0);
 
@@ -1145,8 +1207,7 @@ int main(int argc, char* argv[]) {
 		}
 		modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
 		ourShader.setMat4("model", modelAnim);
-		ourShader.setMat4("view", view);
-		//ourShader.setMat4("projection", projection);
+
 
 		glm::mat4 matr_normals_cube =  glm::mat4(glm::transpose(glm::inverse(modelAnim)));
 		ourShader.setMat4("normals_matrix", matr_normals_cube);
@@ -1156,28 +1217,40 @@ int main(int argc, char* argv[]) {
 		cuerpo1.Draw(ourShader, (mv.moving_forward || mv.moving_back),0,0);
 
 		//DRAW DEL FANTASMA
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(20.3f, 0.3f, -12.70f));
-		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-		ourShader.setMat4("model", model);
+		ourShader.setMat4("model", modelFantasma);
 		ourShader.setBool("moove", true);
 		fantasma.initBonesForShader(ourShader);
 		fantasma.Draw(ourShader, true,0,0);
 
-		if (mapa) {
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-			glDisable(GL_DEPTH_TEST);
-			ShadowDebug.use();
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, gameTexture);
-			renderQuad();
-			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_LESS); // set depth function back to default 
+		// DRAW DEL MAPA
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+		glDisable(GL_DEPTH_TEST);
+		ShadowDebug.use();
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, gameTexture);
+		if (!mapa) {
+			renderQuad(upRight);
+		}else {
+			renderQuad(full);
 		}
 
+		// SHOW FPS 
+		short fps_to_show = round(1000.0f / deltaTime);
+		string fps = "FPS: " + to_string(fps_to_show);
+
+		SDL_Surface* surf = TTF_RenderText_Blended(font, fps.c_str(), text_color);
+
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w, surf->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surf->pixels);
+		renderQuad(up_left);
+		SDL_FreeSurface(surf);
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS); // set depth function back to default 
+
 		// EVENTS
-		while (SDL_PollEvent(&sdlEvent)) {
+		while (SDL_PollEvent(&sdlEvent)) {   //usar SDL_WaitEvent?
 			switch (sdlEvent.type) {
 				case SDL_MOUSEMOTION: {
 					if(lock_cam){
