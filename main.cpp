@@ -639,6 +639,7 @@ int main(int argc, char* argv[]) {
 	glm::vec3 old_pos_camera = camera->getPos();
 	glm::vec3 old_front_camera = camera->getFront();
 	movement mv;
+	bool lock_cam = true;
 	bool moved = false;
 	int count = 0;
 	int timeAux = 0;
@@ -814,15 +815,20 @@ int main(int argc, char* argv[]) {
 	//																		LOOP PRINCIPAL																				 //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+	int i = 0;
 	while (running)		// the event loop
 	{
+		i++;
 		// frame time logic
 		Uint32 currentFrame = SDL_GetTicks();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		timeN = currentFrame / 15;
-		//cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
+		if (i == 60) {
+			i = 0;
+			cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
+		}
+		
 		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
 		//audio processing
@@ -1174,22 +1180,32 @@ int main(int argc, char* argv[]) {
 		while (SDL_PollEvent(&sdlEvent)) {
 			switch (sdlEvent.type) {
 				case SDL_MOUSEMOTION: {
-					int x, y;
-					SDL_GetMouseState(&x, &y);
-					int xoffset = x - SCR_W / 2;
-					int yoffset = SCR_H / 2 - y; // reversed since y-coordinates range from bottom to top
+					if(lock_cam){
+						int x, y;
+						SDL_GetMouseState(&x, &y);
+						int xoffset = x - SCR_W / 2;
+						int yoffset = SCR_H / 2 - y; // reversed since y-coordinates range from bottom to top
 
-					xoffset *= sensitivity;
-					yoffset *= sensitivity;
-					yaw += xoffset;
-					pitch += yoffset;
+						xoffset *= sensitivity;
+						yoffset *= sensitivity;
+						yaw += xoffset;
+						pitch += yoffset;
 
-					if (pitch > 89.0f)
-						pitch = 89.0f;
-					if (pitch < -89.0f)
-						pitch = -89.0f;
+						if (pitch > 89.0f)
+							pitch = 89.0f;
+						if (pitch < -89.0f)
+							pitch = -89.0f;
 
-					camera->Rotate(yaw, pitch);
+						camera->Rotate(yaw, pitch);
+					}
+					break;
+				}
+				case SDL_MOUSEBUTTONDOWN: {
+					if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
+						int x, y;
+						SDL_GetMouseState(&x, &y);
+						cout << "X = " << x << " Y = " << y << endl;
+					}
 					break;
 				}
 				case SDL_MOUSEWHEEL: {
@@ -1206,6 +1222,10 @@ int main(int argc, char* argv[]) {
 					break;
 				}
 				case SDL_KEYUP: {
+					if (sdlEvent.key.keysym.sym == SDLK_LALT) {
+						lock_cam = true;
+						SDL_ShowCursor(SDL_DISABLE);
+					}
 					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
 						mv.spedUp = false;
 					}
@@ -1232,6 +1252,10 @@ int main(int argc, char* argv[]) {
 					break;
 				}
 				case SDL_KEYDOWN: {
+					if (sdlEvent.key.keysym.sym == SDLK_LALT) {
+						lock_cam = false;
+						SDL_ShowCursor(SDL_ENABLE);
+					}
 					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
 						mv.spedUp = true;
 					}
@@ -1316,8 +1340,8 @@ int main(int argc, char* argv[]) {
 			}
 
 			}
-
-			SDL_WarpMouseInWindow(window, SCR_W / 2, SCR_H / 2);
+			if (lock_cam)
+				SDL_WarpMouseInWindow(window, SCR_W / 2, SCR_H / 2);
 
 		}
 
