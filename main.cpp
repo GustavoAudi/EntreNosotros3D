@@ -642,6 +642,7 @@ int main(int argc, char* argv[]) {
 	// load textures
 	unsigned int cubemapTexture = loadCubemap(faces);
 	unsigned int gameTexture = loadTexture("../Include/model/mapa-png.png");
+	unsigned int mapMarker = loadTexture("../Include/model/marker.png");
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -692,6 +693,7 @@ int main(int argc, char* argv[]) {
 	bool linterna = false;
 	bool specular_map = false;
 	bool fixed_pos = false;
+	bool first_person = false;
 	bool mapa = false;
 	float old_yaw = 0.f;
 	glm::vec3 old_pos = glm::vec3(0.f);
@@ -894,10 +896,6 @@ int main(int argc, char* argv[]) {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		timeN = currentFrame / 15;
-		if (i == 60) {
-			i = 0;
-			cout << "FPS: " << 1000.0 / (deltaTime) << endl; // time to process loop
-		}
 		
 		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
@@ -1190,18 +1188,27 @@ int main(int argc, char* argv[]) {
 		view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
 
 		modelAnim = glm::mat4(1.f);
-		if (fixed_pos) {
+
+		glDisable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
+		if (first_person) {
+			modelAnim = glm::translate(modelAnim, camera->getPos()- camera->getDirection());
+			modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
+			modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
+			modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
+		} else {
+			if (fixed_pos) {
 			modelAnim = glm::translate(modelAnim, old_pos);
 			modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
+			}else {
+				modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
+				modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
+				old_yaw = -yaw + 90;
+				old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
+				old_pos_camera = camera->getPos();
+				old_front_camera = camera->getFront();
+			}
 		}
-		else {
-			modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
-			modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
-			old_yaw = -yaw + 90;
-			old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
-			old_pos_camera = camera->getPos();
-			old_front_camera = camera->getFront();
-		}
+
 		if (!(mv.moving_forward || mv.moving_back)) {
 			modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
 		}
@@ -1216,6 +1223,8 @@ int main(int argc, char* argv[]) {
 		cuerpo1.initBonesForShader(ourShader);
 		cuerpo1.Draw(ourShader, (mv.moving_forward || mv.moving_back),0,0);
 
+		glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
+
 		//DRAW DEL FANTASMA
 		ourShader.setMat4("model", modelFantasma);
 		ourShader.setBool("moove", true);
@@ -1223,6 +1232,17 @@ int main(int argc, char* argv[]) {
 		fantasma.Draw(ourShader, true,0,0);
 
 		// DRAW DEL MAPA
+		float delta_x = (10.0f / (SCR_W / 2.0f));
+		float delta_y = (10.0f / (SCR_H / 2.0f));
+		float mark_x = (camera->getPos().x * (1.0f/60.0f))+ 0.045333f;
+		float mark_y = -(camera->getPos().z * (1.0f/40.0f) - 0.13667f);
+		float marker[] = {
+			// positions        // texture Coords
+			mark_x, mark_y + delta_y, 0.0f, 0.0f, 1.0f,
+			mark_x, mark_y, 0.0f, 0.0f, 0.0f,
+			mark_x + delta_x, mark_y + delta_y, 0.0f, 1.0f, 1.0f,
+			mark_x + delta_x, mark_y, 0.0f, 1.0f, 0.0f,
+		};
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		glDisable(GL_DEPTH_TEST);
@@ -1231,12 +1251,20 @@ int main(int argc, char* argv[]) {
 		glBindTexture(GL_TEXTURE_2D, gameTexture);
 		if (!mapa) {
 			renderQuad(upRight);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, mapMarker);
+			renderQuad(marker);
 		}else {
 			renderQuad(full);
 		}
 
 		// SHOW FPS 
-		short fps_to_show = round(1000.0f / deltaTime);
+		short fps_to_show;
+		if (i == 60) {
+			i = 0;
+			fps_to_show = round(1000.0f / deltaTime);
+		}
+		
 		string fps = "FPS: " + to_string(fps_to_show);
 
 		SDL_Surface* surf = TTF_RenderText_Blended(font, fps.c_str(), text_color);
@@ -1387,6 +1415,9 @@ int main(int argc, char* argv[]) {
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_3) {
 						exposure += 0.02;
+					}
+					if (sdlEvent.key.keysym.sym == SDLK_4) {
+						first_person = !first_person;
 					}
 					if (sdlEvent.key.keysym.sym == SDLK_TAB) {
 						fixed_pos = !fixed_pos;
