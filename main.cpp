@@ -409,6 +409,32 @@ unsigned int loadCubemap(vector<std::string> faces)
 	return textureID;
 }
 
+float getOrientation(glm::vec2 A1, glm::vec2 A2, glm::vec2 A3) {
+	return (A1.x - A3.x) * (A2.y - A3.y) - (A1.y - A3.y) * (A2.x - A3.x);
+}
+
+bool isInside(float x, float y) {
+	glm::vec2 P = glm::vec2(x, y);
+
+	glm::vec2 A1 = glm::vec2(445, 567);
+	glm::vec2 A2 = glm::vec2(616, 499);
+	glm::vec2 A3 = glm::vec2(444, 431);
+
+	bool inside = false;
+	float orientationT = getOrientation(A1, A2, A3);
+	float orientationT1 = getOrientation(A1, A2, P);
+	float orientationT2 = getOrientation(A2, A3, P);
+	float orientationT3 = getOrientation(A3, A1, P);
+	if (orientationT >= 0) {
+		inside = (orientationT1 >= 0) && (orientationT2 >= 0) && (orientationT3 >= 0);
+	}
+	else {
+		inside = (orientationT1 < 0) && (orientationT2 < 0) && (orientationT3 < 0);
+	}
+
+	return inside;
+}
+
 unsigned int loadTexture(string path) {
 	unsigned int texture1;
 	// texture 1
@@ -643,6 +669,7 @@ int main(int argc, char* argv[]) {
 	unsigned int cubemapTexture = loadCubemap(faces);
 	unsigned int gameTexture = loadTexture("../Include/model/mapa-png.png");
 	unsigned int mapMarker = loadTexture("../Include/model/marker.png");
+	unsigned int mainMenu = loadTexture("../Include/model/main-menu.png");
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -682,6 +709,8 @@ int main(int argc, char* argv[]) {
 	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 0.0f));//modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
 	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
+	bool isMainMenu = true;
+	SDL_ShowCursor(SDL_ENABLE);
 	bool sonido = false;
 	bool running = true;
 	bool fullScreen = false;
@@ -700,7 +729,7 @@ int main(int argc, char* argv[]) {
 	glm::vec3 old_pos_camera = camera->getPos();
 	glm::vec3 old_front_camera = camera->getFront();
 	movement mv;
-	bool lock_cam = true;
+	bool lock_cam = false;
 	bool moved = false;
 	int count = 0;
 	int timeAux = 0;
@@ -891,396 +920,413 @@ int main(int argc, char* argv[]) {
 	int i = 0;
 	while (running)		// the event loop
 	{
-		i++;
-		// frame time logic
-		Uint32 currentFrame = SDL_GetTicks();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-		timeN = currentFrame / 15;
-		
-		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
+		if (!isMainMenu) {
+			i++;
+			// frame time logic
+			Uint32 currentFrame = SDL_GetTicks();
+			deltaTime = currentFrame - lastFrame;
+			lastFrame = currentFrame;
+			timeN = currentFrame / 15;
 
-		//audio processing
-		engine->setListenerPosition(vec3df(camera->getPos().x, camera->getPos().y, camera->getPos().z),
-			vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
-		
-		//render
+			float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
-		glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window
-		
+			//audio processing
+			engine->setListenerPosition(vec3df(camera->getPos().x, camera->getPos().y, camera->getPos().z),
+				vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
 
-		// DRAW SKYBOX
-		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-		glDisable(GL_DEPTH_TEST);
-		skyboxShader.use();
-		skyboxShader.setInt("sun", false);
-		view = glm::mat4(glm::mat3(glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp()))); // remove translation from the view matrix
-		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
-		skyboxShader.setMat4("view", view);
-		skyboxShader.setMat4("projection", projection);
-		model = glm::mat4(1.f);
-		skyboxShader.setMat4("model", model);
+			//render
 
-		// SKYBOX CUBE
-		glBindVertexArray(skyboxVAO);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS); // set depth function back to default 
+			glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window
 
-		// CONFIG LIGHTS
-		ourShader.use();
 
-		glUniform1i(glGetUniformLocation(ourShader.ID, "specular_map"), specular_map);
+			// DRAW SKYBOX
+			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			glDisable(GL_DEPTH_TEST);
+			skyboxShader.use();
+			skyboxShader.setInt("sun", false);
+			view = glm::mat4(glm::mat3(glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp()))); // remove translation from the view matrix
+			projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
+			skyboxShader.setMat4("view", view);
+			skyboxShader.setMat4("projection", projection);
+			model = glm::mat4(1.f);
+			skyboxShader.setMat4("model", model);
 
-		// Diff real time - iteration time
-		diff = timeN - timeAux;
-		timeAux = timeN;
+			// SKYBOX CUBE
+			glBindVertexArray(skyboxVAO);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS); // set depth function back to default 
 
-		if (cortoElectricidad) {
-			sonido = true;
-			if (count < 65) {
-				if (count == 0) {
-					pausarSonidos(engine);
-					engine->play2D(ligthOffSound);
+			// CONFIG LIGHTS
+			ourShader.use();
+
+			glUniform1i(glGetUniformLocation(ourShader.ID, "specular_map"), specular_map);
+
+			// Diff real time - iteration time
+			diff = timeN - timeAux;
+			timeAux = timeN;
+
+			if (cortoElectricidad) {
+				sonido = true;
+				if (count < 65) {
+					if (count == 0) {
+						pausarSonidos(engine);
+						engine->play2D(ligthOffSound);
+					}
+					if (diff != timeN) {
+						diffuse = glm::vec3(diffuse.x - 0.013f * diff);
+						specular = glm::vec3(specular.x - 0.013f * diff);
+						diffuseHall = diffuse;
+						specularHall = specular;
+						count += diff;
+					}
 				}
-				if (diff != timeN) {
-					diffuse = glm::vec3(diffuse.x - 0.013f * diff);
-					specular = glm::vec3(specular.x - 0.013f * diff);
+				else if (count >= 65 && !apagon) {
+					diffuse = glm::vec3(0.f);
+					specular = diffuse;
 					diffuseHall = diffuse;
 					specularHall = specular;
-					count += diff;
-				}
-			}
-			else if (count >= 65 && !apagon) {
-				diffuse = glm::vec3(0.f);
-				specular = diffuse;
-				diffuseHall = diffuse;
-				specularHall = specular;
-				apagon = true;
-			}
-
-			if (apagon) {
-				if (count < 130) {
-					diffuseHall = glm::vec3(diffuseHall.x + 0.02f * diff, 0.f, 0.f);
-					specularHall = glm::vec3(specularHall.x + 0.02f * diff, 0.f, 0.f);
-					count += diff;
-					if (count >= 85 && count < 85 + diff)
-						engine->play2D(sirenSound);
-				}
-				else if (count < 200) {
-					diffuseHall = glm::vec3(diffuseHall.x - 0.02f * diff, 0.f, 0.f);
-					specularHall = glm::vec3(specularHall.x - 0.02f * diff, 0.f, 0.f);
-					count += diff;
-				}
-				else if (count >= 200) {
-					diffuseHall = glm::vec3(0.05f, 0.f, 0.f);
-					specularHall = diffuseHall;
-					count = 65;
+					apagon = true;
 				}
 
-			}
-		}
-		else {
-			engine->stopAllSoundsOfSoundSource(sirenSound);
-			engine->stopAllSoundsOfSoundSource(ligthOffSound);
-			diffuse = glm::vec3(0.8f);
-			specular = glm::vec3(0.6f);
-			diffuseHall = glm::vec3(1.0f, 1.0f, 1.0f);
-			specularHall = glm::vec3(1.0f, 1.0f, 1.0f);
-			if (sonido) {
-				iniciarSonidos(engine);
-				sonido = false;
-			}
-			apagon = false;
-			count = 0;
-		}
+				if (apagon) {
+					if (count < 130) {
+						diffuseHall = glm::vec3(diffuseHall.x + 0.02f * diff, 0.f, 0.f);
+						specularHall = glm::vec3(specularHall.x + 0.02f * diff, 0.f, 0.f);
+						count += diff;
+						if (count >= 85 && count < 85 + diff)
+							engine->play2D(sirenSound);
+					}
+					else if (count < 200) {
+						diffuseHall = glm::vec3(diffuseHall.x - 0.02f * diff, 0.f, 0.f);
+						specularHall = glm::vec3(specularHall.x - 0.02f * diff, 0.f, 0.f);
+						count += diff;
+					}
+					else if (count >= 200) {
+						diffuseHall = glm::vec3(0.05f, 0.f, 0.f);
+						specularHall = diffuseHall;
+						count = 65;
+					}
 
-		move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
-
-		if (linterna) {
-			if (fixed_pos) {
-				ourShader.setVec3("characterLight.position", old_pos_camera);
-				ourShader.setVec3("characterLight.direction", old_front_camera);
+				}
 			}
 			else {
-				ourShader.setVec3("characterLight.position", camera->getPos());
-				ourShader.setVec3("characterLight.direction", camera->getFront());
+				engine->stopAllSoundsOfSoundSource(sirenSound);
+				engine->stopAllSoundsOfSoundSource(ligthOffSound);
+				diffuse = glm::vec3(0.8f);
+				specular = glm::vec3(0.6f);
+				diffuseHall = glm::vec3(1.0f, 1.0f, 1.0f);
+				specularHall = glm::vec3(1.0f, 1.0f, 1.0f);
+				if (sonido) {
+					iniciarSonidos(engine);
+					sonido = false;
+				}
+				apagon = false;
+				count = 0;
 			}
-		}
-		ourShader.setBool("linterna", linterna);
 
-		ourShader.setBool("apagon", apagon);
-		configLightsMap(ourShader, diffuse, specular);
-		configLightsHall(ourShader, ambient, diffuseHall, specularHall);
-		ourShader.setBool("anim", false);
-		
-		view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
-		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
-		ourShader.setMat4("projection", projection);
-		ourShader.setMat4("view", view);
-		ourShader.setVec3("viewPos", camera->getPos());
+			move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
+
+			if (linterna) {
+				if (fixed_pos) {
+					ourShader.setVec3("characterLight.position", old_pos_camera);
+					ourShader.setVec3("characterLight.direction", old_front_camera);
+				}
+				else {
+					ourShader.setVec3("characterLight.position", camera->getPos());
+					ourShader.setVec3("characterLight.direction", camera->getFront());
+				}
+			}
+			ourShader.setBool("linterna", linterna);
+
+			ourShader.setBool("apagon", apagon);
+			configLightsMap(ourShader, diffuse, specular);
+			configLightsHall(ourShader, ambient, diffuseHall, specularHall);
+			ourShader.setBool("anim", false);
+
+			view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
+			projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
+			ourShader.setMat4("projection", projection);
+			ourShader.setMat4("view", view);
+			ourShader.setVec3("viewPos", camera->getPos());
 
 
 
-		//DRAW SUN
+			//DRAW SUN
 
-		skyboxShader.use();
-		modelsun = glm::translate(modelsun, glm::vec3(27.0f, 0.0f, -17.0f));
+			skyboxShader.use();
+			modelsun = glm::translate(modelsun, glm::vec3(27.0f, 0.0f, -17.0f));
 			modelsun = glm::mat4(glm::rotate(modelsun, glm::radians(0.5f), glm::vec3(1.0, 0.0, 0.0)));
 			//modelsun = glm::translate(modelsun, glm::vec3(0.0f, -0.8f, 1.0f));
-		modelsun = glm::translate(modelsun, glm::vec3(-27.0f, 0.0f, 17.0f));
-		skyboxShader.setMat4("model", modelsun);
-		skyboxShader.setMat4("projection", projection);
-		skyboxShader.setMat4("view", view);
-		skyboxShader.setBool("is_sun", true);
+			modelsun = glm::translate(modelsun, glm::vec3(-27.0f, 0.0f, 17.0f));
+			skyboxShader.setMat4("model", modelsun);
+			skyboxShader.setMat4("projection", projection);
+			skyboxShader.setMat4("view", view);
+			skyboxShader.setBool("is_sun", true);
 
-		glDisable(GL_MULTISAMPLE);
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
-			sun.Draw(skyboxShader, false, 0, 0);
-		}
-		skyboxShader.setBool("is_sun", false);
-
-		bool horizontal = true;
-		if (bloom) {
-			blur.use();
-			blur.setMat4("projection", projection);
-			blur.setMat4("view", view);
-			blur.setMat4("model", modelsun);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
-			for (unsigned int i = 0; i < amount; i++)
-			{
-				glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
-				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				blur.setInt("horizontal", horizontal);
-				// bind texture of other framebuffer
-				sun.Draw(blur, false, 1, 1);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[horizontal]);
-				horizontal = !horizontal;
+			glDisable(GL_MULTISAMPLE);
+			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
+				sun.Draw(skyboxShader, false, 0, 0);
 			}
-		}
+			skyboxShader.setBool("is_sun", false);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		bloomFinal.use();
-		bloomFinal.setMat4("projection", projection);
-		bloomFinal.setMat4("view", view);
-		bloomFinal.setMat4("model", modelsun);
-		bloomFinal.setInt("bloom", bloom);
-		bloomFinal.setFloat("exposure", exposure);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
-		sun.Draw(bloomFinal, false, 1, 1);
-		
+			bool horizontal = true;
+			if (bloom) {
+				blur.use();
+				blur.setMat4("projection", projection);
+				blur.setMat4("view", view);
+				blur.setMat4("model", modelsun);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
+				for (unsigned int i = 0; i < amount; i++)
+				{
+					glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+					//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+					blur.setInt("horizontal", horizontal);
+					// bind texture of other framebuffer
+					sun.Draw(blur, false, 1, 1);
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[horizontal]);
+					horizontal = !horizontal;
+				}
+			}
 
-
-		// Preparations for the Shadow Map
-		glViewport(0, 0, shadowMapWidth, shadowMapHeight);
-		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		// Draw scene for shadow map
-		shadowMapProgram.use();
-		ourModel.Draw(shadowMapProgram, false,1,1);
-
-		glViewport(0, 0, SCR_W, SCR_H);
-		
-		
-		//DEBUG SHADOW MAP
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		/*ShadowDebug.use();
-		glActiveTexture(GL_TEXTURE0 + 0);
-		glBindTexture(GL_TEXTURE_2D, shadowMap);
-		glUniform1i(glGetUniformLocation(ShadowDebug.ID, "shadowMap"), 0);
-		renderQuad(); */
-			
-
-	
-		ourShader.use();
-		model = glm::mat4(1.0f);
-		ourShader.setMat4("model", model);
-		glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
-		glActiveTexture(GL_TEXTURE13);
-		glBindTexture(GL_TEXTURE_2D, shadowMap);
-		glUniform1i(glGetUniformLocation(ourShader.ID, "shadowMap"), 13);
-		ourModel.Draw(ourShader, false, 0, 0);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			bloomFinal.use();
+			bloomFinal.setMat4("projection", projection);
+			bloomFinal.setMat4("view", view);
+			bloomFinal.setMat4("model", modelsun);
+			bloomFinal.setInt("bloom", bloom);
+			bloomFinal.setFloat("exposure", exposure);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+			sun.Draw(bloomFinal, false, 1, 1);
 
 
-		glDisable(GL_MULTISAMPLE);
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
-				ourModel.Draw(ourShader, false, 0, 0);
 
-		}
-		
-		if (antialiasing) {
-			glEnable(GL_MULTISAMPLE);
-			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
+			// Preparations for the Shadow Map
+			glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+			glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+			glClear(GL_DEPTH_BUFFER_BIT);
+
+			// Draw scene for shadow map
+			shadowMapProgram.use();
+			ourModel.Draw(shadowMapProgram, false, 1, 1);
+
+			glViewport(0, 0, SCR_W, SCR_H);
+
+
+			//DEBUG SHADOW MAP
+			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			/*ShadowDebug.use();
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glBindTexture(GL_TEXTURE_2D, shadowMap);
+			glUniform1i(glGetUniformLocation(ShadowDebug.ID, "shadowMap"), 0);
+			renderQuad(); */
+
+
+
+			ourShader.use();
+			model = glm::mat4(1.0f);
+			ourShader.setMat4("model", model);
+			glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+			glActiveTexture(GL_TEXTURE13);
+			glBindTexture(GL_TEXTURE_2D, shadowMap);
+			glUniform1i(glGetUniformLocation(ourShader.ID, "shadowMap"), 13);
+			ourModel.Draw(ourShader, false, 0, 0);
+
+
+			glDisable(GL_MULTISAMPLE);
+			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
 				ourModel.Draw(ourShader, false, 0, 0);
+
 			}
 
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferMultisampledFBO);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferFBO);
-			glReadBuffer(GL_COLOR_ATTACHMENT0);
-			glDrawBuffer(GL_COLOR_ATTACHMENT0);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-			glReadBuffer(GL_COLOR_ATTACHMENT1);
-			glDrawBuffer(GL_COLOR_ATTACHMENT1);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-			glDrawBuffers(2, attachments);
-		}
-		
-		horizontal = true;
-		if (bloom) {
-			blur.use();
-			blur.setMat4("projection", projection);
-			blur.setMat4("view", view);
-			blur.setMat4("model", model);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
-			for (unsigned int i = 0; i < amount; i++)
-			{
-				glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
-				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				blur.setInt("horizontal", horizontal);
-				// bind texture of other framebuffer
-				ourModel.Draw(blur, false, 1, 1);
+			if (antialiasing) {
+				glEnable(GL_MULTISAMPLE);
+				glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
+					ourModel.Draw(ourShader, false, 0, 0);
+				}
+
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferMultisampledFBO);
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferFBO);
+				glReadBuffer(GL_COLOR_ATTACHMENT0);
+				glDrawBuffer(GL_COLOR_ATTACHMENT0);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+				glReadBuffer(GL_COLOR_ATTACHMENT1);
+				glDrawBuffer(GL_COLOR_ATTACHMENT1);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+				glDrawBuffers(2, attachments);
+			}
+
+			horizontal = true;
+			if (bloom) {
+				blur.use();
+				blur.setMat4("projection", projection);
+				blur.setMat4("view", view);
+				blur.setMat4("model", model);
 				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[horizontal]);
-				horizontal = !horizontal;
+				glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
+				for (unsigned int i = 0; i < amount; i++)
+				{
+					glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+					//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+					blur.setInt("horizontal", horizontal);
+					// bind texture of other framebuffer
+					ourModel.Draw(blur, false, 1, 1);
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[horizontal]);
+					horizontal = !horizontal;
+				}
 			}
-		}
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		bloomFinal.use();
-		bloomFinal.setMat4("projection", projection);
-		bloomFinal.setMat4("view", view);
-		bloomFinal.setMat4("model", model);
-		bloomFinal.setInt("bloom", bloom);
-		bloomFinal.setFloat("exposure", exposure);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
-		ourModel.Draw(bloomFinal, false, 1, 1);
-
-		
-		//DRAW DEL CADAVER
-		ourShader.use();
-		ourShader.setBool("anim", true);
-		ourShader.setBool("moove", false);
-		ourShader.setMat4("model", modelCadaver);
-		ourShader.setMat4("normals_matrix", matr_normals);
-		muerto.Draw(ourShader, false,0,0);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			bloomFinal.use();
+			bloomFinal.setMat4("projection", projection);
+			bloomFinal.setMat4("view", view);
+			bloomFinal.setMat4("model", model);
+			bloomFinal.setInt("bloom", bloom);
+			bloomFinal.setFloat("exposure", exposure);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+			ourModel.Draw(bloomFinal, false, 1, 1);
 
 
-		//DRAW DEL ASTRONAUTA
-		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
-		view = glm::lookAt(camera->getPos() , camera->getPos(), camera->getUp());
+			//DRAW DEL CADAVER
+			ourShader.use();
+			ourShader.setBool("anim", true);
+			ourShader.setBool("moove", false);
+			ourShader.setMat4("model", modelCadaver);
+			ourShader.setMat4("normals_matrix", matr_normals);
+			muerto.Draw(ourShader, false, 0, 0);
 
-		modelAnim = glm::mat4(1.f);
 
-	
-		if (first_person) {
-			glDisable(GL_CULL_FACE);
-			modelAnim = glm::translate(modelAnim, camera->getPos()- camera->getDirection());
-			modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
-			modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
-			modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
-		} else {
-			if (fixed_pos) {
-			modelAnim = glm::translate(modelAnim, old_pos);
-			modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
-			}else {
-				modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
+			//DRAW DEL ASTRONAUTA
+			projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
+			view = glm::lookAt(camera->getPos(), camera->getPos(), camera->getUp());
+
+			modelAnim = glm::mat4(1.f);
+
+
+			if (first_person) {
+				glDisable(GL_CULL_FACE);
+				modelAnim = glm::translate(modelAnim, camera->getPos() - camera->getDirection());
 				modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
-				old_yaw = -yaw + 90;
-				old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
-				old_pos_camera = camera->getPos();
-				old_front_camera = camera->getFront();
+				modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
+				modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
 			}
-		}
+			else {
+				if (fixed_pos) {
+					modelAnim = glm::translate(modelAnim, old_pos);
+					modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
+				}
+				else {
+					modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
+					modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
+					old_yaw = -yaw + 90;
+					old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
+					old_pos_camera = camera->getPos();
+					old_front_camera = camera->getFront();
+				}
+			}
 
-		if (!(mv.moving_forward || mv.moving_back) || first_person) {
-			modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
-		}
+			if (!(mv.moving_forward || mv.moving_back) || first_person) {
+				modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
+			}
 
-		modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
-		ourShader.setMat4("model", modelAnim);
+			modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
+			ourShader.setMat4("model", modelAnim);
 
 
-		glm::mat4 matr_normals_cube =  glm::mat4(glm::transpose(glm::inverse(modelAnim)));
-		ourShader.setMat4("normals_matrix", matr_normals_cube);
-		ourShader.setBool("anim", true);
-		ourShader.setBool("moove", !first_person && (mv.moving_forward || mv.moving_back));
-		cuerpo1.initBonesForShader(ourShader);
-		cuerpo1.Draw(ourShader, !first_person && (mv.moving_forward || mv.moving_back),0,0);
+			glm::mat4 matr_normals_cube = glm::mat4(glm::transpose(glm::inverse(modelAnim)));
+			ourShader.setMat4("normals_matrix", matr_normals_cube);
+			ourShader.setBool("anim", true);
+			ourShader.setBool("moove", !first_person && (mv.moving_forward || mv.moving_back));
+			cuerpo1.initBonesForShader(ourShader);
+			cuerpo1.Draw(ourShader, !first_person && (mv.moving_forward || mv.moving_back), 0, 0);
 
-		glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
+			glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
 
-		//DRAW DEL FANTASMA
-		ourShader.setMat4("model", modelFantasma);
-		ourShader.setBool("moove", true);
-		fantasma.initBonesForShader(ourShader);
-		fantasma.Draw(ourShader, true,0,0);
+			//DRAW DEL FANTASMA
+			ourShader.setMat4("model", modelFantasma);
+			ourShader.setBool("moove", true);
+			fantasma.initBonesForShader(ourShader);
+			fantasma.Draw(ourShader, true, 0, 0);
 
-		// DRAW DEL MAPA
-		float delta_x = (10.0f / (SCR_W / 2.0f));
-		float delta_y = (10.0f / (SCR_H / 2.0f));
-		float mark_x = (camera->getPos().x * (1.0f/60.0f))+ 0.045333f;
-		float mark_y = -(camera->getPos().z * (1.0f/40.0f) - 0.13667f);
-		float marker[] = {
-			// positions        // texture Coords
-			mark_x, mark_y + delta_y, 0.0f, 0.0f, 1.0f,
-			mark_x, mark_y, 0.0f, 0.0f, 0.0f,
-			mark_x + delta_x, mark_y + delta_y, 0.0f, 1.0f, 1.0f,
-			mark_x + delta_x, mark_y, 0.0f, 1.0f, 0.0f,
-		};
+			// DRAW DEL MAPA
+			float delta_x = (10.0f / (SCR_W / 2.0f));
+			float delta_y = (10.0f / (SCR_H / 2.0f));
+			float mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
+			float mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
+			float marker[] = {
+				// positions        // texture Coords
+				mark_x, mark_y + delta_y, 0.0f, 0.0f, 1.0f,
+				mark_x, mark_y, 0.0f, 0.0f, 0.0f,
+				mark_x + delta_x, mark_y + delta_y, 0.0f, 1.0f, 1.0f,
+				mark_x + delta_x, mark_y, 0.0f, 1.0f, 0.0f,
+			};
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			glDisable(GL_DEPTH_TEST);
+			ShadowDebug.use();
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, gameTexture);
+			if (!mapa) {
+				renderQuad(upRight);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, mapMarker);
+				renderQuad(marker);
+			}
+			else {
+				renderQuad(full);
+			}
+
+			// SHOW FPS 
+			short fps_to_show;
+			if (i == 60) {
+				i = 0;
+				fps_to_show = round(1000.0f / deltaTime);
+			}
+
+			string fps = "FPS: " + to_string(fps_to_show);
+			SDL_Surface* surf = TTF_RenderText_Blended(font, fps.c_str(), text_color);
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w, surf->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surf->pixels);
+			renderQuad(up_left);
+			SDL_FreeSurface(surf);
+
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS); // set depth function back to default 
+		}else{
+		glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window
+
+		// DRAW MAIN MENU
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		glDisable(GL_DEPTH_TEST);
 		ShadowDebug.use();
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, gameTexture);
-		if (!mapa) {
-			renderQuad(upRight);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, mapMarker);
-			renderQuad(marker);
-		}else {
-			renderQuad(full);
-		}
-
-		// SHOW FPS 
-		short fps_to_show;
-		if (i == 60) {
-			i = 0;
-			fps_to_show = round(1000.0f / deltaTime);
-		}
+		glBindTexture(GL_TEXTURE_2D, mainMenu);
+        renderQuad(full);
 		
-		string fps = "FPS: " + to_string(fps_to_show);
-		SDL_Surface* surf = TTF_RenderText_Blended(font, fps.c_str(), text_color);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w, surf->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surf->pixels);
-		renderQuad(up_left);
-		SDL_FreeSurface(surf);
-
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS); // set depth function back to default 
-
+}
 		// EVENTS
 		while (SDL_PollEvent(&sdlEvent)) {   //usar SDL_WaitEvent?
 			switch (sdlEvent.type) {
@@ -1309,6 +1355,11 @@ int main(int argc, char* argv[]) {
 					if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
 						int x, y;
 						SDL_GetMouseState(&x, &y);
+						if (isMainMenu && isInside(x,y)) {
+							isMainMenu = false;
+							lock_cam = true;
+							SDL_ShowCursor(SDL_DISABLE);
+						}
 						cout << "X = " << x << " Y = " << y << endl;
 					}
 					break;
@@ -1327,7 +1378,7 @@ int main(int argc, char* argv[]) {
 					break;
 				}
 				case SDL_KEYUP: {
-					if (sdlEvent.key.keysym.sym == SDLK_LALT) {
+					if (sdlEvent.key.keysym.sym == SDLK_LALT && !isMainMenu) {
 						lock_cam = true;
 						SDL_ShowCursor(SDL_DISABLE);
 					}
