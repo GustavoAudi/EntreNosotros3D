@@ -743,6 +743,7 @@ int main(int argc, char* argv[]) {
 	bool lock_cam = false;
 	bool moved = false;
 	int count = 0;
+	int transitionCounter = 0;
 	int timeAux = 0;
 	int diff = 0;
 	int timeN = 0;
@@ -950,7 +951,6 @@ int main(int argc, char* argv[]) {
 		switch (actualState) {
 		case GAME:
 		{
-			i++;
 			float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
 			//audio processing
@@ -984,66 +984,66 @@ int main(int argc, char* argv[]) {
 			ourShader.use();
 
 			glUniform1i(glGetUniformLocation(ourShader.ID, "specular_map"), specular_map);
-			if (previousState == GAME) {
-				if (cortoElectricidad) {
-					sonido = true;
-					if (count < 65) {
-						if (count == 0) {
-							pausarSonidos(engine);
-							engine->play2D(ligthOffSound);
-						}
-						if (diff != timeN) {
-							diffuse = glm::vec3(diffuse.x - 0.013f * diff);
-							specular = glm::vec3(specular.x - 0.013f * diff);
-							diffuseHall = diffuse;
-							specularHall = specular;
-							count += diff;
-						}
+
+			if (cortoElectricidad) {
+				sonido = true;
+				if (count < 65) {
+					if (count == 0) {
+						pausarSonidos(engine);
+						engine->play2D(ligthOffSound);
 					}
-					else if (count >= 65 && !apagon) {
-						diffuse = glm::vec3(0.f);
-						specular = diffuse;
+					if (diff != timeN) {
+						diffuse = glm::vec3(diffuse.x - 0.013f * diff);
+						specular = glm::vec3(specular.x - 0.013f * diff);
 						diffuseHall = diffuse;
 						specularHall = specular;
-						apagon = true;
-					}
-
-					if (apagon) {
-						if (count < 130) {
-							diffuseHall = glm::vec3(diffuseHall.x + 0.02f * diff, 0.f, 0.f);
-							specularHall = glm::vec3(specularHall.x + 0.02f * diff, 0.f, 0.f);
-							count += diff;
-							if (count >= 85 && count < 85 + diff)
-								engine->play2D(sirenSound);
-						}
-						else if (count < 200) {
-							diffuseHall = glm::vec3(diffuseHall.x - 0.02f * diff, 0.f, 0.f);
-							specularHall = glm::vec3(specularHall.x - 0.02f * diff, 0.f, 0.f);
-							count += diff;
-						}
-						else if (count >= 200) {
-							diffuseHall = glm::vec3(0.05f, 0.f, 0.f);
-							specularHall = diffuseHall;
-							count = 65;
-						}
-
+						count += diff;
 					}
 				}
-				else {
-					engine->stopAllSoundsOfSoundSource(sirenSound);
-					engine->stopAllSoundsOfSoundSource(ligthOffSound);
-					diffuse = glm::vec3(0.8f);
-					specular = glm::vec3(0.6f);
-					diffuseHall = glm::vec3(1.0f, 1.0f, 1.0f);
-					specularHall = glm::vec3(1.0f, 1.0f, 1.0f);
-					if (sonido) {
-						iniciarSonidos(engine);
-						sonido = false;
+				else if (count >= 65 && !apagon) {
+					diffuse = glm::vec3(0.f);
+					specular = diffuse;
+					diffuseHall = diffuse;
+					specularHall = specular;
+					apagon = true;
+				}
+
+				if (apagon) {
+					if (count < 130) {
+						diffuseHall = glm::vec3(diffuseHall.x + 0.02f * diff, 0.f, 0.f);
+						specularHall = glm::vec3(specularHall.x + 0.02f * diff, 0.f, 0.f);
+						count += diff;
+						if (count >= 85 && count < 85 + diff)
+							engine->play2D(sirenSound);
 					}
-					apagon = false;
-					count = 0;
+					else if (count < 200) {
+						diffuseHall = glm::vec3(diffuseHall.x - 0.02f * diff, 0.f, 0.f);
+						specularHall = glm::vec3(specularHall.x - 0.02f * diff, 0.f, 0.f);
+						count += diff;
+					}
+					else if (count >= 200) {
+						diffuseHall = glm::vec3(0.05f, 0.f, 0.f);
+						specularHall = diffuseHall;
+						count = 65;
+					}
+
 				}
 			}
+			else {
+				engine->stopAllSoundsOfSoundSource(sirenSound);
+				engine->stopAllSoundsOfSoundSource(ligthOffSound);
+				diffuse = glm::vec3(0.8f);
+				specular = glm::vec3(0.6f);
+				diffuseHall = glm::vec3(1.0f, 1.0f, 1.0f);
+				specularHall = glm::vec3(1.0f, 1.0f, 1.0f);
+				if (sonido) {
+					iniciarSonidos(engine);
+					sonido = false;
+				}
+				apagon = false;
+				count = 0;
+			}
+
 			move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
 
 			if (linterna) {
@@ -1313,6 +1313,7 @@ int main(int argc, char* argv[]) {
 
 			// SHOW FPS 
 			short fps_to_show;
+			i++;
 			if (i == 60) {
 				i = 0;
 				fps_to_show = round(1000.0f / deltaTime);
@@ -1331,9 +1332,9 @@ int main(int argc, char* argv[]) {
 				glDisable(GL_DEPTH_TEST);
 				ShadowDebug.use();
 				ShadowDebug.setBool("transparencyIsAvailable", true);
-				if (count <= 150) {
-					count += diff;
-					alpha -= 0.008;
+				if (transitionCounter <= 130) {
+					transitionCounter += diff;
+					alpha -= 0.01;
 					if (alpha <= 0) {
 						alpha = 0;
 					}
@@ -1341,8 +1342,6 @@ int main(int argc, char* argv[]) {
 				}
 				else {
 					previousState = GAME;
-					alpha = 1.0;
-					count = 0;
 				}
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, blackWindows);
@@ -1373,8 +1372,8 @@ int main(int argc, char* argv[]) {
 			glDisable(GL_DEPTH_TEST);
 			ShadowDebug.use();
 			ShadowDebug.setBool("transparencyIsAvailable", true);
-			if (count <= 100) {
-				count += diff;
+			if (transitionCounter <= 100) {
+				transitionCounter += diff;
 				alpha -= 0.0003;
 				if (alpha <= 0) {
 					alpha = 0;
@@ -1386,7 +1385,7 @@ int main(int argc, char* argv[]) {
 				actualState = GAME;
 				previousState = TRANSITION;
 				alpha = 1.0;
-				count = 0;
+				transitionCounter = 0;
 			}
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, mainMenu);
@@ -1425,7 +1424,7 @@ int main(int argc, char* argv[]) {
 					if (actualState == MAIN_MENU && isInside(x, y)) {
 						engine->play2D(uiSelectSound);
 						actualState = TRANSITION;
-						count = 0;
+						transitionCounter = 0;
 						lock_cam = true;
 						SDL_ShowCursor(SDL_DISABLE);
 						engine->stopAllSoundsOfSoundSource(mainMenuSound);
@@ -1497,7 +1496,7 @@ int main(int argc, char* argv[]) {
 					else {
 						actualState = MAIN_MENU;
 						alpha = 1;
-						count = 0;
+						transitionCounter = 0;
 						cortoElectricidad = false;
 						pausarSonidos(engine);
 						engine->play2D(mainMenuSound);
