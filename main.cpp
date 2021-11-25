@@ -885,7 +885,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Framebuffer not complete111!" << std::endl;
 
 
-	//NEW- SHADOWS
+	// NEW- SHADOWS
 	// Framebuffer for Shadow Map
 	unsigned int shadowMapFBO;
 	glGenFramebuffers(1, &shadowMapFBO);
@@ -911,8 +911,6 @@ int main(int argc, char* argv[]) {
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
-
 	// Matrices needed for the light's perspective
 	glm::vec3 SunPosition = glm::vec3(26.0f, 40.0f, 35.0f); //glm::vec3(25,20, 45); 
 	glm::mat4 orthgonalProjection = glm::ortho(-24.0f, 24.0f, -15.0f, 15.0f, 50.0f, 78.0f);
@@ -927,7 +925,6 @@ int main(int argc, char* argv[]) {
 	ShadowDebug.use();
 	ShadowDebug.setInt("shadowMap", 0);
 
-
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//																		LOOP PRINCIPAL																				 //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -935,7 +932,7 @@ int main(int argc, char* argv[]) {
 	int i = 0;
 	while (running)		// the event loop
 	{
-		// frame time logic
+		// Frame time logic
 		Uint32 currentFrame = SDL_GetTicks();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -953,11 +950,11 @@ int main(int argc, char* argv[]) {
 		{
 			float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
-			//audio processing
+			// Audio processing
 			engine->setListenerPosition(vec3df(camera->getPos().x, camera->getPos().y, camera->getPos().z),
 				vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
 
-			//render
+			// Render
 
 			// DRAW SKYBOX
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -1123,8 +1120,6 @@ int main(int argc, char* argv[]) {
 			glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
 			sun.Draw(bloomFinal, false, 1, 1);
 
-
-
 			// Preparations for the Shadow Map
 			glViewport(0, 0, shadowMapWidth, shadowMapHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
@@ -1266,7 +1261,6 @@ int main(int argc, char* argv[]) {
 			modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
 			ourShader.setMat4("model", modelAnim);
 
-
 			glm::mat4 matr_normals_cube = glm::mat4(glm::transpose(glm::inverse(modelAnim)));
 			ourShader.setMat4("normals_matrix", matr_normals_cube);
 			ourShader.setBool("anim", true);
@@ -1328,7 +1322,7 @@ int main(int argc, char* argv[]) {
 
 			if (previousState == TRANSITION) {
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+				glDepthFunc(GL_LEQUAL);
 				glDisable(GL_DEPTH_TEST);
 				ShadowDebug.use();
 				ShadowDebug.setBool("transparencyIsAvailable", true);
@@ -1355,9 +1349,8 @@ int main(int argc, char* argv[]) {
 		}
 		case MAIN_MENU:
 		{
-			// DRAW MAIN MENU
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			glDepthFunc(GL_LEQUAL);
 			glDisable(GL_DEPTH_TEST);
 			ShadowDebug.use();
 			ShadowDebug.setBool("transparencyIsAvailable", false);
@@ -1366,9 +1359,10 @@ int main(int argc, char* argv[]) {
 			renderQuad(full);
 			break;
 		}
-		case TRANSITION: {
+		case TRANSITION:
+		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			glDepthFunc(GL_LEQUAL);
 			glDisable(GL_DEPTH_TEST);
 			ShadowDebug.use();
 			ShadowDebug.setBool("transparencyIsAvailable", true);
@@ -1393,6 +1387,7 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 		}
+
 		// EVENTS
 		while (SDL_PollEvent(&sdlEvent)) {   //usar SDL_WaitEvent?
 			switch (sdlEvent.type) {
