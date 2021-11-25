@@ -88,7 +88,7 @@ struct movement {
 	bool moving_down = false;
 };
 
-void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine* &engine, ISoundSource* pasos[], int &ultimoPaso, bool modoLibre) {
+void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine*& engine, ISoundSource* pasos[], int& ultimoPaso, bool modoLibre) {
 	glm::vec3 cameraPos = camera->getPos();
 	glm::vec3 camAux = cameraPos;
 	if (mv.spedUp) {
@@ -128,7 +128,7 @@ void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoun
 			ultimoPaso = (ultimoPaso + 1) % 8;
 		}
 	}
-	if(mv.moving_up || mv.moving_down){
+	if (mv.moving_up || mv.moving_down) {
 		engine->stopAllSoundsOfSoundSource(pasos[ultimoPaso]);
 		if (mv.moving_up) {
 			cameraPos.y += cameraSpeed;
@@ -199,7 +199,7 @@ void setupLightsCharacter(Shader& ourShader) {
 	float* quadratic = new float();
 	float* cutOff = new float();
 	float* outerCutOff = new float();
-		
+
 	pLuz->QueryFloatAttribute("xAmb", &ambient->x);
 	pLuz->QueryFloatAttribute("yAmb", &ambient->y);
 	pLuz->QueryFloatAttribute("zAmb", &ambient->z);
@@ -282,7 +282,7 @@ void configLightsMap(Shader& ourShader, glm::vec3 diffuse, glm::vec3 specular) {
 	pLuz = pLucesMapa->FirstChildElement("Luz");
 
 	int i = 0;
-	while(pLuz != nullptr) {
+	while (pLuz != nullptr) {
 		string ligthName = "pointLights[" + std::to_string(i);
 
 		ourShader.setVec3(ligthName + "].diffuse", diffuse);
@@ -305,7 +305,7 @@ void iniciarSonidos(ISoundEngine*& engine) {
 	engine->setSoundVolume(0);
 
 	pSonido = pSonidos->FirstChildElement("Sonido");
-	
+
 	glm::vec3* posicion = new glm::vec3();
 	float* minVol = new float();
 	const char* rut;
@@ -341,7 +341,7 @@ void pausarSonidos(ISoundEngine*& engine) {
 }
 
 void cargarSonidoPasos(ISoundEngine*& engine, ISoundSource* pasos[8]) {
-	
+
 	ISoundSource* paso1 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal01.wav");
 	paso1->forceReloadAtNextUse();
 	paso1->setDefaultVolume(0.5f);
@@ -501,7 +501,7 @@ int main(int argc, char* argv[]) {
 	pMSAA->QueryFloatAttribute("samples", &maxSamples);
 	if (maxSamples > 16) maxSamples = 16;
 	if (maxSamples < 2) maxSamples = 2;
-	
+
 	float amount;
 	tinyxml2::XMLElement* pBloom = pConfig->FirstChildElement("BLOOM");
 	pBloom->QueryFloatAttribute("amount", &amount);
@@ -530,12 +530,12 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Write text to surface
-	SDL_Color text_color = {64, 132, 150 };
-	
+	SDL_Color text_color = { 64, 132, 150 };
+
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
 	gl_context = SDL_GL_CreateContext(window);
-	
+
 	// Disable limit of 60fps
 	SDL_GL_SetSwapInterval(0);
 
@@ -569,20 +569,23 @@ int main(int argc, char* argv[]) {
 
 	ShadowDebug.use();
 	ShadowDebug.setInt("game", 1);
+	float alpha = 1.0;
+	ShadowDebug.setFloat("alpha", alpha);
+	ShadowDebug.setBool("transparencyIsAvailable", true);
 
 	skyboxShader.use();
 	skyboxShader.setInt("sun", 0);
 	skyboxShader.setInt("skybox", 1);
-	
+
 	//stbi_set_flip_vertically_on_load(true);
-	
+
 	// SETUP MODELS
 	Model ourModel("../Include/model/c.obj");
 	Model cuerpo1("../Include/model/astronaut.dae");
 	Model muerto("../Include/model/dead.obj");
 	Model sun("../Include/model/sun.obj");
 	Model fantasma("../Include/model/ghost.dae");
-	
+
 	// Setup model Octree
 	ourModel.GenerateOctree();
 
@@ -670,6 +673,7 @@ int main(int argc, char* argv[]) {
 	unsigned int gameTexture = loadTexture("../Include/model/mapa-png.png");
 	unsigned int mapMarker = loadTexture("../Include/model/marker.png");
 	unsigned int mainMenu = loadTexture("../Include/model/main-menu.png");
+	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -678,7 +682,7 @@ int main(int argc, char* argv[]) {
 	// Time tracking
 	Uint32 deltaTime = 0;	// Time between current frame and last frame
 	Uint32 lastFrame = 0; // Time of last frame
-	
+
 	// Cam Rotation
 	float yaw = -90.0f;
 	float pitch = 0.0f;
@@ -709,8 +713,15 @@ int main(int argc, char* argv[]) {
 	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 0.0f));//modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
 	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
-	bool isMainMenu = true;
+	enum STATES {
+		MAIN_MENU,
+		TRANSITION,
+		GAME
+	};
+	STATES actualState = MAIN_MENU;
+	STATES previousState = TRANSITION;
 	SDL_ShowCursor(SDL_ENABLE);
+
 	bool sonido = false;
 	bool running = true;
 	bool fullScreen = false;
@@ -735,7 +746,7 @@ int main(int argc, char* argv[]) {
 	int timeAux = 0;
 	int diff = 0;
 	int timeN = 0;
-	
+
 	// Setup lights
 	glm::vec3 ambient = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 diffuse = glm::vec3(0.8f);
@@ -750,7 +761,6 @@ int main(int argc, char* argv[]) {
 
 	// Setup sounds
 	ISoundEngine* engine = createIrrKlangDevice();
-	iniciarSonidos(engine);
 
 	ISoundSource* sirenSound = engine->addSoundSourceFromFile("../Include/AudioClip/SabotageSiren.wav");
 	sirenSound->setDefaultVolume(0.2f);
@@ -758,22 +768,26 @@ int main(int argc, char* argv[]) {
 	ISoundSource* ligthOffSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_reactor_manifoldfail.wav");
 	ligthOffSound->setDefaultVolume(1.0f);
 	ligthOffSound->forceReloadAtNextUse();
-	
+	ISoundSource* mainMenuSound = engine->addSoundSourceFromFile("../Include/AudioClip/AmongUsTheme.wav");
+	mainMenuSound->setDefaultVolume(0.2f);
+	mainMenuSound->forceReloadAtNextUse();
+	ISoundSource* playerSpawnSound = engine->addSoundSourceFromFile("../Include/AudioClip/Player_Spawn.wav");
+	playerSpawnSound->setDefaultVolume(0.2f);
+	playerSpawnSound->forceReloadAtNextUse();
+	ISoundSource* uiSelectSound = engine->addSoundSourceFromFile("../Include/AudioClip/UI_Select.wav");
+	uiSelectSound->setDefaultVolume(0.2f);
+	uiSelectSound->forceReloadAtNextUse();
+	engine->play2D(mainMenuSound);
+
 	ISoundSource* pasos[8];
-	cargarSonidoPasos(engine,pasos);
+	cargarSonidoPasos(engine, pasos);
 	int ultimoPaso = 0;
-
-
 
 	GLuint tex;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-
-
 
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -808,7 +822,7 @@ int main(int argc, char* argv[]) {
 		// attach texture to framebuffer
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
 	}
-	
+
 	// create and attach depth buffer (renderbuffer)
 	unsigned int rboDepth;
 	glGenRenderbuffers(1, &rboDepth);
@@ -819,7 +833,7 @@ int main(int argc, char* argv[]) {
 	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, attachments);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Framebuffer not complete111!" << std::endl; 
+		std::cout << "Framebuffer not complete111!" << std::endl;
 
 	// ping-pong-framebuffer for blurring
 	unsigned int pingpongFBO[2];
@@ -920,14 +934,23 @@ int main(int argc, char* argv[]) {
 	int i = 0;
 	while (running)		// the event loop
 	{
-		if (!isMainMenu) {
-			i++;
-			// frame time logic
-			Uint32 currentFrame = SDL_GetTicks();
-			deltaTime = currentFrame - lastFrame;
-			lastFrame = currentFrame;
-			timeN = currentFrame / 15;
+		// frame time logic
+		Uint32 currentFrame = SDL_GetTicks();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		timeN = currentFrame / 15;
 
+		// Diff real time - iteration time
+		diff = timeN - timeAux;
+		timeAux = timeN;
+
+		glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window
+
+		switch (actualState) {
+		case GAME:
+		{
+			i++;
 			float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
 			//audio processing
@@ -935,10 +958,6 @@ int main(int argc, char* argv[]) {
 				vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
 
 			//render
-
-			glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window
-
 
 			// DRAW SKYBOX
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -965,70 +984,66 @@ int main(int argc, char* argv[]) {
 			ourShader.use();
 
 			glUniform1i(glGetUniformLocation(ourShader.ID, "specular_map"), specular_map);
-
-			// Diff real time - iteration time
-			diff = timeN - timeAux;
-			timeAux = timeN;
-
-			if (cortoElectricidad) {
-				sonido = true;
-				if (count < 65) {
-					if (count == 0) {
-						pausarSonidos(engine);
-						engine->play2D(ligthOffSound);
+			if (previousState == GAME) {
+				if (cortoElectricidad) {
+					sonido = true;
+					if (count < 65) {
+						if (count == 0) {
+							pausarSonidos(engine);
+							engine->play2D(ligthOffSound);
+						}
+						if (diff != timeN) {
+							diffuse = glm::vec3(diffuse.x - 0.013f * diff);
+							specular = glm::vec3(specular.x - 0.013f * diff);
+							diffuseHall = diffuse;
+							specularHall = specular;
+							count += diff;
+						}
 					}
-					if (diff != timeN) {
-						diffuse = glm::vec3(diffuse.x - 0.013f * diff);
-						specular = glm::vec3(specular.x - 0.013f * diff);
+					else if (count >= 65 && !apagon) {
+						diffuse = glm::vec3(0.f);
+						specular = diffuse;
 						diffuseHall = diffuse;
 						specularHall = specular;
-						count += diff;
-					}
-				}
-				else if (count >= 65 && !apagon) {
-					diffuse = glm::vec3(0.f);
-					specular = diffuse;
-					diffuseHall = diffuse;
-					specularHall = specular;
-					apagon = true;
-				}
-
-				if (apagon) {
-					if (count < 130) {
-						diffuseHall = glm::vec3(diffuseHall.x + 0.02f * diff, 0.f, 0.f);
-						specularHall = glm::vec3(specularHall.x + 0.02f * diff, 0.f, 0.f);
-						count += diff;
-						if (count >= 85 && count < 85 + diff)
-							engine->play2D(sirenSound);
-					}
-					else if (count < 200) {
-						diffuseHall = glm::vec3(diffuseHall.x - 0.02f * diff, 0.f, 0.f);
-						specularHall = glm::vec3(specularHall.x - 0.02f * diff, 0.f, 0.f);
-						count += diff;
-					}
-					else if (count >= 200) {
-						diffuseHall = glm::vec3(0.05f, 0.f, 0.f);
-						specularHall = diffuseHall;
-						count = 65;
+						apagon = true;
 					}
 
+					if (apagon) {
+						if (count < 130) {
+							diffuseHall = glm::vec3(diffuseHall.x + 0.02f * diff, 0.f, 0.f);
+							specularHall = glm::vec3(specularHall.x + 0.02f * diff, 0.f, 0.f);
+							count += diff;
+							if (count >= 85 && count < 85 + diff)
+								engine->play2D(sirenSound);
+						}
+						else if (count < 200) {
+							diffuseHall = glm::vec3(diffuseHall.x - 0.02f * diff, 0.f, 0.f);
+							specularHall = glm::vec3(specularHall.x - 0.02f * diff, 0.f, 0.f);
+							count += diff;
+						}
+						else if (count >= 200) {
+							diffuseHall = glm::vec3(0.05f, 0.f, 0.f);
+							specularHall = diffuseHall;
+							count = 65;
+						}
+
+					}
+				}
+				else {
+					engine->stopAllSoundsOfSoundSource(sirenSound);
+					engine->stopAllSoundsOfSoundSource(ligthOffSound);
+					diffuse = glm::vec3(0.8f);
+					specular = glm::vec3(0.6f);
+					diffuseHall = glm::vec3(1.0f, 1.0f, 1.0f);
+					specularHall = glm::vec3(1.0f, 1.0f, 1.0f);
+					if (sonido) {
+						iniciarSonidos(engine);
+						sonido = false;
+					}
+					apagon = false;
+					count = 0;
 				}
 			}
-			else {
-				engine->stopAllSoundsOfSoundSource(sirenSound);
-				engine->stopAllSoundsOfSoundSource(ligthOffSound);
-				diffuse = glm::vec3(0.8f);
-				specular = glm::vec3(0.6f);
-				diffuseHall = glm::vec3(1.0f, 1.0f, 1.0f);
-				specularHall = glm::vec3(1.0f, 1.0f, 1.0f);
-				if (sonido) {
-					iniciarSonidos(engine);
-					sonido = false;
-				}
-				apagon = false;
-				count = 0;
-			}
-
 			move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
 
 			if (linterna) {
@@ -1055,9 +1070,7 @@ int main(int argc, char* argv[]) {
 			ourShader.setVec3("viewPos", camera->getPos());
 
 
-
 			//DRAW SUN
-
 			skyboxShader.use();
 			modelsun = glm::translate(modelsun, glm::vec3(27.0f, 0.0f, -17.0f));
 			modelsun = glm::mat4(glm::rotate(modelsun, glm::radians(0.5f), glm::vec3(1.0, 0.0, 0.0)));
@@ -1285,6 +1298,7 @@ int main(int argc, char* argv[]) {
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 			glDisable(GL_DEPTH_TEST);
 			ShadowDebug.use();
+			ShadowDebug.setBool("transparencyIsAvailable", false);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, gameTexture);
 			if (!mapa) {
@@ -1311,186 +1325,255 @@ int main(int argc, char* argv[]) {
 			renderQuad(up_left);
 			SDL_FreeSurface(surf);
 
-			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_LESS); // set depth function back to default 
-		}else{
-		glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window
+			if (previousState == TRANSITION) {
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+				glDisable(GL_DEPTH_TEST);
+				ShadowDebug.use();
+				ShadowDebug.setBool("transparencyIsAvailable", true);
+				if (count <= 150) {
+					count += diff;
+					alpha -= 0.008;
+					if (alpha <= 0) {
+						alpha = 0;
+					}
+					ShadowDebug.setFloat("alpha", alpha);
+				}
+				else {
+					previousState = GAME;
+					alpha = 1.0;
+					count = 0;
+				}
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, blackWindows);
+				renderQuad(full);
+			}
 
-		// DRAW MAIN MENU
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-		glDisable(GL_DEPTH_TEST);
-		ShadowDebug.use();
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mainMenu);
-        renderQuad(full);
-		
-}
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS); // set depth function back to 
+
+			break;
+		}
+		case MAIN_MENU:
+		{
+			// DRAW MAIN MENU
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			glDisable(GL_DEPTH_TEST);
+			ShadowDebug.use();
+			ShadowDebug.setBool("transparencyIsAvailable", false);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, mainMenu);
+			renderQuad(full);
+			break;
+		}
+		case TRANSITION: {
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			glDisable(GL_DEPTH_TEST);
+			ShadowDebug.use();
+			ShadowDebug.setBool("transparencyIsAvailable", true);
+			if (count <= 100) {
+				count += diff;
+				alpha -= 0.0003;
+				if (alpha <= 0) {
+					alpha = 0;
+				}
+				ShadowDebug.setFloat("alpha", alpha);
+			}
+			else {
+				engine->play2D(playerSpawnSound);
+				actualState = GAME;
+				previousState = TRANSITION;
+				alpha = 1.0;
+				count = 0;
+			}
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, mainMenu);
+			renderQuad(full);
+			break;
+		}
+		}
 		// EVENTS
 		while (SDL_PollEvent(&sdlEvent)) {   //usar SDL_WaitEvent?
 			switch (sdlEvent.type) {
-				case SDL_MOUSEMOTION: {
-					if(lock_cam){
-						int x, y;
-						SDL_GetMouseState(&x, &y);
-						int xoffset = x - SCR_W / 2;
-						int yoffset = SCR_H / 2 - y; // reversed since y-coordinates range from bottom to top
+			case SDL_MOUSEMOTION: {
+				if (lock_cam) {
+					int x, y;
+					SDL_GetMouseState(&x, &y);
+					int xoffset = x - SCR_W / 2;
+					int yoffset = SCR_H / 2 - y; // reversed since y-coordinates range from bottom to top
 
-						xoffset *= sensitivity;
-						yoffset *= sensitivity;
-						yaw += xoffset;
-						pitch += yoffset;
+					xoffset *= sensitivity;
+					yoffset *= sensitivity;
+					yaw += xoffset;
+					pitch += yoffset;
 
-						if (pitch > 89.0f)
-							pitch = 89.0f;
-						if (pitch < -89.0f)
-							pitch = -89.0f;
+					if (pitch > 89.0f)
+						pitch = 89.0f;
+					if (pitch < -89.0f)
+						pitch = -89.0f;
 
-						camera->Rotate(yaw, pitch);
-					}
-					break;
+					camera->Rotate(yaw, pitch);
 				}
-				case SDL_MOUSEBUTTONDOWN: {
-					if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
-						int x, y;
-						SDL_GetMouseState(&x, &y);
-						if (isMainMenu && isInside(x,y)) {
-							isMainMenu = false;
-							lock_cam = true;
-							SDL_ShowCursor(SDL_DISABLE);
-						}
-						cout << "X = " << x << " Y = " << y << endl;
-					}
-					break;
-				}
-				case SDL_MOUSEWHEEL: {
-					float yoffset = sdlEvent.wheel.y;
-					zoom -= (float)yoffset;
-					if (zoom < 1.0f)
-						zoom = 1.0f;
-					if (zoom > 45.0f)
-						zoom = 45.0f;
-					break;
-				}
-				case SDL_QUIT: {
-					running = false;
-					break;
-				}
-				case SDL_KEYUP: {
-					if (sdlEvent.key.keysym.sym == SDLK_LALT && !isMainMenu) {
+				break;
+			}
+			case SDL_MOUSEBUTTONDOWN: {
+				if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
+					int x, y;
+					SDL_GetMouseState(&x, &y);
+					if (actualState == MAIN_MENU && isInside(x, y)) {
+						engine->play2D(uiSelectSound);
+						actualState = TRANSITION;
+						count = 0;
 						lock_cam = true;
 						SDL_ShowCursor(SDL_DISABLE);
+						engine->stopAllSoundsOfSoundSource(mainMenuSound);
+						iniciarSonidos(engine);
 					}
-					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
-						mv.spedUp = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_w) {
-						mv.moving_forward= false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_a) {
-						mv.moving_left = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_d) {
-						mv.moving_right = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_s) {
-						mv.moving_back = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
-						if (fixed_pos)
-						mv.moving_up = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
-						if (fixed_pos)
-						mv.moving_down = false;
-					}
-					break;
+					cout << "X = " << x << " Y = " << y << endl;
 				}
-				case SDL_KEYDOWN: {
-					if (sdlEvent.key.keysym.sym == SDLK_LALT) {
-						lock_cam = false;
-						SDL_ShowCursor(SDL_ENABLE);
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
-						mv.spedUp = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_c) {
-						cout << "X: " << camera->getPos().x << " Y: " << camera->getPos().y << " Z: " << camera->getPos().z << endl;
-						cout << "X: " << camera->getFront().x << " Y: " << camera->getFront().y << " Z: " << camera->getFront().z << endl;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
+				break;
+			}
+			case SDL_MOUSEWHEEL: {
+				float yoffset = sdlEvent.wheel.y;
+				zoom -= (float)yoffset;
+				if (zoom < 1.0f)
+					zoom = 1.0f;
+				if (zoom > 45.0f)
+					zoom = 45.0f;
+				break;
+			}
+			case SDL_QUIT: {
+				running = false;
+				break;
+			}
+			case SDL_KEYUP: {
+				if (sdlEvent.key.keysym.sym == SDLK_LALT && actualState != MAIN_MENU) {
+					lock_cam = true;
+					SDL_ShowCursor(SDL_DISABLE);
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
+					mv.spedUp = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_w) {
+					mv.moving_forward = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_a) {
+					mv.moving_left = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_d) {
+					mv.moving_right = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_s) {
+					mv.moving_back = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
+					if (fixed_pos)
+						mv.moving_up = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
+					if (fixed_pos)
+						mv.moving_down = false;
+				}
+				break;
+			}
+			case SDL_KEYDOWN: {
+				if (sdlEvent.key.keysym.sym == SDLK_LALT) {
+					lock_cam = false;
+					SDL_ShowCursor(SDL_ENABLE);
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
+					mv.spedUp = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_c) {
+					cout << "X: " << camera->getPos().x << " Y: " << camera->getPos().y << " Z: " << camera->getPos().z << endl;
+					cout << "X: " << camera->getFront().x << " Y: " << camera->getFront().y << " Z: " << camera->getFront().z << endl;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
+					if (actualState == MAIN_MENU) {
 						running = false;
 					}
-					if (sdlEvent.key.keysym.sym == SDLK_a) {
-						mv.moving_left = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_d) {
-						mv.moving_right = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_s) {
-						mv.moving_back = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_w) {
-						mv.moving_forward= true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
-						if(fixed_pos)
-							mv.moving_up = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
-						if (fixed_pos)
-							mv.moving_down = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_x) {
-						cortoElectricidad = !cortoElectricidad;
+					else {
+						actualState = MAIN_MENU;
+						alpha = 1;
 						count = 0;
+						cortoElectricidad = false;
+						pausarSonidos(engine);
+						engine->play2D(mainMenuSound);
+						SDL_ShowCursor(SDL_ENABLE);
+						lock_cam = false;
 					}
-					if (sdlEvent.key.keysym.sym == SDLK_e) {
-						if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
-							if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
-								cortoElectricidad = !cortoElectricidad;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_l) {
-						linterna = !linterna;
-					}if (sdlEvent.key.keysym.sym == SDLK_b) {
-						bloom = !bloom;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_m) {
-						mapa = !mapa;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_v) {
-						antialiasing = !antialiasing;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_1) {
-						specular_map = !specular_map;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_2) {
-						exposure -= 0.02;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_3) {
-						exposure += 0.02;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_4) {
-						first_person = !first_person;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_TAB) {
-						fixed_pos = !fixed_pos;
-						if (!fixed_pos)
-							camera->setPos(old_pos_camera);
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_F11) {
-						if(fullScreen)
-							SDL_SetWindowFullscreen(window, SDL_FALSE);
-						else
-							SDL_SetWindowFullscreen(window, SDL_TRUE);
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_a) {
+					mv.moving_left = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_d) {
+					mv.moving_right = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_s) {
+					mv.moving_back = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_w) {
+					mv.moving_forward = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
+					if (fixed_pos)
+						mv.moving_up = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
+					if (fixed_pos)
+						mv.moving_down = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_x) {
+					cortoElectricidad = !cortoElectricidad;
+					count = 0;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_e) {
+					if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
+						if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
+							cortoElectricidad = !cortoElectricidad;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_l) {
+					linterna = !linterna;
+				}if (sdlEvent.key.keysym.sym == SDLK_b) {
+					bloom = !bloom;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_m) {
+					mapa = !mapa;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_v) {
+					antialiasing = !antialiasing;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_1) {
+					specular_map = !specular_map;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_2) {
+					exposure -= 0.02;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_3) {
+					exposure += 0.02;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_4) {
+					first_person = !first_person;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_TAB) {
+					fixed_pos = !fixed_pos;
+					if (!fixed_pos)
+						camera->setPos(old_pos_camera);
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_F11) {
+					if (fullScreen)
+						SDL_SetWindowFullscreen(window, SDL_FALSE);
+					else
+						SDL_SetWindowFullscreen(window, SDL_TRUE);
 
 					fullScreen = !fullScreen;
 
 					SDL_GetCurrentDisplayMode(0, &DM);
 					auto Width = DM.w;
 					auto Height = DM.h;
-					if(fullScreen)
+					if (fullScreen)
 						glViewport(0, 0, Width, Height); //update viewport
 					else
 						glViewport(0, 0, SCR_W, SCR_H);
