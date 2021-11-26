@@ -409,6 +409,7 @@ unsigned int loadCubemap(vector<std::string> faces)
 	return textureID;
 }
 
+// Main Menu Functions
 float getOrientation(glm::vec2 A1, glm::vec2 A2, glm::vec2 A3) {
 	return (A1.x - A3.x) * (A2.y - A3.y) - (A1.y - A3.y) * (A2.x - A3.x);
 }
@@ -433,6 +434,77 @@ bool isInside(float x, float y) {
 	}
 
 	return inside;
+}
+
+// BORRAR LUEGO
+glm::vec2 getScaledCoords(float x, float y) {
+	return glm::vec2((2 * x / SCR_W) - 1, ((2 * y / SCR_H)) - 0.078);
+}
+
+// Two Factor Task Functions
+char getDigit(float x, float y) {
+	float ratio = 32.0;
+	glm::vec2 p = glm::vec2(x, y);
+	glm::vec2 num1 = glm::vec2(294, 325);
+	glm::vec2 num2 = glm::vec2(382, 325);
+	glm::vec2 num3 = glm::vec2(466, 325);
+
+	glm::vec2 num4 = glm::vec2(294, 402);
+	glm::vec2 num5 = glm::vec2(382, 402);
+	glm::vec2 num6 = glm::vec2(466, 402);
+
+	glm::vec2 num7 = glm::vec2(294, 482);
+	glm::vec2 num8 = glm::vec2(382, 482);
+	glm::vec2 num9 = glm::vec2(466, 482);
+
+	glm::vec2 num0 = glm::vec2(382, 564);
+
+	char digit = ' ';
+	if (distance(p, num1) <= ratio) {
+		digit = '1';
+	}
+	else if (distance(p, num2) <= ratio) {
+		digit = '2';
+	}
+	else if (distance(p, num3) <= ratio) {
+		digit = '3';
+	}
+	else if (distance(p, num4) <= ratio) {
+		digit = '4';
+	}
+	else if (distance(p, num5) <= ratio) {
+		digit = '5';
+	}
+	else if (distance(p, num6) <= ratio) {
+		digit = '6';
+	}
+	else if (distance(p, num7) <= ratio) {
+		digit = '7';
+	}
+	else if (distance(p, num8) <= ratio) {
+		digit = '8';
+	}
+	else if (distance(p, num9) <= ratio) {
+		digit = '9';
+	}
+	else if (distance(p, num0) <= ratio) {
+		digit = '0';
+	}
+	return digit;
+}
+
+bool getConfirmPass(float x, float y) {
+	float ratio = 32.0;
+	glm::vec2 p = glm::vec2(x, y);
+	glm::vec2 confirm = glm::vec2(466, 564);
+	return (distance(p, confirm) <= ratio);
+}
+
+bool getErasePass(float x, float y) {
+	float ratio = 32.0;
+	glm::vec2 p = glm::vec2(x, y);
+	glm::vec2 confirm = glm::vec2(294, 564);
+	return (distance(p, confirm) <= ratio);
 }
 
 unsigned int loadTexture(string path) {
@@ -529,8 +601,20 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
+	TTF_Font* digitalFont;
+	digitalFont = TTF_OpenFont("../Include/DigitalFont.ttf", 60);
+	if (font == NULL)
+	{
+		cout << "TTF_OpenFont() Failed: " << TTF_GetError() << endl;
+		TTF_Quit();
+		SDL_Quit();
+		exit(1);
+	}
+
 	// Write text to surface
 	SDL_Color text_color = { 64, 132, 150 };
+
+	SDL_Color text_digital_color = { 255, 255, 255 };
 
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
@@ -668,12 +752,39 @@ int main(int argc, char* argv[]) {
 		-0.9f, 0.9f, 0.0f, 1.0f, 1.0f,
 	};
 
+	// Two Factor Task Positions
+
+	float twoFactorPosition[] = {
+		// positions        // texture Coords
+		0.03125, 0.671111, 0.0f, 1.0f, 0.0f,
+		-0.541016, 0.671111, 0.0f, 0.0f, 0.0f,
+		0.03125, 0.540556, 0.0f, 1.0f, 1.0f,
+		-0.541016, 0.540556, 0.0f, 0.0f, 1.0f,
+	};
+
+	float twoFactorPositionPass[] = {
+		// positions        // texture Coords
+		0.291016, 0.133333, 0.0f, 0.0f, 1.0f,
+		0.488281,0.133333, 0.0f, 1.0f, 1.0f,
+		0.291016, 0.238889, 0.0f, 0.0f, 0.0f,
+		0.488281, 0.238889, 0.0f, 1.0f, 0.0f,
+	};
+
+	float twoFactorStatusPosition[] = {
+		// positions        // texture Coords
+		0.03125, 0.383111, 0.0f, 1.0f, 0.0f,
+		-0.541016, 0.383111, 0.0f, 0.0f, 0.0f,
+		0.03125,0.252556, 0.0f, 1.0f, 1.0f,
+		-0.541016, 0.252556, 0.0f, 0.0f, 1.0f,
+	};
+
 	// load textures
 	unsigned int cubemapTexture = loadCubemap(faces);
 	unsigned int gameTexture = loadTexture("../Include/model/mapa-png.png");
 	unsigned int mapMarker = loadTexture("../Include/model/marker.png");
 	unsigned int mainMenu = loadTexture("../Include/model/main-menu.png");
 	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
+	unsigned int twoFactorBase = loadTexture("../Include/model/2factor_base.png");
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -713,6 +824,7 @@ int main(int argc, char* argv[]) {
 	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 0.0f));//modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
 	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
+	// GAME STATES
 	enum STATES {
 		MAIN_MENU,
 		TRANSITION,
@@ -720,13 +832,22 @@ int main(int argc, char* argv[]) {
 	};
 	STATES actualState = MAIN_MENU;
 	STATES previousState = TRANSITION;
-	SDL_ShowCursor(SDL_ENABLE);
 
+	// Two Factor Task Variables
+	bool isTwoFactorTask = false;
+	char twoFactorNumbers[5] = { ' ', ' ', ' ', ' ', ' ' };
+	string twoFactorPass = "12345"; // default
+	bool confirmPass = false;
+	int timeVisibleState = 0;
+
+	// General Variables
+	SDL_ShowCursor(SDL_ENABLE);
 	bool sonido = false;
 	bool running = true;
 	bool fullScreen = false;
 	bool bloom = true;
 	bool antialiasing = true;
+	bool dibujo = true;
 	float exposure = 2.0f;
 	bool cortoElectricidad = false;
 	bool apagon = false;
@@ -734,7 +855,8 @@ int main(int argc, char* argv[]) {
 	bool specular_map = false;
 	bool fixed_pos = false;
 	bool first_person = false;
-	bool mapa = false;
+	bool renderMap = true;
+	bool renderMapComplete = false;
 	float old_yaw = 0.f;
 	glm::vec3 old_pos = glm::vec3(0.f);
 	glm::vec3 old_pos_camera = camera->getPos();
@@ -778,7 +900,24 @@ int main(int argc, char* argv[]) {
 	ISoundSource* uiSelectSound = engine->addSoundSourceFromFile("../Include/AudioClip/UI_Select.wav");
 	uiSelectSound->setDefaultVolume(0.2f);
 	uiSelectSound->forceReloadAtNextUse();
-	engine->play2D(mainMenuSound);
+	ISoundSource* enterIdSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_enterID.wav");
+	enterIdSound->setDefaultVolume(0.2f);
+	enterIdSound->forceReloadAtNextUse();
+	ISoundSource* enterIdBadSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_enterIDBad.wav");
+	enterIdBadSound->setDefaultVolume(0.2f);
+	enterIdBadSound->forceReloadAtNextUse();
+	ISoundSource* enterIdGoodSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_enterIDGood.wav");
+	enterIdGoodSound->setDefaultVolume(0.2f);
+	enterIdGoodSound->forceReloadAtNextUse();
+	ISoundSource* panelAppearSound = engine->addSoundSourceFromFile("../Include/AudioClip/Panel_GenericAppear.wav");
+	panelAppearSound->setDefaultVolume(0.2f);
+	panelAppearSound->forceReloadAtNextUse();
+	ISoundSource* panelDisappearSound = engine->addSoundSourceFromFile("../Include/AudioClip/Panel_GenericDisappear.wav");
+	panelDisappearSound->setDefaultVolume(0.2f);
+	panelDisappearSound->forceReloadAtNextUse();
+
+
+	engine->play2D(mainMenuSound, true);
 
 	ISoundSource* pasos[8];
 	cargarSonidoPasos(engine, pasos);
@@ -789,7 +928,6 @@ int main(int argc, char* argv[]) {
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//																		FRAME BUFFERS																				 //
@@ -1131,7 +1269,6 @@ int main(int argc, char* argv[]) {
 
 			glViewport(0, 0, SCR_W, SCR_H);
 
-
 			//DEBUG SHADOW MAP
 			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			/*ShadowDebug.use();
@@ -1139,7 +1276,6 @@ int main(int argc, char* argv[]) {
 			glBindTexture(GL_TEXTURE_2D, shadowMap);
 			glUniform1i(glGetUniformLocation(ShadowDebug.ID, "shadowMap"), 0);
 			renderQuad(); */
-
 
 
 			ourShader.use();
@@ -1277,32 +1413,34 @@ int main(int argc, char* argv[]) {
 			fantasma.Draw(ourShader, true, 0, 0);
 
 			// DRAW DEL MAPA
-			float delta_x = (10.0f / (SCR_W / 2.0f));
-			float delta_y = (10.0f / (SCR_H / 2.0f));
-			float mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
-			float mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
-			float marker[] = {
-				// positions        // texture Coords
-				mark_x, mark_y + delta_y, 0.0f, 0.0f, 1.0f,
-				mark_x, mark_y, 0.0f, 0.0f, 0.0f,
-				mark_x + delta_x, mark_y + delta_y, 0.0f, 1.0f, 1.0f,
-				mark_x + delta_x, mark_y, 0.0f, 1.0f, 0.0f,
-			};
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-			glDisable(GL_DEPTH_TEST);
 			ShadowDebug.use();
 			ShadowDebug.setBool("transparencyIsAvailable", false);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, gameTexture);
-			if (!mapa) {
-				renderQuad(upRight);
+			if (renderMap) {
+				float delta_x = (10.0f / (SCR_W / 2.0f));
+				float delta_y = (10.0f / (SCR_H / 2.0f));
+				float mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
+				float mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
+				float marker[] = {
+					// positions        // texture Coords
+					mark_x, mark_y + delta_y, 0.0f, 0.0f, 1.0f,
+					mark_x, mark_y, 0.0f, 0.0f, 0.0f,
+					mark_x + delta_x, mark_y + delta_y, 0.0f, 1.0f, 1.0f,
+					mark_x + delta_x, mark_y, 0.0f, 1.0f, 0.0f,
+				};
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+				glDisable(GL_DEPTH_TEST);
 				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, mapMarker);
-				renderQuad(marker);
-			}
-			else {
-				renderQuad(full);
+				glBindTexture(GL_TEXTURE_2D, gameTexture);
+				if (!renderMapComplete) {
+					renderQuad(upRight);
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, mapMarker);
+					renderQuad(marker);
+				}
+				else {
+					renderQuad(full);
+				}
 			}
 
 			// SHOW FPS 
@@ -1315,11 +1453,16 @@ int main(int argc, char* argv[]) {
 
 			string fps = "FPS: " + to_string(fps_to_show);
 			SDL_Surface* surf = TTF_RenderText_Blended(font, fps.c_str(), text_color);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			glDisable(GL_DEPTH_TEST);
+			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, tex);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w, surf->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surf->pixels);
 			renderQuad(up_left);
 			SDL_FreeSurface(surf);
 
+			// Transition from main menu
 			if (previousState == TRANSITION) {
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				glDepthFunc(GL_LEQUAL);
@@ -1340,6 +1483,74 @@ int main(int argc, char* argv[]) {
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, blackWindows);
 				renderQuad(full);
+			}
+
+			// Two Factor Task
+			if (isTwoFactorTask) {
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glDepthFunc(GL_LEQUAL);
+				glDisable(GL_DEPTH_TEST);
+				ShadowDebug.use();
+				ShadowDebug.setBool("transparencyIsAvailable", false);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, twoFactorBase);
+				renderQuad(full);
+
+				string digits = "   ";
+				string pass = "";
+				for (int num = 0; num < 5; num++) {
+					char digit = twoFactorNumbers[num];
+					digits += digit;
+					if (digit != ' ') {
+						pass += digit;
+					}
+				}
+				digits += "   ";
+
+				SDL_Surface* surfTwoFactor = TTF_RenderText_Blended(digitalFont, digits.c_str(), text_digital_color);
+				glBindTexture(GL_TEXTURE_2D, tex);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surfTwoFactor->w, surfTwoFactor->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surfTwoFactor->pixels);
+				renderQuad(twoFactorPosition);
+				SDL_FreeSurface(surfTwoFactor);
+
+				// render pass
+				surfTwoFactor = TTF_RenderText_Blended(font, twoFactorPass.c_str(), text_digital_color);
+				glBindTexture(GL_TEXTURE_2D, tex);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surfTwoFactor->w, surfTwoFactor->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surfTwoFactor->pixels);
+				renderQuad(twoFactorPositionPass);
+				SDL_FreeSurface(surfTwoFactor);
+
+				if (confirmPass) {
+					string errorStatus = "   ERROR   ";
+					string okStatus = "    OK     ";
+					if (pass == twoFactorPass) {
+						surfTwoFactor = TTF_RenderText_Blended(digitalFont, okStatus.c_str(), text_digital_color);
+						if (!engine->isCurrentlyPlaying(enterIdGoodSound)) {
+							engine->play2D(enterIdGoodSound);
+						}
+					}
+					else {
+						surfTwoFactor = TTF_RenderText_Blended(digitalFont, errorStatus.c_str(), text_digital_color);
+						if (!engine->isCurrentlyPlaying(enterIdBadSound)) {
+							engine->play2D(enterIdBadSound);
+						}
+					}
+					glBindTexture(GL_TEXTURE_2D, tex);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surfTwoFactor->w, surfTwoFactor->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surfTwoFactor->pixels);
+					renderQuad(twoFactorStatusPosition);
+					SDL_FreeSurface(surfTwoFactor);
+					if (timeVisibleState < 60) {
+						timeVisibleState += diff;
+					}
+					else {
+						engine->play2D(panelDisappearSound);
+						renderMap = true;
+						isTwoFactorTask = false;
+						lock_cam = true;
+						SDL_ShowCursor(SDL_DISABLE);
+					}
+
+				}
 			}
 
 			glEnable(GL_DEPTH_TEST);
@@ -1425,6 +1636,29 @@ int main(int argc, char* argv[]) {
 						engine->stopAllSoundsOfSoundSource(mainMenuSound);
 						iniciarSonidos(engine);
 					}
+					else if (actualState == GAME && isTwoFactorTask) {
+						char digit = getDigit(x, y);
+						if (digit != ' ') {
+							engine->play2D(enterIdSound);
+							for (int num = 0; num < 5; num++) {
+								if (twoFactorNumbers[num] == ' ') {
+									twoFactorNumbers[num] = digit;
+									break;
+								}
+							}
+						}
+						else {
+							if (getErasePass(x, y)) {
+								engine->play2D(enterIdSound);
+								for (int num = 0; num < 5; num++) {
+									twoFactorNumbers[num] = ' ';
+								}
+							}
+							else {
+								confirmPass = getConfirmPass(x, y);
+							}
+						}
+					}
 					cout << "X = " << x << " Y = " << y << endl;
 				}
 				break;
@@ -1488,6 +1722,13 @@ int main(int argc, char* argv[]) {
 					if (actualState == MAIN_MENU) {
 						running = false;
 					}
+					else if (isTwoFactorTask) {
+						engine->play2D(panelDisappearSound);
+						renderMap = true;
+						isTwoFactorTask = false;
+						lock_cam = true;
+						SDL_ShowCursor(SDL_DISABLE);
+					}
 					else {
 						actualState = MAIN_MENU;
 						alpha = 1;
@@ -1534,7 +1775,7 @@ int main(int argc, char* argv[]) {
 					bloom = !bloom;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_m) {
-					mapa = !mapa;
+					renderMapComplete = !renderMapComplete;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_v) {
 					antialiasing = !antialiasing;
@@ -1550,6 +1791,22 @@ int main(int argc, char* argv[]) {
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_4) {
 					first_person = !first_person;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_f) {
+					if (!isTwoFactorTask) {
+						engine->play2D(panelAppearSound);
+						renderMap = false;
+						timeVisibleState = 0;
+						confirmPass = false;
+						isTwoFactorTask = true;
+						lock_cam = false;
+						SDL_ShowCursor(SDL_ENABLE);
+						int randomPass = rand() % (98765 - 12345 + 1) + 12345;
+						twoFactorPass = to_string(randomPass);
+						for (int num = 0; num < 5; num++) {
+							twoFactorNumbers[num] = ' ';
+						}
+					}
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_TAB) {
 					fixed_pos = !fixed_pos;
@@ -1574,7 +1831,6 @@ int main(int argc, char* argv[]) {
 				}
 				break;
 			}
-
 			}
 			if (lock_cam)
 				SDL_WarpMouseInWindow(window, SCR_W / 2, SCR_H / 2);
