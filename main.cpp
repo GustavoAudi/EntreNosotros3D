@@ -19,6 +19,7 @@
 #include "Config/tinyxml2.h"
 //#include <SDL.h>
 #include <SDL_ttf.h>
+#include <random>
 using std::cerr;
 
 #define SCR_H 720 
@@ -88,7 +89,7 @@ struct movement {
 	bool moving_down = false;
 };
 
-void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine* &engine, ISoundSource* pasos[], int &ultimoPaso, bool modoLibre) {
+void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine*& engine, ISoundSource* pasos[], int& ultimoPaso, bool modoLibre) {
 	glm::vec3 cameraPos = camera->getPos();
 	glm::vec3 camAux = cameraPos;
 	if (mv.spedUp) {
@@ -128,7 +129,7 @@ void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoun
 			ultimoPaso = (ultimoPaso + 1) % 8;
 		}
 	}
-	if(mv.moving_up || mv.moving_down){
+	if (mv.moving_up || mv.moving_down) {
 		engine->stopAllSoundsOfSoundSource(pasos[ultimoPaso]);
 		if (mv.moving_up) {
 			cameraPos.y += cameraSpeed;
@@ -199,7 +200,7 @@ void setupLightsCharacter(Shader& ourShader) {
 	float* quadratic = new float();
 	float* cutOff = new float();
 	float* outerCutOff = new float();
-		
+
 	pLuz->QueryFloatAttribute("xAmb", &ambient->x);
 	pLuz->QueryFloatAttribute("yAmb", &ambient->y);
 	pLuz->QueryFloatAttribute("zAmb", &ambient->z);
@@ -282,7 +283,7 @@ void configLightsMap(Shader& ourShader, glm::vec3 diffuse, glm::vec3 specular) {
 	pLuz = pLucesMapa->FirstChildElement("Luz");
 
 	int i = 0;
-	while(pLuz != nullptr) {
+	while (pLuz != nullptr) {
 		string ligthName = "pointLights[" + std::to_string(i);
 
 		ourShader.setVec3(ligthName + "].diffuse", diffuse);
@@ -305,7 +306,7 @@ void iniciarSonidos(ISoundEngine*& engine) {
 	engine->setSoundVolume(0);
 
 	pSonido = pSonidos->FirstChildElement("Sonido");
-	
+
 	glm::vec3* posicion = new glm::vec3();
 	float* minVol = new float();
 	const char* rut;
@@ -341,7 +342,7 @@ void pausarSonidos(ISoundEngine*& engine) {
 }
 
 void cargarSonidoPasos(ISoundEngine*& engine, ISoundSource* pasos[8]) {
-	
+
 	ISoundSource* paso1 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal01.wav");
 	paso1->forceReloadAtNextUse();
 	paso1->setDefaultVolume(0.5f);
@@ -409,6 +410,7 @@ unsigned int loadCubemap(vector<std::string> faces)
 	return textureID;
 }
 
+
 unsigned int loadTexture(string path) {
 	unsigned int texture1;
 	// texture 1
@@ -437,6 +439,216 @@ unsigned int loadTexture(string path) {
 	}
 	stbi_image_free(data);
 	return texture1;
+}
+
+
+void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, string tex) {
+	unsigned int useTex = loadTexture(tex);
+	float coords[] = {
+		// positions        // texture Coords
+		top_left.x, top_left.y, 0.0f, 0.0f, 1.0f,
+		top_left.x, bottom_right.y, 0.0f, 0.0f, 0.0f,
+		bottom_right.x, top_left.y, 0.0f, 1.0f, 1.0f,
+		bottom_right.x, bottom_right.y, 0.0f, 1.0f, 0.0f,
+	};
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+	glDisable(GL_DEPTH_TEST);
+	shader.use();
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, useTex);
+	renderQuad(coords);
+}
+
+void renderQuad(Shader shader, float coords[], string tex) {
+	unsigned int useTex = loadTexture(tex);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+	glDisable(GL_DEPTH_TEST);
+	shader.use();
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, useTex);
+	renderQuad(coords);
+}
+bool inRange(glm::vec3 pos, vector<glm::vec3> pointCollection, float distance) {
+	for (glm::vec3 comp : pointCollection) {
+		if (glm::distance(comp, pos) < distance)
+			return true;
+	}
+	return false;
+}
+
+
+glm::vec2 getScaledCoords(float x, float y) {
+	return glm::vec2((2.f * x / SCR_W) - 1.f, ((-2.f * y / SCR_H) + 1.f));
+}
+glm::vec2 getScaledCoords(glm::vec2 vec) {
+	return glm::vec2((2.f * vec.x / SCR_W) - 1.f, ((-2.f * vec.y / SCR_H) + 1.f));
+}
+
+
+
+int getNum(vector<int>& v)
+{
+	int n = v.size();
+	srand(time(NULL));
+	int index = rand() % n;
+	int num = v[index];
+	swap(v[index], v[n - 1]);
+	v.pop_back();
+	return num;
+}
+
+
+vector<int> generateRandom(int n) {
+	vector<int> v(n);
+	for (int i = 0; i < n; i++)
+		v[i] = i + 1;
+
+	while (v.size()) {
+		cout << getNum(v) << " ";
+	}
+}
+
+vector<int> colors_left{ 0,1,2,3 };
+vector<int> colors_right{ 0,1,2,3 };
+vector<bool> fixed_cables(4, false);
+
+vector<glm::vec2> leftCablePos{
+	glm::vec2(210, 227),
+	glm::vec2(210, 317),
+	glm::vec2(210, 407),
+	glm::vec2(210, 495)
+};
+
+vector<glm::vec2> rightCablePos{
+	glm::vec2(774, 227),
+	glm::vec2(774, 317),
+	glm::vec2(774, 407),
+	glm::vec2(774, 495)
+};
+
+glm::vec2 cableSize(37, 17);
+
+int closestIndex(glm::vec2 pos, vector<glm::vec2> pointCollection, float distance) {
+	for (int i = 0; i < pointCollection.size(); i++) {
+		if (glm::distance(getScaledCoords(pointCollection[i]), pos) < distance)
+			return i;
+	}
+	return -1;
+}
+
+template <typename T>
+int getIndex(vector<T> v, T elem)
+{
+	auto it = find(v.begin(), v.end(), elem);
+	// If element was found
+	if (it != v.end())
+	{
+		int index = it - v.begin();
+		return index;
+	}
+	else {
+		return -1;
+	}
+}
+void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset) {
+	vector<string> wires;
+	string cablesTex = "../Include/minigames/wirepanel.png";
+	wires.push_back("../Include/minigames/rwire.png");
+	wires.push_back("../Include/minigames/bwire.png");
+	wires.push_back("../Include/minigames/ywire.png");
+	wires.push_back("../Include/minigames/pwire.png");
+
+	glm::vec2 top_left = getScaledCoords(SCR_W / 5, SCR_H / 5);
+	glm::vec2 bottom_right = getScaledCoords(SCR_W * 4 / 5, SCR_H * 4 / 5);
+	renderQuad(shader, top_left, bottom_right, cablesTex);
+
+	if (reset) {
+		std::random_device rd;
+		std::mt19937 g(rd());
+		std::shuffle(colors_left.begin(), colors_left.end(), g);
+		std::shuffle(colors_right.begin(), colors_right.end(), g);
+		fixed_cables = vector<bool>(4, false);
+	}
+
+	for (int i = 0; i < 4; i++) {
+		renderQuad(shader, getScaledCoords(leftCablePos[i]), getScaledCoords(leftCablePos[i] + cableSize), wires[colors_left[i]]);
+		renderQuad(shader, getScaledCoords(rightCablePos[i]), getScaledCoords(rightCablePos[i] + cableSize), wires[colors_right[i]]);
+	}
+
+	if (clicked) {
+		int cableId = closestIndex(last_click, leftCablePos, 0.09);
+		if (cableId > -1 && !fixed_cables[cableId]) {
+			glm::vec2 origin = getScaledCoords(leftCablePos[cableId] + glm::vec2(cableSize.x,0));
+			float width = 0.05;
+			float coords[] = {
+				// positions        // texture Coords
+				origin.x, origin.y, 0.0f, 0.0f, 1.0f,
+				origin.x, origin.y - width, 0.0f, 0.0f, 0.0f,
+				mouse_pos.x, mouse_pos.y, 0.0f, 1.0f, 1.0f,
+				mouse_pos.x, mouse_pos.y - width, 0.0f, 1.0f, 0.0f,
+			};
+			renderQuad(shader, coords, wires[colors_left[cableId]]);
+			int targetId = closestIndex(mouse_pos, rightCablePos, 0.05);
+			if (colors_right[targetId] == colors_left[cableId]) {
+				fixed_cables[cableId] = true;
+			}
+
+		}
+	}
+	for (int cable = 0; cable < 4; cable++) {
+		if (fixed_cables[cable]) {
+			glm::vec2 origin = getScaledCoords(leftCablePos[cable] + glm::vec2(cableSize.x, 0));
+			glm::vec2 destination = getScaledCoords(rightCablePos[getIndex(colors_right,colors_left[cable])]);
+			float width = 0.048;
+			float coords[] = {
+				// positions        // texture Coords
+				origin.x, origin.y, 0.0f, 0.0f, 1.0f,
+				origin.x, origin.y - width, 0.0f, 0.0f, 0.0f,
+				destination.x, destination.y, 0.0f, 1.0f, 1.0f,
+				destination.x, destination.y - width, 0.0f, 1.0f, 0.0f,
+			};
+			renderQuad(shader, coords, wires[colors_left[cable]]);
+		}
+	}
+}
+
+void renderF(Shader shader) {
+	string tex = "../Include/minigames/use.png";
+	glm::vec2 top_left = getScaledCoords(848, 571);
+	glm::vec2 bottom_right = getScaledCoords(984, 682);
+	renderQuad(shader, top_left, bottom_right, tex);
+}
+
+
+
+
+vector<glm::vec3> cableSpots{
+	glm::vec3(26.6652f, 0.31f, -11.6247f),
+	glm::vec3(44.9004f, 0.31f, -16.924f),
+	glm::vec3(23.1515f, 0.31f, -27.1345f),
+	glm::vec3(20.628f, 0.31f, -12.8736f),
+	glm::vec3(11.8638f, 0.31f, -16.0048f)
+};
+
+vector<glm::vec3> oxygenSpots{
+	glm::vec3(36.5912f, 0.31f, -17.9872f),
+	glm::vec3(36.2865f, 0.31f, -14.1531f),
+};
+
+template <typename T>
+std::vector<T> Append(std::vector<T>& a, const std::vector<T>& b)
+{
+	std::vector<T> c(a);
+	c.insert(c.end(), b.begin(), b.end());
+	return c;
+}
+
+void renderPosHUD(glm::vec3 campos, Shader shader) {
+	if (inRange(campos, Append(cableSpots, oxygenSpots), 0.5f)) {
+		renderF(shader);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -475,7 +687,7 @@ int main(int argc, char* argv[]) {
 	pMSAA->QueryFloatAttribute("samples", &maxSamples);
 	if (maxSamples > 16) maxSamples = 16;
 	if (maxSamples < 2) maxSamples = 2;
-	
+
 	float amount;
 	tinyxml2::XMLElement* pBloom = pConfig->FirstChildElement("BLOOM");
 	pBloom->QueryFloatAttribute("amount", &amount);
@@ -504,12 +716,12 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Write text to surface
-	SDL_Color text_color = {64, 132, 150 };
-	
+	SDL_Color text_color = { 64, 132, 150 };
+
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
 	gl_context = SDL_GL_CreateContext(window);
-	
+
 	// Disable limit of 60fps
 	SDL_GL_SetSwapInterval(0);
 
@@ -547,16 +759,16 @@ int main(int argc, char* argv[]) {
 	skyboxShader.use();
 	skyboxShader.setInt("sun", 0);
 	skyboxShader.setInt("skybox", 1);
-	
+
 	//stbi_set_flip_vertically_on_load(true);
-	
+
 	// SETUP MODELS
 	Model ourModel("../Include/model/c.obj");
 	Model cuerpo1("../Include/model/astronaut.dae");
 	Model muerto("../Include/model/dead.obj");
 	Model sun("../Include/model/sun.obj");
 	Model fantasma("../Include/model/ghost.dae");
-	
+
 	// Setup model Octree
 	ourModel.GenerateOctree();
 
@@ -569,6 +781,7 @@ int main(int argc, char* argv[]) {
 		"../Include/skybox/front.png",
 		"../Include/skybox/back.png"
 	};
+
 
 	float skyboxVertices[] = {
 		// positions          
@@ -651,7 +864,7 @@ int main(int argc, char* argv[]) {
 	// Time tracking
 	Uint32 deltaTime = 0;	// Time between current frame and last frame
 	Uint32 lastFrame = 0; // Time of last frame
-	
+
 	// Cam Rotation
 	float yaw = -90.0f;
 	float pitch = 0.0f;
@@ -668,10 +881,8 @@ int main(int argc, char* argv[]) {
 	modelCadaver = glm::mat4(glm::rotate(modelCadaver, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0)));
 	glm::mat4 matr_normals = glm::mat4(glm::transpose(glm::inverse(modelCadaver)));
 
-	glm::mat4 modelFantasma = glm::mat4(1.0f);
-	modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.3f, -12.70f));
-	modelFantasma = glm::scale(modelFantasma, glm::vec3(0.2f, 0.2f, 0.2f));
-
+	glm::vec3 ghost_pos = glm::vec3(20.3f, 0.3f, -12.70f);
+	bool ghost_moving = false;
 
 	glm::mat4 view, model, projection, modelsun;
 	glm::mat4 modelAnim = glm::mat4(1.0f);
@@ -682,6 +893,14 @@ int main(int argc, char* argv[]) {
 	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 0.0f));//modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
 	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
+	//minigame variables
+	bool cables = false;
+	bool btn_down = false;
+	bool reset = false;
+	glm::vec2 last_click = glm::vec2(0.f);
+	glm::vec2 mouse_pos = glm::vec2(0.f);
+
+	//scene variables
 	bool sonido = false;
 	bool running = true;
 	bool fullScreen = false;
@@ -706,7 +925,7 @@ int main(int argc, char* argv[]) {
 	int timeAux = 0;
 	int diff = 0;
 	int timeN = 0;
-	
+
 	// Setup lights
 	glm::vec3 ambient = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 diffuse = glm::vec3(0.8f);
@@ -729,9 +948,9 @@ int main(int argc, char* argv[]) {
 	ISoundSource* ligthOffSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_reactor_manifoldfail.wav");
 	ligthOffSound->setDefaultVolume(1.0f);
 	ligthOffSound->forceReloadAtNextUse();
-	
+
 	ISoundSource* pasos[8];
-	cargarSonidoPasos(engine,pasos);
+	cargarSonidoPasos(engine, pasos);
 	int ultimoPaso = 0;
 
 
@@ -779,7 +998,7 @@ int main(int argc, char* argv[]) {
 		// attach texture to framebuffer
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
 	}
-	
+
 	// create and attach depth buffer (renderbuffer)
 	unsigned int rboDepth;
 	glGenRenderbuffers(1, &rboDepth);
@@ -790,7 +1009,7 @@ int main(int argc, char* argv[]) {
 	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, attachments);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Framebuffer not complete111!" << std::endl; 
+		std::cout << "Framebuffer not complete111!" << std::endl;
 
 	// ping-pong-framebuffer for blurring
 	unsigned int pingpongFBO[2];
@@ -896,18 +1115,18 @@ int main(int argc, char* argv[]) {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		timeN = currentFrame / 15;
-		
+
 		float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
 
 		//audio processing
 		engine->setListenerPosition(vec3df(camera->getPos().x, camera->getPos().y, camera->getPos().z),
 			vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
-		
+
 		//render
 
 		//glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window
-		
+
 
 		// DRAW SKYBOX
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -1016,7 +1235,7 @@ int main(int argc, char* argv[]) {
 		configLightsMap(ourShader, diffuse, specular);
 		configLightsHall(ourShader, ambient, diffuseHall, specularHall);
 		ourShader.setBool("anim", false);
-		
+
 		view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
 		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
 		ourShader.setMat4("projection", projection);
@@ -1076,7 +1295,7 @@ int main(int argc, char* argv[]) {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
 		sun.Draw(bloomFinal, false, 1, 1);
-		
+
 
 
 		// Preparations for the Shadow Map
@@ -1086,11 +1305,11 @@ int main(int argc, char* argv[]) {
 
 		// Draw scene for shadow map
 		shadowMapProgram.use();
-		ourModel.Draw(shadowMapProgram, false,1,1);
+		ourModel.Draw(shadowMapProgram, false, 1, 1);
 
 		glViewport(0, 0, SCR_W, SCR_H);
-		
-		
+
+
 		//DEBUG SHADOW MAP
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		/*ShadowDebug.use();
@@ -1098,9 +1317,9 @@ int main(int argc, char* argv[]) {
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
 		glUniform1i(glGetUniformLocation(ShadowDebug.ID, "shadowMap"), 0);
 		renderQuad(); */
-			
 
-	
+
+
 		ourShader.use();
 		model = glm::mat4(1.0f);
 		ourShader.setMat4("model", model);
@@ -1115,10 +1334,10 @@ int main(int argc, char* argv[]) {
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferFBO);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		if (glm::distance(camera->getPos(), glm::vec3(29.26f, 1.5f, -24.32f)) < 100.0f) {
-				ourModel.Draw(ourShader, false, 0, 0);
+			ourModel.Draw(ourShader, false, 0, 0);
 
 		}
-		
+
 		if (antialiasing) {
 			glEnable(GL_MULTISAMPLE);
 			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferMultisampledFBO);
@@ -1139,7 +1358,7 @@ int main(int argc, char* argv[]) {
 			glBlitFramebuffer(0, 0, SCR_W, SCR_H, 0, 0, SCR_W, SCR_H, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 			glDrawBuffers(2, attachments);
 		}
-		
+
 		horizontal = true;
 		if (bloom) {
 			blur.use();
@@ -1174,32 +1393,34 @@ int main(int argc, char* argv[]) {
 		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
 		ourModel.Draw(bloomFinal, false, 1, 1);
 
-		
+
 		//DRAW DEL CADAVER
 		ourShader.use();
 		ourShader.setBool("anim", true);
 		ourShader.setBool("moove", false);
 		ourShader.setMat4("model", modelCadaver);
 		ourShader.setMat4("normals_matrix", matr_normals);
-		muerto.Draw(ourShader, false,0,0);
+		muerto.Draw(ourShader, false, 0, 0);
 
 		//DRAW DEL ASTRONAUTA
-		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
-		view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
+		//projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
+		//view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
 
 		modelAnim = glm::mat4(1.f);
 
 		glDisable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
 		if (first_person) {
-			modelAnim = glm::translate(modelAnim, camera->getPos()- camera->getDirection());
+			modelAnim = glm::translate(modelAnim, camera->getPos() - camera->getDirection());
 			modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
 			modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
 			modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
-		} else {
+		}
+		else {
 			if (fixed_pos) {
-			modelAnim = glm::translate(modelAnim, old_pos);
-			modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
-			}else {
+				modelAnim = glm::translate(modelAnim, old_pos);
+				modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
+			}
+			else {
 				modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
 				modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
 				old_yaw = -yaw + 90;
@@ -1209,33 +1430,42 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		if (!(mv.moving_forward || mv.moving_back)) {
+		if (!(mv.moving_forward || mv.moving_back) || first_person) {
 			modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
 		}
 		modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
 		ourShader.setMat4("model", modelAnim);
 
 
-		glm::mat4 matr_normals_cube =  glm::mat4(glm::transpose(glm::inverse(modelAnim)));
+		glm::mat4 matr_normals_cube = glm::mat4(glm::transpose(glm::inverse(modelAnim)));
 		ourShader.setMat4("normals_matrix", matr_normals_cube);
 		ourShader.setBool("anim", true);
 		ourShader.setBool("moove", (mv.moving_forward || mv.moving_back));
 		cuerpo1.initBonesForShader(ourShader);
-		cuerpo1.Draw(ourShader, (mv.moving_forward || mv.moving_back),0,0);
+		cuerpo1.Draw(ourShader, (mv.moving_forward || mv.moving_back), 0, 0);
 
 		glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
 
 		//DRAW DEL FANTASMA
+		if (ghost_moving) {
+			glm::vec3 astro_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
+			glm::vec3 ghost_dir = (astro_pos - glm::vec3(1.1f, 0, -0.01f)) - ghost_pos;
+			ghost_pos += ghost_dir * glm::vec3(0.1f);
+
+		}
+		glm::mat4 modelFantasma = glm::mat4(1.0f);
+		modelFantasma = glm::translate(modelFantasma, ghost_pos);
+		modelFantasma = glm::scale(modelFantasma, glm::vec3(0.2f, 0.2f, 0.2f));
 		ourShader.setMat4("model", modelFantasma);
 		ourShader.setBool("moove", true);
 		fantasma.initBonesForShader(ourShader);
-		fantasma.Draw(ourShader, true,0,0);
+		fantasma.Draw(ourShader, true, 0, 0);
 
 		// DRAW DEL MAPA
 		float delta_x = (10.0f / (SCR_W / 2.0f));
 		float delta_y = (10.0f / (SCR_H / 2.0f));
-		float mark_x = (camera->getPos().x * (1.0f/60.0f))+ 0.045333f;
-		float mark_y = -(camera->getPos().z * (1.0f/40.0f) - 0.13667f);
+		float mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
+		float mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
 		float marker[] = {
 			// positions        // texture Coords
 			mark_x, mark_y + delta_y, 0.0f, 0.0f, 1.0f,
@@ -1254,9 +1484,21 @@ int main(int argc, char* argv[]) {
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, mapMarker);
 			renderQuad(marker);
-		}else {
+		}
+		else {
 			renderQuad(full);
 		}
+
+		//CABLES MINIGAME
+		if (cables) {
+			playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset);
+			reset = false;
+		}
+		else {
+			reset = true;
+		}
+		//SHOW Variable HUD
+		renderPosHUD(camera->getPos(), ShadowDebug);
 
 		// SHOW FPS 
 		short fps_to_show;
@@ -1264,7 +1506,7 @@ int main(int argc, char* argv[]) {
 			i = 0;
 			fps_to_show = round(1000.0f / deltaTime);
 		}
-		
+
 		string fps = "FPS: " + to_string(fps_to_show);
 
 		SDL_Surface* surf = TTF_RenderText_Blended(font, fps.c_str(), text_color);
@@ -1276,166 +1518,197 @@ int main(int argc, char* argv[]) {
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS); // set depth function back to default 
-
 		// EVENTS
 		while (SDL_PollEvent(&sdlEvent)) {   //usar SDL_WaitEvent?
 			switch (sdlEvent.type) {
-				case SDL_MOUSEMOTION: {
-					if(lock_cam){
-						int x, y;
-						SDL_GetMouseState(&x, &y);
-						int xoffset = x - SCR_W / 2;
-						int yoffset = SCR_H / 2 - y; // reversed since y-coordinates range from bottom to top
+			case SDL_MOUSEMOTION: {
+				int x, y;
+				SDL_GetMouseState(&x, &y);
+				if (lock_cam) {
+					int xoffset = x - SCR_W / 2;
+					int yoffset = SCR_H / 2 - y; // reversed since y-coordinates range from bottom to top
 
-						xoffset *= sensitivity;
-						yoffset *= sensitivity;
-						yaw += xoffset;
-						pitch += yoffset;
+					xoffset *= sensitivity;
+					yoffset *= sensitivity;
+					yaw += xoffset;
+					pitch += yoffset;
 
-						if (pitch > 89.0f)
-							pitch = 89.0f;
-						if (pitch < -89.0f)
-							pitch = -89.0f;
+					if (pitch > 89.0f)
+						pitch = 89.0f;
+					if (pitch < -89.0f)
+						pitch = -89.0f;
 
-						camera->Rotate(yaw, pitch);
-					}
-					break;
+					camera->Rotate(yaw, pitch);
 				}
-				case SDL_MOUSEBUTTONDOWN: {
-					if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
-						int x, y;
-						SDL_GetMouseState(&x, &y);
-						cout << "X = " << x << " Y = " << y << endl;
-					}
-					break;
+				if (cables) {
+					mouse_pos = glm::vec2(x, y);
 				}
-				case SDL_MOUSEWHEEL: {
-					float yoffset = sdlEvent.wheel.y;
-					zoom -= (float)yoffset;
-					if (zoom < 1.0f)
-						zoom = 1.0f;
-					if (zoom > 45.0f)
-						zoom = 45.0f;
-					break;
+				break;
+			}
+			case SDL_MOUSEBUTTONDOWN: {
+				if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
+					btn_down = true;
+					int x, y;
+					SDL_GetMouseState(&x, &y);
+					cout << "X = " << x << " Y = " << y << endl;
+					cout << "RX = " << getScaledCoords(x, y).x << "RY = " << getScaledCoords(x, y).y << endl;
+					if (cables) {
+						last_click = glm::vec2(x, y);
+					}
 				}
-				case SDL_QUIT: {
-					running = false;
-					break;
+				break;
+			}
+			case SDL_MOUSEBUTTONUP: {
+				btn_down = false;
+				break;
+			}
+			case SDL_MOUSEWHEEL: {
+				float yoffset = sdlEvent.wheel.y;
+				zoom -= (float)yoffset;
+				if (zoom < 1.0f)
+					zoom = 1.0f;
+				if (zoom > 45.0f)
+					zoom = 45.0f;
+				break;
+			}
+			case SDL_QUIT: {
+				running = false;
+				break;
+			}
+			case SDL_KEYUP: {
+				if (sdlEvent.key.keysym.sym == SDLK_LALT) {
+					lock_cam = true;
+					SDL_ShowCursor(SDL_DISABLE);
 				}
-				case SDL_KEYUP: {
-					if (sdlEvent.key.keysym.sym == SDLK_LALT) {
-						lock_cam = true;
-						SDL_ShowCursor(SDL_DISABLE);
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
-						mv.spedUp = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_w) {
-						mv.moving_forward= false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_a) {
-						mv.moving_left = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_d) {
-						mv.moving_right = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_s) {
-						mv.moving_back = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
-						if (fixed_pos)
+				if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
+					mv.spedUp = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_w) {
+					mv.moving_forward = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_a) {
+					mv.moving_left = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_d) {
+					mv.moving_right = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_s) {
+					mv.moving_back = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
+					if (fixed_pos)
 						mv.moving_up = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
-						if (fixed_pos)
-						mv.moving_down = false;
-					}
-					break;
 				}
-				case SDL_KEYDOWN: {
-					if (sdlEvent.key.keysym.sym == SDLK_LALT) {
-						lock_cam = false;
-						SDL_ShowCursor(SDL_ENABLE);
+				if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
+					if (fixed_pos)
+						mv.moving_down = false;
+				}
+				break;
+			}
+			case SDL_KEYDOWN: {
+				if (sdlEvent.key.keysym.sym == SDLK_LALT) {
+					lock_cam = false;
+					SDL_ShowCursor(SDL_ENABLE);
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
+					mv.spedUp = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_c) {
+					cout << "X: " << camera->getPos().x << " Y: " << camera->getPos().y << " Z: " << camera->getPos().z << endl;
+					cout << "X: " << camera->getFront().x << " Y: " << camera->getFront().y << " Z: " << camera->getFront().z << endl;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
+					running = false;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_a) {
+					mv.moving_left = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_d) {
+					mv.moving_right = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_s) {
+					mv.moving_back = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_w) {
+					mv.moving_forward = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
+					if (fixed_pos)
+						mv.moving_up = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
+					if (fixed_pos)
+						mv.moving_down = true;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_x) {
+					cortoElectricidad = !cortoElectricidad;
+					count = 0;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_e) {
+					if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
+						if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
+							cortoElectricidad = !cortoElectricidad;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_l) {
+					linterna = !linterna;
+				}if (sdlEvent.key.keysym.sym == SDLK_b) {
+					bloom = !bloom;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_m) {
+					mapa = !mapa;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_v) {
+					antialiasing = !antialiasing;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_1) {
+					specular_map = !specular_map;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_2) {
+					exposure -= 0.02;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_3) {
+					exposure += 0.02;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_4) {
+					first_person = !first_person;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_5) {
+					ghost_moving = !ghost_moving;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_f) {
+					if (inRange(camera->getPos(), cableSpots, 0.5f)) {
+						cables = !cables;
+						if (cables) {
+							lock_cam = false;
+							SDL_ShowCursor(SDL_ENABLE);
+						}
+						else {
+							lock_cam = true;
+							SDL_ShowCursor(SDL_DISABLE);
+						}
 					}
-					if (sdlEvent.key.keysym.sym == SDLK_LSHIFT) {
-						mv.spedUp = true;
+					if (inRange(camera->getPos(), oxygenSpots, 0.5f)) {
+						cables = !cables;
 					}
-					if (sdlEvent.key.keysym.sym == SDLK_c) {
-						cout << "X: " << camera->getPos().x << " Y: " << camera->getPos().y << " Z: " << camera->getPos().z << endl;
-						cout << "X: " << camera->getFront().x << " Y: " << camera->getFront().y << " Z: " << camera->getFront().z << endl;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
-						running = false;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_a) {
-						mv.moving_left = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_d) {
-						mv.moving_right = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_s) {
-						mv.moving_back = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_w) {
-						mv.moving_forward= true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_SPACE) {
-						if(fixed_pos)
-							mv.moving_up = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_LCTRL) {
-						if (fixed_pos)
-							mv.moving_down = true;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_x) {
-						cortoElectricidad = !cortoElectricidad;
-						count = 0;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_e) {
-						if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
-							if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
-								cortoElectricidad = !cortoElectricidad;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_l) {
-						linterna = !linterna;
-					}if (sdlEvent.key.keysym.sym == SDLK_b) {
-						bloom = !bloom;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_m) {
-						mapa = !mapa;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_v) {
-						antialiasing = !antialiasing;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_1) {
-						specular_map = !specular_map;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_2) {
-						exposure -= 0.02;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_3) {
-						exposure += 0.02;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_4) {
-						first_person = !first_person;
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_TAB) {
-						fixed_pos = !fixed_pos;
-						if (!fixed_pos)
-							camera->setPos(old_pos_camera);
-					}
-					if (sdlEvent.key.keysym.sym == SDLK_F11) {
-						if(fullScreen)
-							SDL_SetWindowFullscreen(window, SDL_FALSE);
-						else
-							SDL_SetWindowFullscreen(window, SDL_TRUE);
+					//ghost_moving = !ghost_moving;
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_TAB) {
+					fixed_pos = !fixed_pos;
+					if (!fixed_pos)
+						camera->setPos(old_pos_camera);
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_F11) {
+					if (fullScreen)
+						SDL_SetWindowFullscreen(window, SDL_FALSE);
+					else
+						SDL_SetWindowFullscreen(window, SDL_TRUE);
 
 					fullScreen = !fullScreen;
 
 					SDL_GetCurrentDisplayMode(0, &DM);
 					auto Width = DM.w;
 					auto Height = DM.h;
-					if(fullScreen)
+					if (fullScreen)
 						glViewport(0, 0, Width, Height); //update viewport
 					else
 						glViewport(0, 0, SCR_W, SCR_H);
