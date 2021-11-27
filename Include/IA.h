@@ -23,7 +23,7 @@ public:
     void setTarget(glm::vec3 tar);
     void setDirection(glm::vec3 dir);
     void setSpeed(float s);
-    void start(glm::vec3 target);
+    void start(glm::vec3 target, int diff);
     void update(glm::vec3 target);
     //GETTERS
     glm::vec3 getPos();

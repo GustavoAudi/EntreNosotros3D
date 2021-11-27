@@ -711,7 +711,7 @@ int main(int argc, char* argv[]) {
 	int diff = 0;
 	int timeN = 0;
 
-	bool se_activa_el_fantasma = true;
+	bool se_activa_el_fantasma = false;
 	
 	// Setup lights
 	glm::vec3 ambient = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -1237,9 +1237,13 @@ int main(int argc, char* argv[]) {
 
 		//DRAW DEL FANTASMA
 
+		if ((glm::distance(old_pos_camera.x, 18.f) <= 0.5f) && (glm::distance(old_pos_camera.z, -6.0f) <= 0.5f)) { // If se encuentra en la puerta de electricidad
+			se_activa_el_fantasma = true;
+		}
+
 		if (!ghost->gameOver()) {
 			if (!ghost->isActive() && se_activa_el_fantasma) {
-				ghost->start(old_pos_camera);
+				ghost->start(old_pos_camera,diff);
 			}
 			if (ghost->isActive()) {
 				ghost->update(old_pos_camera);
@@ -1250,12 +1254,9 @@ int main(int argc, char* argv[]) {
 
 			rotatematrix = glm::mat4(1.0f);
 			float angle = glm::acos(glm::dot(glm::normalize(ghost->getDirection()), glm::vec3(0.0, 0.0, 1.0)));
-			//angle = atan2(ghost->getDirection().z , ghost->getDirection().x );
 			if (ghost->getDirection().x < 0) {
 				angle = -angle;
 			}
-			//cout << "angulo" << glm::acos(glm::dot(glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0))) << endl;
-			//cout << "angulo2" << glm::acos(glm::dot(glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0))) << endl;
 			rotatematrix = glm::mat4(glm::rotate(rotatematrix, angle, glm::vec3(0.0, 1.0, 0.0)));
 
 			modelFantasma = modelFantasma * rotatematrix;

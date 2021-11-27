@@ -12,7 +12,7 @@ IA::IA() {
     front = glm::vec3(0.0f, 0.0f, 1.0f);
     active = false;
     target = glm::vec3(29.26f, 0.0f, -24.32f); //glm::vec3(14.1339, 0.8, -12);
-    dir = glm::normalize(target-pos);
+    dir = glm::vec3(0.0f, 0.0f, 1.0f);
     speed = 0.0f;
 }
 
@@ -31,9 +31,9 @@ void IA::setDirection(glm::vec3 dir) {
 void IA::setSpeed(float s) {
     this->speed = s;
 }
-void IA::start(glm::vec3 tar) {
+void IA::start(glm::vec3 tar, int diff) {
     this->active = true;
-    this->speed = 0.03f;
+    this->speed = 0.02f * diff;
     update(tar);
 }
 void IA::update(glm::vec3 target) {
