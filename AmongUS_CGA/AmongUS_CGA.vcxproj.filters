@@ -27,6 +27,9 @@
     <ClCompile Include="..\Include\camera.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="..\Include\IA.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\mesh.h">
@@ -45,6 +48,9 @@
       <Filter>Archivos de origen</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\camera.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\IA.h">
       <Filter>Archivos de origen</Filter>
     </ClInclude>
   </ItemGroup>

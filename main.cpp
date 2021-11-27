@@ -11,6 +11,7 @@
 
 #include "Include/Model.h"
 #include "Include/camera.h"
+#include "Include/IA.h"
 #include "Include/ErrorsMSG.h"
 #include <irrKlang.h>
 
@@ -651,6 +652,7 @@ int main(int argc, char* argv[]) {
 	// Time tracking
 	Uint32 deltaTime = 0;	// Time between current frame and last frame
 	Uint32 lastFrame = 0; // Time of last frame
+	short fps_to_show = 10;
 	
 	// Cam Rotation
 	float yaw = -90.0f;
@@ -669,8 +671,10 @@ int main(int argc, char* argv[]) {
 	glm::mat4 matr_normals = glm::mat4(glm::transpose(glm::inverse(modelCadaver)));
 
 	glm::mat4 modelFantasma = glm::mat4(1.0f);
-	modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.3f, -12.70f));
-	modelFantasma = glm::scale(modelFantasma, glm::vec3(0.2f, 0.2f, 0.2f));
+	glm::mat4 rotatematrix = glm::mat4(1.0f);
+	modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.2f, -12.70f));
+	modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
+	IA* ghost = new IA();
 
 
 	glm::mat4 view, model, projection, modelsun;
@@ -693,7 +697,7 @@ int main(int argc, char* argv[]) {
 	bool linterna = false;
 	bool specular_map = false;
 	bool fixed_pos = false;
-	bool first_person = false;
+	bool first_person = true;
 	bool mapa = false;
 	float old_yaw = 0.f;
 	glm::vec3 old_pos = glm::vec3(0.f);
@@ -706,6 +710,8 @@ int main(int argc, char* argv[]) {
 	int timeAux = 0;
 	int diff = 0;
 	int timeN = 0;
+
+	bool se_activa_el_fantasma = true;
 	
 	// Setup lights
 	glm::vec3 ambient = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -1188,8 +1194,6 @@ int main(int argc, char* argv[]) {
 
 
 		//DRAW DEL ASTRONAUTA
-		projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
-		view = glm::lookAt(camera->getPos() , camera->getPos(), camera->getUp());
 
 		modelAnim = glm::mat4(1.f);
 
@@ -1232,6 +1236,32 @@ int main(int argc, char* argv[]) {
 		glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
 
 		//DRAW DEL FANTASMA
+
+		if (!ghost->gameOver()) {
+			if (!ghost->isActive() && se_activa_el_fantasma) {
+				ghost->start(old_pos_camera);
+			}
+			if (ghost->isActive()) {
+				ghost->update(old_pos_camera);
+			}
+
+			modelFantasma = glm::mat4(1.0f);
+			modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z)); //- glm::vec3(1.1f, 0.f, -0.01f)
+
+			rotatematrix = glm::mat4(1.0f);
+			float angle = glm::acos(glm::dot(glm::normalize(ghost->getDirection()), glm::vec3(0.0, 0.0, 1.0)));
+			//angle = atan2(ghost->getDirection().z , ghost->getDirection().x );
+			if (ghost->getDirection().x < 0) {
+				angle = -angle;
+			}
+			//cout << "angulo" << glm::acos(glm::dot(glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0))) << endl;
+			//cout << "angulo2" << glm::acos(glm::dot(glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0))) << endl;
+			rotatematrix = glm::mat4(glm::rotate(rotatematrix, angle, glm::vec3(0.0, 1.0, 0.0)));
+
+			modelFantasma = modelFantasma * rotatematrix;
+			modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
+		}
+
 		ourShader.setMat4("model", modelFantasma);
 		ourShader.setBool("moove", true);
 		fantasma.initBonesForShader(ourShader);
@@ -1265,8 +1295,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		// SHOW FPS 
-		short fps_to_show;
-		if (i == 60) {
+		if (i == 30) {
 			i = 0;
 			fps_to_show = round(1000.0f / deltaTime);
 		}

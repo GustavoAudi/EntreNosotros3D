@@ -22,11 +22,13 @@
     <ClCompile Include="..\Config\tinyxml2.cpp" />
     <ClCompile Include="..\Include\camera.cpp" />
     <ClCompile Include="..\Include\glad.c" />
+    <ClCompile Include="..\Include\IA.cpp" />
     <ClCompile Include="..\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Config\tinyxml2.h" />
     <ClInclude Include="..\Include\camera.h" />
+    <ClInclude Include="..\Include\IA.h" />
     <ClInclude Include="..\Include\mesh.h" />
     <ClInclude Include="..\Include\Model.h" />
     <ClInclude Include="..\Include\stb_image.h" />
