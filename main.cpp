@@ -17,7 +17,7 @@
 #include <iostream>
 #include <fstream>
 #include "Config/tinyxml2.h"
-//#include <SDL.h>
+
 #include <SDL_ttf.h>
 #include <random>
 using std::cerr;
@@ -1087,6 +1087,7 @@ int main(int argc, char* argv[]) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
+
 	// Matrices needed for the light's perspective
 	glm::vec3 SunPosition = glm::vec3(26.0f, 40.0f, 35.0f); //glm::vec3(25,20, 45); 
 	glm::mat4 orthgonalProjection = glm::ortho(-24.0f, 24.0f, -15.0f, 15.0f, 50.0f, 78.0f);
@@ -1124,7 +1125,7 @@ int main(int argc, char* argv[]) {
 
 		//render
 
-		//glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
+		glClearColor(0.0, 0.0, 0.0, 0.0); // set background colour
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear window
 
 
@@ -1247,8 +1248,10 @@ int main(int argc, char* argv[]) {
 		//DRAW SUN
 
 		skyboxShader.use();
-		modelsun = glm::mat4(glm::rotate(modelsun, glm::radians(0.5f), glm::vec3(1.0, 0.0, 0.0)));
-		modelsun = glm::translate(modelsun, glm::vec3(0.0f, -0.8f, 1.0f));
+		modelsun = glm::translate(modelsun, glm::vec3(27.0f, 0.0f, -17.0f));
+			modelsun = glm::mat4(glm::rotate(modelsun, glm::radians(0.5f), glm::vec3(1.0, 0.0, 0.0)));
+			//modelsun = glm::translate(modelsun, glm::vec3(0.0f, -0.8f, 1.0f));
+		modelsun = glm::translate(modelsun, glm::vec3(-27.0f, 0.0f, 17.0f));
 		skyboxShader.setMat4("model", modelsun);
 		skyboxShader.setMat4("projection", projection);
 		skyboxShader.setMat4("view", view);
@@ -1402,15 +1405,17 @@ int main(int argc, char* argv[]) {
 		ourShader.setMat4("normals_matrix", matr_normals);
 		muerto.Draw(ourShader, false, 0, 0);
 
+
 		//DRAW DEL ASTRONAUTA
 		//projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
 		//view = glm::lookAt(camera->getPos() - camera->getFront(), camera->getPos() + camera->getFront(), camera->getUp());
 
 		modelAnim = glm::mat4(1.f);
 
-		glDisable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
+	
 		if (first_person) {
-			modelAnim = glm::translate(modelAnim, camera->getPos() - camera->getDirection());
+			glDisable(GL_CULL_FACE);
+			modelAnim = glm::translate(modelAnim, camera->getPos()- camera->getDirection());
 			modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
 			modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
 			modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
@@ -1433,6 +1438,7 @@ int main(int argc, char* argv[]) {
 		if (!(mv.moving_forward || mv.moving_back) || first_person) {
 			modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
 		}
+
 		modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
 		ourShader.setMat4("model", modelAnim);
 
@@ -1440,9 +1446,9 @@ int main(int argc, char* argv[]) {
 		glm::mat4 matr_normals_cube = glm::mat4(glm::transpose(glm::inverse(modelAnim)));
 		ourShader.setMat4("normals_matrix", matr_normals_cube);
 		ourShader.setBool("anim", true);
-		ourShader.setBool("moove", (mv.moving_forward || mv.moving_back));
+		ourShader.setBool("moove", !first_person && (mv.moving_forward || mv.moving_back));
 		cuerpo1.initBonesForShader(ourShader);
-		cuerpo1.Draw(ourShader, (mv.moving_forward || mv.moving_back), 0, 0);
+		cuerpo1.Draw(ourShader, !first_person && (mv.moving_forward || mv.moving_back),0,0);
 
 		glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
 
@@ -1508,9 +1514,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		string fps = "FPS: " + to_string(fps_to_show);
-
 		SDL_Surface* surf = TTF_RenderText_Blended(font, fps.c_str(), text_color);
-
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w, surf->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surf->pixels);
 		renderQuad(up_left);
