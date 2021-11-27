@@ -9,11 +9,14 @@ layout(location = 4) in vec4 weights;
 out vec2 TexCoords;
 out vec3 Normal;
 out vec3 FragPos;
+out vec4 fragPosLight;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 normals_matrix;
+// Imports the light matrix
+uniform mat4 lightProjection;
 
 const int MAX_BONES = 100;
 uniform mat4 bones[MAX_BONES];
@@ -24,12 +27,11 @@ uniform bool moove;
 void main()
 {
 TexCoords = aTexCoords; 
-
 if(!anim){
        
-    //Normal = aNormal;
+    Normal = aNormal;
     //Esto es por si se llega a escalar el modelo, para que las normales queden coherentes
-    Normal = mat3(transpose(inverse(model))) * aNormal; 
+    //Normal = mat3(transpose(inverse(model))) * aNormal; 
     FragPos = aPos;
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 }
@@ -41,6 +43,7 @@ else{
 		bone_transform += bones[bone_ids[1]] * weights[1];
 		bone_transform += bones[bone_ids[2]] * weights[2];
 		bone_transform += bones[bone_ids[3]] * weights[3];
+
 	}
 	else  {bone_transform = mat4(1.0f);}
 
@@ -49,7 +52,6 @@ else{
 	Normal = normalize(vec3((normals_matrix * bone_transform * vec4(aNormal, 1.0))));
 	FragPos = vec3(model * boned_position);
 	gl_Position = MVP * boned_position;
-
-
 }
+fragPosLight = lightProjection * vec4(FragPos, 1.0);
 }

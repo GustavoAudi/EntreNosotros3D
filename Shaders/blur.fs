@@ -2,7 +2,6 @@
 out vec4 FragColor;
 
 uniform sampler2D image;
-
 uniform bool horizontal;
 uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
@@ -27,5 +26,5 @@ void main()
          }
      }
    
-     FragColor = vec4(result, 1.0);
+     FragColor = vec4(result, 1);
 }

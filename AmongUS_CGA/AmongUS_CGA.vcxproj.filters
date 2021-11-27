@@ -27,6 +27,9 @@
     <ClCompile Include="..\Include\camera.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="..\Include\IA.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\mesh.h">
@@ -47,6 +50,9 @@
     <ClInclude Include="..\Include\camera.h">
       <Filter>Archivos de origen</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\IA.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\model_loading.fs">
@@ -65,6 +71,24 @@
       <Filter>Archivos de origen</Filter>
     </None>
     <None Include="..\Shaders\antialiasing.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\skybox_render.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\skybox_render.vs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\shadow.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\shadow.vs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\debugShadow.fs">
+      <Filter>Archivos de origen</Filter>
+    </None>
+    <None Include="..\Shaders\debugShadow.vs">
       <Filter>Archivos de origen</Filter>
     </None>
   </ItemGroup>
