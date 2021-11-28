@@ -692,7 +692,7 @@ int getIndex(vector<T> v, T elem)
 		return -1;
 	}
 }
-void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset)
+void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset, ISoundEngine* engine, ISoundSource* wireSound)
 {
 	vector<string> wires;
 	string cablesTex = "../Include/minigames/wirepanel.png";
@@ -729,32 +729,17 @@ void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool c
 			float width = 0.05;
 			float coords[] = {
 				// positions        // texture Coords
-				origin.x,
-				origin.y,
-				0.0f,
-				0.0f,
-				1.0f,
-				origin.x,
-				origin.y - width,
-				0.0f,
-				0.0f,
-				0.0f,
-				mouse_pos.x,
-				mouse_pos.y,
-				0.0f,
-				1.0f,
-				1.0f,
-				mouse_pos.x,
-				mouse_pos.y - width,
-				0.0f,
-				1.0f,
-				0.0f,
+				origin.x,origin.y,0.0f,0.0f,1.0f,
+				origin.x,origin.y - width,0.0f,0.0f,0.0f,
+				mouse_pos.x,mouse_pos.y,0.0f,1.0f,1.0f,
+				mouse_pos.x,mouse_pos.y - width,0.0f,1.0f,0.0f,
 			};
 			renderQuad(shader, coords, wires[colors_left[cableId]]);
 			int targetId = closestIndex(mouse_pos, rightCablePos, 0.05);
 			if (colors_right[targetId] == colors_left[cableId])
 			{
 				fixed_cables[cableId] = true;
+				engine->play2D(wireSound);
 			}
 		}
 	}
@@ -1301,9 +1286,13 @@ int main(int argc, char* argv[])
 	ISoundSource* panelDisappearSound = engine->addSoundSourceFromFile("../Include/AudioClip/Panel_GenericDisappear.wav");
 	panelDisappearSound->setDefaultVolume(0.2f);
 	panelDisappearSound->forceReloadAtNextUse();
+	ISoundSource* wireSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_electrical_wire.wav");
+	wireSound->setDefaultVolume(0.2f);
+	wireSound->forceReloadAtNextUse();
 	ISoundSource* taskCompleteSound = engine->addSoundSourceFromFile("../Include/AudioClip/task_Complete.wav");
 	taskCompleteSound->setDefaultVolume(0.2f);
 	taskCompleteSound->forceReloadAtNextUse();
+
 
 	engine->play2D(mainMenuSound, true);
 
@@ -1948,12 +1937,47 @@ int main(int argc, char* argv[])
 			// Wires Task
 			if (cables)
 			{
-				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset);
+				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset, engine, wireSound);
 				reset = false;
-			}
-			else
-			{
-				reset = true;
+				bool wiresComplete = true;
+				for (int cable = 0; cable < 4; cable++)
+				{
+					wiresComplete = wiresComplete && fixed_cables[cable];
+				}
+				if (wiresComplete) {
+					if (timeVisibleState < 80) {
+						if (soundTaskComplete)
+						{
+							soundTaskComplete = false;
+							engine->play2D(taskCompleteSound);
+						}
+
+						string taskComplete = "Tarea Completada!";
+						SDL_Surface* bg_surface = TTF_RenderText_Blended(gameFontOutline, taskComplete.c_str(), black_color);
+						SDL_Surface* fg_surface = TTF_RenderText_Blended(gameFont, taskComplete.c_str(), white_color);
+						SDL_Rect rect = { 6, 6, fg_surface->w, fg_surface->h };
+
+						/* blit text onto its outline */
+						SDL_SetSurfaceBlendMode(fg_surface, SDL_BLENDMODE_BLEND);
+						SDL_BlitSurface(fg_surface, NULL, bg_surface, &rect);
+						SDL_FreeSurface(fg_surface);
+
+						glBindTexture(GL_TEXTURE_2D, tex);
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bg_surface->w, bg_surface->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, bg_surface->pixels);
+						renderQuad(taskCompletePosition);
+						SDL_FreeSurface(bg_surface);
+						timeVisibleState += diff;
+					}
+					else {
+						engine->play2D(panelDisappearSound);
+						renderMap = true;
+						cables = false;
+						lock_cam = true;
+						reset = true;
+						soundTaskComplete = true;
+						SDL_ShowCursor(SDL_DISABLE);
+					}
+				}
 			}
 			//SHOW Variable HUD
 			renderPosHUD(camera->getPos(), ShadowDebug);
@@ -2395,6 +2419,7 @@ int main(int argc, char* argv[])
 					bool inRangeWires = inRange(camera->getPos(), cableSpots, 0.5f) && !cables;
 					bool inRangeTwoFactor = inRange(camera->getPos(), oxygenSpots, 0.5f) && !isTwoFactorTask;
 					if (inRangeWires || inRangeTwoFactor) {
+						timeVisibleState = 0;
 						engine->play2D(panelAppearSound);
 						renderMap = false;
 						lock_cam = false;
@@ -2405,7 +2430,6 @@ int main(int argc, char* argv[])
 					}
 					if (inRangeTwoFactor)
 					{
-						timeVisibleState = 0;
 						confirmPass = false;
 						isTwoFactorTask = true;
 						int randomPass = rand() % (98765 - 12345 + 1) + 12345;
