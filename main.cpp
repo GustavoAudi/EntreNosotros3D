@@ -648,28 +648,6 @@ glm::vec2 getScaledCoords(glm::vec2 vec)
 	return glm::vec2((2.f * vec.x / SCR_W) - 1.f, ((-2.f * vec.y / SCR_H) + 1.f));
 }
 
-int getNum(vector<int> &v)
-{
-	int n = v.size();
-	srand(time(NULL));
-	int index = rand() % n;
-	int num = v[index];
-	swap(v[index], v[n - 1]);
-	v.pop_back();
-	return num;
-}
-
-vector<int> generateRandom(int n)
-{
-	vector<int> v(n);
-	for (int i = 0; i < n; i++)
-		v[i] = i + 1;
-
-	while (v.size())
-	{
-		cout << getNum(v) << " ";
-	}
-}
 
 vector<int> colors_left{0, 1, 2, 3};
 vector<int> colors_right{0, 1, 2, 3};
