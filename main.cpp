@@ -30,14 +30,14 @@ using std::cerr;
 using namespace std;
 using namespace irrklang;
 
-tinyxml2::XMLNode *pEscena;
-tinyxml2::XMLNode *pLucesHall;
-tinyxml2::XMLNode *pLucesMapa;
-tinyxml2::XMLNode *pLucesCharacter;
-tinyxml2::XMLNode *pConfig;
-tinyxml2::XMLElement *pLuz;
-tinyxml2::XMLNode *pSonidos;
-tinyxml2::XMLElement *pSonido;
+tinyxml2::XMLNode* pEscena;
+tinyxml2::XMLNode* pLucesHall;
+tinyxml2::XMLNode* pLucesMapa;
+tinyxml2::XMLNode* pLucesCharacter;
+tinyxml2::XMLNode* pConfig;
+tinyxml2::XMLElement* pLuz;
+tinyxml2::XMLNode* pSonidos;
+tinyxml2::XMLElement* pSonido;
 
 // global variables - normally would avoid globals, using in this demo
 GLuint shaderprogram; // handle for shader program
@@ -58,9 +58,9 @@ void renderQuad(float quadVertices[])
 		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 		glBufferData(GL_ARRAY_BUFFER, 80, &quadVertices[0], GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	}
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -92,7 +92,7 @@ struct movement
 	bool moving_down = false;
 };
 
-void move(movement mv, Camera *camera, float cameraSpeed, Model &ourModel, ISoundEngine *&engine, ISoundSource *pasos[], int &ultimoPaso, bool modoLibre)
+void move(movement mv, Camera* camera, float cameraSpeed, Model& ourModel, ISoundEngine*& engine, ISoundSource* pasos[], int& ultimoPaso, bool modoLibre)
 {
 	glm::vec3 cameraPos = camera->getPos();
 	glm::vec3 camAux = cameraPos;
@@ -162,12 +162,12 @@ void move(movement mv, Camera *camera, float cameraSpeed, Model &ourModel, ISoun
 	camera->setPos(cameraPos);
 }
 
-void setupLightsHall(Shader &ourShader)
+void setupLightsHall(Shader& ourShader)
 {
 	pLuz = pLucesHall->FirstChildElement("Luz");
 
-	glm::vec3 *posicion = new glm::vec3();
-	glm::vec3 *direction = new glm::vec3();
+	glm::vec3* posicion = new glm::vec3();
+	glm::vec3* direction = new glm::vec3();
 	glm::vec3 ambient = glm::vec3(0.0f);
 	glm::vec3 diffuse = glm::vec3(1.0f);
 	glm::vec3 specular = glm::vec3(1.0f);
@@ -203,25 +203,25 @@ void setupLightsHall(Shader &ourShader)
 	}
 }
 
-void configLightsHall(Shader &ourShader, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
+void configLightsHall(Shader& ourShader, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
 {
 	ourShader.setVec3("diffuseSpot", diffuse);
 	ourShader.setVec3("specularSpot", specular);
 	ourShader.setVec3("ambientSpot", ambient);
 }
 
-void setupLightsCharacter(Shader &ourShader)
+void setupLightsCharacter(Shader& ourShader)
 {
 	pLuz = pLucesCharacter->FirstChildElement("Luz");
 
-	glm::vec3 *ambient = new glm::vec3();
-	glm::vec3 *diffuse = new glm::vec3();
-	glm::vec3 *specular = new glm::vec3();
-	float *constant = new float();
-	float *linear = new float();
-	float *quadratic = new float();
-	float *cutOff = new float();
-	float *outerCutOff = new float();
+	glm::vec3* ambient = new glm::vec3();
+	glm::vec3* diffuse = new glm::vec3();
+	glm::vec3* specular = new glm::vec3();
+	float* constant = new float();
+	float* linear = new float();
+	float* quadratic = new float();
+	float* cutOff = new float();
+	float* outerCutOff = new float();
 
 	pLuz->QueryFloatAttribute("xAmb", &ambient->x);
 	pLuz->QueryFloatAttribute("yAmb", &ambient->y);
@@ -250,17 +250,17 @@ void setupLightsCharacter(Shader &ourShader)
 	ourShader.setFloat(ligthName + ".outerCutOff", glm::cos(glm::radians(*outerCutOff)));
 }
 
-void setupLightsMap(Shader &ourShader)
+void setupLightsMap(Shader& ourShader)
 {
 	pLuz = pLucesMapa->FirstChildElement("Luz");
 
-	glm::vec3 *posicion = new glm::vec3();
-	glm::vec3 *ambient = new glm::vec3();
-	glm::vec3 *diffuse = new glm::vec3();
-	glm::vec3 *specular = new glm::vec3();
-	float *constant = new float();
-	float *linear = new float();
-	float *quadratic = new float();
+	glm::vec3* posicion = new glm::vec3();
+	glm::vec3* ambient = new glm::vec3();
+	glm::vec3* diffuse = new glm::vec3();
+	glm::vec3* specular = new glm::vec3();
+	float* constant = new float();
+	float* linear = new float();
+	float* quadratic = new float();
 	int i = 0;
 
 	while (pLuz != nullptr)
@@ -303,7 +303,7 @@ void setupLightsMap(Shader &ourShader)
 	}
 }
 
-void configLightsMap(Shader &ourShader, glm::vec3 diffuse, glm::vec3 specular)
+void configLightsMap(Shader& ourShader, glm::vec3 diffuse, glm::vec3 specular)
 {
 	pLuz = pLucesMapa->FirstChildElement("Luz");
 
@@ -330,15 +330,15 @@ void configLightsMap(Shader &ourShader, glm::vec3 diffuse, glm::vec3 specular)
 	}
 }
 
-void iniciarSonidos(ISoundEngine *&engine)
+void iniciarSonidos(ISoundEngine*& engine)
 {
 	engine->setSoundVolume(0);
 
 	pSonido = pSonidos->FirstChildElement("Sonido");
 
-	glm::vec3 *posicion = new glm::vec3();
-	float *minVol = new float();
-	const char *rut;
+	glm::vec3* posicion = new glm::vec3();
+	float* minVol = new float();
+	const char* rut;
 
 	while (pSonido != nullptr)
 	{
@@ -348,7 +348,7 @@ void iniciarSonidos(ISoundEngine *&engine)
 		rut = pSonido->Attribute("rut");
 		pSonido->QueryFloatAttribute("minDist", minVol);
 
-		ISound *aux = engine->play3D(rut, vec3df(posicion->x, posicion->y, posicion->z), true, false, true);
+		ISound* aux = engine->play3D(rut, vec3df(posicion->x, posicion->y, posicion->z), true, false, true);
 		aux->setMinDistance(*minVol);
 
 		pSonido = pSonido->NextSiblingElement("Sonido");
@@ -359,11 +359,11 @@ void iniciarSonidos(ISoundEngine *&engine)
 	engine->setSoundVolume(0.8);
 }
 
-void pausarSonidos(ISoundEngine *&engine)
+void pausarSonidos(ISoundEngine*& engine)
 {
 
 	pSonido = pSonidos->FirstChildElement("Sonido");
-	const char *rut;
+	const char* rut;
 
 	while (pSonido != nullptr)
 	{
@@ -373,31 +373,31 @@ void pausarSonidos(ISoundEngine *&engine)
 	}
 }
 
-void cargarSonidoPasos(ISoundEngine *&engine, ISoundSource *pasos[8])
+void cargarSonidoPasos(ISoundEngine*& engine, ISoundSource* pasos[8])
 {
 
-	ISoundSource *paso1 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal01.wav");
+	ISoundSource* paso1 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal01.wav");
 	paso1->forceReloadAtNextUse();
 	paso1->setDefaultVolume(0.5f);
-	ISoundSource *paso2 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal02.wav");
+	ISoundSource* paso2 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal02.wav");
 	paso2->forceReloadAtNextUse();
 	paso2->setDefaultVolume(0.5f);
-	ISoundSource *paso3 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal03.wav");
+	ISoundSource* paso3 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal03.wav");
 	paso3->forceReloadAtNextUse();
 	paso3->setDefaultVolume(0.5f);
-	ISoundSource *paso4 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal04.wav");
+	ISoundSource* paso4 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal04.wav");
 	paso4->forceReloadAtNextUse();
 	paso4->setDefaultVolume(0.5f);
-	ISoundSource *paso5 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal05.wav");
+	ISoundSource* paso5 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal05.wav");
 	paso5->forceReloadAtNextUse();
 	paso5->setDefaultVolume(0.5f);
-	ISoundSource *paso6 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal06.wav");
+	ISoundSource* paso6 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal06.wav");
 	paso6->forceReloadAtNextUse();
 	paso6->setDefaultVolume(0.5f);
-	ISoundSource *paso7 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal07.wav");
+	ISoundSource* paso7 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal07.wav");
 	paso7->forceReloadAtNextUse();
 	paso7->setDefaultVolume(0.5f);
-	ISoundSource *paso8 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal08.wav");
+	ISoundSource* paso8 = engine->addSoundSourceFromFile("../Include/AudioClip/FootstepMetal08.wav");
 	paso8->forceReloadAtNextUse();
 	paso8->setDefaultVolume(0.5f);
 
@@ -420,11 +420,11 @@ unsigned int loadCubemap(vector<std::string> faces)
 	int width, height, nrChannels;
 	for (unsigned int i = 0; i < faces.size(); i++)
 	{
-		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
 		if (data)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-						 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 			stbi_image_free(data);
 		}
 		else
@@ -569,7 +569,7 @@ unsigned int loadTexture(string path)
 	// load image, create texture and generate mipmaps
 	int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-	unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+	unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -649,21 +649,21 @@ glm::vec2 getScaledCoords(glm::vec2 vec)
 }
 
 
-vector<int> colors_left{0, 1, 2, 3};
-vector<int> colors_right{0, 1, 2, 3};
+vector<int> colors_left{ 0, 1, 2, 3 };
+vector<int> colors_right{ 0, 1, 2, 3 };
 vector<bool> fixed_cables(4, false);
 
 vector<glm::vec2> leftCablePos{
 	glm::vec2(210, 227),
 	glm::vec2(210, 317),
 	glm::vec2(210, 407),
-	glm::vec2(210, 495)};
+	glm::vec2(210, 495) };
 
 vector<glm::vec2> rightCablePos{
 	glm::vec2(774, 227),
 	glm::vec2(774, 317),
 	glm::vec2(774, 407),
-	glm::vec2(774, 495)};
+	glm::vec2(774, 495) };
 
 glm::vec2 cableSize(37, 17);
 
@@ -692,7 +692,7 @@ int getIndex(vector<T> v, T elem)
 		return -1;
 	}
 }
-void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset)
+void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset, ISoundEngine* engine, ISoundSource* wireSound)
 {
 	vector<string> wires;
 	string cablesTex = "../Include/minigames/wirepanel.png";
@@ -729,32 +729,17 @@ void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool c
 			float width = 0.05;
 			float coords[] = {
 				// positions        // texture Coords
-				origin.x,
-				origin.y,
-				0.0f,
-				0.0f,
-				1.0f,
-				origin.x,
-				origin.y - width,
-				0.0f,
-				0.0f,
-				0.0f,
-				mouse_pos.x,
-				mouse_pos.y,
-				0.0f,
-				1.0f,
-				1.0f,
-				mouse_pos.x,
-				mouse_pos.y - width,
-				0.0f,
-				1.0f,
-				0.0f,
+				origin.x,origin.y,0.0f,0.0f,1.0f,
+				origin.x,origin.y - width,0.0f,0.0f,0.0f,
+				mouse_pos.x,mouse_pos.y,0.0f,1.0f,1.0f,
+				mouse_pos.x,mouse_pos.y - width,0.0f,1.0f,0.0f,
 			};
 			renderQuad(shader, coords, wires[colors_left[cableId]]);
 			int targetId = closestIndex(mouse_pos, rightCablePos, 0.05);
 			if (colors_right[targetId] == colors_left[cableId])
 			{
 				fixed_cables[cableId] = true;
+				engine->play2D(wireSound);
 			}
 		}
 	}
@@ -806,7 +791,7 @@ vector<glm::vec3> cableSpots{
 	glm::vec3(44.9004f, 0.31f, -16.924f),
 	glm::vec3(23.1515f, 0.31f, -27.1345f),
 	glm::vec3(20.628f, 0.31f, -12.8736f),
-	glm::vec3(11.8638f, 0.31f, -16.0048f)};
+	glm::vec3(11.8638f, 0.31f, -16.0048f) };
 
 vector<glm::vec3> oxygenSpots{
 	glm::vec3(36.5912f, 0.31f, -17.9872f),
@@ -814,7 +799,7 @@ vector<glm::vec3> oxygenSpots{
 };
 
 template <typename T>
-std::vector<T> Append(std::vector<T> &a, const std::vector<T> &b)
+std::vector<T> Append(std::vector<T>& a, const std::vector<T>& b)
 {
 	std::vector<T> c(a);
 	c.insert(c.end(), b.begin(), b.end());
@@ -838,7 +823,7 @@ void renderPosHUD(glm::vec3 campos, Shader shader)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 
 	// INITIALIZATION
@@ -859,10 +844,10 @@ int main(int argc, char *argv[])
 	pSonidos = pEscena->FirstChildElement("Sonidos");
 
 	SDL_GLContext gl_context;
-	SDL_Window *window = NULL;
+	SDL_Window* window = NULL;
 	float maxSamples;
 	bool activate = false;
-	tinyxml2::XMLElement *pMSAA = pConfig->FirstChildElement("MSAA");
+	tinyxml2::XMLElement* pMSAA = pConfig->FirstChildElement("MSAA");
 	pMSAA->QueryFloatAttribute("samples", &maxSamples);
 	if (maxSamples > 16)
 		maxSamples = 16;
@@ -870,7 +855,7 @@ int main(int argc, char *argv[])
 		maxSamples = 2;
 
 	float amount;
-	tinyxml2::XMLElement *pBloom = pConfig->FirstChildElement("BLOOM");
+	tinyxml2::XMLElement* pBloom = pConfig->FirstChildElement("BLOOM");
 	pBloom->QueryFloatAttribute("amount", &amount);
 
 	// Config Multisample Render
@@ -878,7 +863,7 @@ int main(int argc, char *argv[])
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, maxSamples);
 
 	window = SDL_CreateWindow("EntreNosotros3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-							  SCR_W, SCR_H, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+		SCR_W, SCR_H, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
 	if (TTF_Init() == 1)
 	{
@@ -886,7 +871,7 @@ int main(int argc, char *argv[])
 		SDL_Quit();
 		exit(1);
 	}
-	TTF_Font *font;
+	TTF_Font* font;
 	font = TTF_OpenFont("../Include/FreeSans.ttf", 20);
 	if (font == NULL)
 	{
@@ -896,7 +881,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	TTF_Font *digitalFont;
+	TTF_Font* digitalFont;
 	digitalFont = TTF_OpenFont("../Include/DigitalFont.ttf", 60);
 	if (font == NULL)
 	{
@@ -906,10 +891,31 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	// Write text to surface
-	SDL_Color text_color = {64, 132, 150};
+	TTF_Font* gameFont;
+	gameFont = TTF_OpenFont("../Include/VarelaRound-Regular.otf", 60);
+	if (gameFont == NULL)
+	{
+		cout << "TTF_OpenFont() Failed: " << TTF_GetError() << endl;
+		TTF_Quit();
+		SDL_Quit();
+		exit(1);
+	}
+	TTF_Font* gameFontOutline = TTF_OpenFont("../Include/VarelaRound-Regular.otf", 60);
+	if (gameFontOutline == NULL)
+	{
+		cout << "TTF_OpenFont() Failed: " << TTF_GetError() << endl;
+		TTF_Quit();
+		SDL_Quit();
+		exit(1);
+	}
+	TTF_SetFontOutline(gameFontOutline, 6);
 
-	SDL_Color text_digital_color = {255, 255, 255};
+	// Write text to surface
+	SDL_Color text_color = { 64, 132, 150 };
+
+	SDL_Color white_color = { 255, 255, 255 };
+
+	SDL_Color black_color = { 0, 0, 0 };
 
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
@@ -975,7 +981,7 @@ int main(int argc, char *argv[])
 		"../Include/skybox/top.png",
 		"../Include/skybox/bottom.png",
 		"../Include/skybox/front.png",
-		"../Include/skybox/back.png"};
+		"../Include/skybox/back.png" };
 
 	float skyboxVertices[] = {
 		// positions
@@ -1019,78 +1025,40 @@ int main(int argc, char *argv[])
 		1.0f, -1.0f, -1.0f,
 		1.0f, -1.0f, -1.0f,
 		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f};
+		1.0f, -1.0f, 1.0f };
 
 	float upRight[] = {
 		// positions        // texture Coords
-		0.0f,
-		1.0f,
-		0.0f,
-		0.0f,
-		1.0f,
-		0.0f,
-		0.0f,
-		0.0f,
-		0.0f,
-		0.0f,
-		1.0f,
-		1.0f,
-		0.0f,
-		1.0f,
-		1.0f,
-		1.0f,
-		0.0f,
-		0.0f,
-		1.0f,
-		0.0f,
+		0.0f,1.0f,0.0f,0.0f,1.0f,
+		0.0f,0.0f,0.0f,0.0f,0.0f,
+		1.0f,1.0f,0.0f,1.0f,1.0f,
+		1.0f,0.0f,0.0f,1.0f,0.0f,
 	};
 
 	float full[] = {
 		// positions        // texture Coords
-		-1.0f,
-		1.0f,
-		0.0f,
-		0.0f,
-		1.0f,
-		-1.0f,
-		-1.0f,
-		0.0f,
-		0.0f,
-		0.0f,
-		1.0f,
-		1.0f,
-		0.0f,
-		1.0f,
-		1.0f,
-		1.0f,
-		-1.0f,
-		0.0f,
-		1.0f,
-		0.0f,
+		-1.0f,1.0f,0.0f,0.0f,1.0f,
+		-1.0f,-1.0f,0.0f,0.0f,0.0f,
+		1.0f,1.0f,0.0f,1.0f,1.0f,
+		1.0f,-1.0f,0.0f,1.0f,0.0f,
 	};
 
 	float up_left[] = {
 		// positions        // texture Coords
-		-1.0f,
-		1.0f,
-		0.0f,
-		0.0f,
-		0.0f,
-		-1.0f,
-		0.9f,
-		0.0f,
-		0.0f,
-		1.0f,
-		-0.9f,
-		1.0f,
-		0.0f,
-		1.0f,
-		0.0f,
-		-0.9f,
-		0.9f,
-		0.0f,
-		1.0f,
-		1.0f,
+		-0.992f,1.0f,0.0f,0.0f,0.0f,
+		-0.992f,0.9f,0.0f,0.0f,1.0f,
+		-0.85f,1.0f,0.0f,1.0f,0.0f,
+		-0.85f,0.9f,0.0f,1.0f,1.0f,
+	};
+
+	// Task Complete Position
+
+	float taskCompletePosition[] = {
+		// positions        // texture Coords
+		0.46289,0.082,0.0f,1.0f,0.0f,
+		-0.40429,0.082,0.0f,0.0f,0.0f,
+		0.46289,-0.12,0.0f,1.0f,1.0f,
+		-0.40429,-0.12,0.0f,0.0f,1.0f,
 	};
 
 	// Two Factor Task Positions
@@ -1190,7 +1158,7 @@ int main(int argc, char *argv[])
 	float speed = 2.5f;
 	float sensitivity = 0.1f;
 	float zoom = 45.0f;
-	Camera *camera = new Camera();
+	Camera* camera = new Camera();
 	camera->Rotate(yaw, pitch);
 
 	// View, Model and Projection Matrix
@@ -1204,7 +1172,7 @@ int main(int argc, char *argv[])
 	glm::mat4 rotatematrix = glm::mat4(1.0f);
 	modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.2f, -12.70f));
 	modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
-	IA *ghost = new IA();
+	IA* ghost = new IA();
 
 	glm::mat4 view, model, projection, modelsun;
 	glm::mat4 modelAnim = glm::mat4(1.0f);
@@ -1228,7 +1196,7 @@ int main(int argc, char *argv[])
 	// Task Variables
 	// Two Factor
 	bool isTwoFactorTask = false;
-	char twoFactorNumbers[5] = {' ', ' ', ' ', ' ', ' '};
+	char twoFactorNumbers[5] = { ' ', ' ', ' ', ' ', ' ' };
 	string twoFactorPass = "12345"; // default
 	bool confirmPass = false;
 	int timeVisibleState = 0;
@@ -1243,6 +1211,8 @@ int main(int argc, char *argv[])
 	// Scene variables
 	SDL_ShowCursor(SDL_ENABLE);
 	bool sonido = false;
+	bool soundConfirmTask = true;
+	bool soundTaskComplete = true;
 	bool running = true;
 	bool fullScreen = false;
 	bool bloom = true;
@@ -1284,42 +1254,49 @@ int main(int argc, char *argv[])
 	setupLightsHall(ourShader);
 
 	// Setup sounds
-	ISoundEngine *engine = createIrrKlangDevice();
+	ISoundEngine* engine = createIrrKlangDevice();
 
-	ISoundSource *sirenSound = engine->addSoundSourceFromFile("../Include/AudioClip/SabotageSiren.wav");
+	ISoundSource* sirenSound = engine->addSoundSourceFromFile("../Include/AudioClip/SabotageSiren.wav");
 	sirenSound->setDefaultVolume(0.2f);
 	sirenSound->forceReloadAtNextUse();
-	ISoundSource *ligthOffSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_reactor_manifoldfail.wav");
+	ISoundSource* ligthOffSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_reactor_manifoldfail.wav");
 	ligthOffSound->setDefaultVolume(1.0f);
 	ligthOffSound->forceReloadAtNextUse();
-	ISoundSource *mainMenuSound = engine->addSoundSourceFromFile("../Include/AudioClip/AmongUsTheme.wav");
+	ISoundSource* mainMenuSound = engine->addSoundSourceFromFile("../Include/AudioClip/AmongUsTheme.wav");
 	mainMenuSound->setDefaultVolume(0.2f);
 	mainMenuSound->forceReloadAtNextUse();
-	ISoundSource *playerSpawnSound = engine->addSoundSourceFromFile("../Include/AudioClip/Player_Spawn.wav");
+	ISoundSource* playerSpawnSound = engine->addSoundSourceFromFile("../Include/AudioClip/Player_Spawn.wav");
 	playerSpawnSound->setDefaultVolume(0.2f);
 	playerSpawnSound->forceReloadAtNextUse();
-	ISoundSource *uiSelectSound = engine->addSoundSourceFromFile("../Include/AudioClip/UI_Select.wav");
+	ISoundSource* uiSelectSound = engine->addSoundSourceFromFile("../Include/AudioClip/UI_Select.wav");
 	uiSelectSound->setDefaultVolume(0.2f);
 	uiSelectSound->forceReloadAtNextUse();
-	ISoundSource *enterIdSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_enterID.wav");
+	ISoundSource* enterIdSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_enterID.wav");
 	enterIdSound->setDefaultVolume(0.2f);
 	enterIdSound->forceReloadAtNextUse();
-	ISoundSource *enterIdBadSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_enterIDBad.wav");
+	ISoundSource* enterIdBadSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_enterIDBad.wav");
 	enterIdBadSound->setDefaultVolume(0.2f);
 	enterIdBadSound->forceReloadAtNextUse();
-	ISoundSource *enterIdGoodSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_enterIDGood.wav");
+	ISoundSource* enterIdGoodSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_enterIDGood.wav");
 	enterIdGoodSound->setDefaultVolume(0.2f);
 	enterIdGoodSound->forceReloadAtNextUse();
-	ISoundSource *panelAppearSound = engine->addSoundSourceFromFile("../Include/AudioClip/Panel_GenericAppear.wav");
+	ISoundSource* panelAppearSound = engine->addSoundSourceFromFile("../Include/AudioClip/Panel_GenericAppear.wav");
 	panelAppearSound->setDefaultVolume(0.2f);
 	panelAppearSound->forceReloadAtNextUse();
-	ISoundSource *panelDisappearSound = engine->addSoundSourceFromFile("../Include/AudioClip/Panel_GenericDisappear.wav");
+	ISoundSource* panelDisappearSound = engine->addSoundSourceFromFile("../Include/AudioClip/Panel_GenericDisappear.wav");
 	panelDisappearSound->setDefaultVolume(0.2f);
 	panelDisappearSound->forceReloadAtNextUse();
+	ISoundSource* wireSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_electrical_wire.wav");
+	wireSound->setDefaultVolume(0.2f);
+	wireSound->forceReloadAtNextUse();
+	ISoundSource* taskCompleteSound = engine->addSoundSourceFromFile("../Include/AudioClip/task_Complete.wav");
+	taskCompleteSound->setDefaultVolume(0.2f);
+	taskCompleteSound->forceReloadAtNextUse();
+
 
 	engine->play2D(mainMenuSound, true);
 
-	ISoundSource *pasos[8];
+	ISoundSource* pasos[8];
 	cargarSonidoPasos(engine, pasos);
 	int ultimoPaso = 0;
 
@@ -1341,7 +1318,7 @@ int main(int argc, char *argv[])
 	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
 	// Model FrameBuffers
 	unsigned int frameBufferFBO;
@@ -1369,7 +1346,7 @@ int main(int argc, char *argv[])
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_W, SCR_H);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
 
-	unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, attachments);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Framebuffer not complete111!" << std::endl;
@@ -1417,7 +1394,7 @@ int main(int argc, char *argv[])
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthMultisampled);
 
-	unsigned int attachmentsMultisampled[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	unsigned int attachmentsMultisampled[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, attachmentsMultisampled);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Framebuffer not complete111!" << std::endl;
@@ -1438,7 +1415,7 @@ int main(int argc, char *argv[])
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	// Prevents darkness outside the frustrum
-	float clampColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
@@ -1490,7 +1467,7 @@ int main(int argc, char *argv[])
 
 			// Audio processing
 			engine->setListenerPosition(vec3df(camera->getPos().x, camera->getPos().y, camera->getPos().z),
-										vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
+				vec3df(-camera->getFront().x, camera->getFront().y, -camera->getFront().z));
 
 			// Render
 
@@ -1920,7 +1897,7 @@ int main(int argc, char *argv[])
 			}
 
 			string fps = "FPS: " + to_string(fps_to_show);
-			SDL_Surface *surf = TTF_RenderText_Blended(font, fps.c_str(), text_color);
+			SDL_Surface* surf = TTF_RenderText_Blended(gameFont, fps.c_str(), text_color);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
 			glDisable(GL_DEPTH_TEST);
@@ -1960,12 +1937,47 @@ int main(int argc, char *argv[])
 			// Wires Task
 			if (cables)
 			{
-				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset);
+				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset, engine, wireSound);
 				reset = false;
-			}
-			else
-			{
-				reset = true;
+				bool wiresComplete = true;
+				for (int cable = 0; cable < 4; cable++)
+				{
+					wiresComplete = wiresComplete && fixed_cables[cable];
+				}
+				if (wiresComplete) {
+					if (timeVisibleState < 80) {
+						if (soundTaskComplete)
+						{
+							soundTaskComplete = false;
+							engine->play2D(taskCompleteSound);
+						}
+
+						string taskComplete = "Tarea Completada!";
+						SDL_Surface* bg_surface = TTF_RenderText_Blended(gameFontOutline, taskComplete.c_str(), black_color);
+						SDL_Surface* fg_surface = TTF_RenderText_Blended(gameFont, taskComplete.c_str(), white_color);
+						SDL_Rect rect = { 6, 6, fg_surface->w, fg_surface->h };
+
+						/* blit text onto its outline */
+						SDL_SetSurfaceBlendMode(fg_surface, SDL_BLENDMODE_BLEND);
+						SDL_BlitSurface(fg_surface, NULL, bg_surface, &rect);
+						SDL_FreeSurface(fg_surface);
+
+						glBindTexture(GL_TEXTURE_2D, tex);
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bg_surface->w, bg_surface->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, bg_surface->pixels);
+						renderQuad(taskCompletePosition);
+						SDL_FreeSurface(bg_surface);
+						timeVisibleState += diff;
+					}
+					else {
+						engine->play2D(panelDisappearSound);
+						renderMap = true;
+						cables = false;
+						lock_cam = true;
+						reset = true;
+						soundTaskComplete = true;
+						SDL_ShowCursor(SDL_DISABLE);
+					}
+				}
 			}
 			//SHOW Variable HUD
 			renderPosHUD(camera->getPos(), ShadowDebug);
@@ -1995,14 +2007,14 @@ int main(int argc, char *argv[])
 				}
 				digits += "   ";
 
-				SDL_Surface *surfTwoFactor = TTF_RenderText_Blended(digitalFont, digits.c_str(), text_digital_color);
+				SDL_Surface* surfTwoFactor = TTF_RenderText_Blended(digitalFont, digits.c_str(), white_color);
 				glBindTexture(GL_TEXTURE_2D, tex);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surfTwoFactor->w, surfTwoFactor->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surfTwoFactor->pixels);
 				renderQuad(twoFactorPosition);
 				SDL_FreeSurface(surfTwoFactor);
 
 				// render pass
-				surfTwoFactor = TTF_RenderText_Blended(font, twoFactorPass.c_str(), text_digital_color);
+				surfTwoFactor = TTF_RenderText_Blended(font, twoFactorPass.c_str(), white_color);
 				glBindTexture(GL_TEXTURE_2D, tex);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surfTwoFactor->w, surfTwoFactor->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surfTwoFactor->pixels);
 				renderQuad(twoFactorPositionPass);
@@ -2014,36 +2026,77 @@ int main(int argc, char *argv[])
 					string okStatus = "    OK     ";
 					if (pass == twoFactorPass)
 					{
-						surfTwoFactor = TTF_RenderText_Blended(digitalFont, okStatus.c_str(), text_digital_color);
-						if (!engine->isCurrentlyPlaying(enterIdGoodSound))
+						surfTwoFactor = TTF_RenderText_Blended(digitalFont, okStatus.c_str(), white_color);
+						if (timeVisibleState < 20)
 						{
-							engine->play2D(enterIdGoodSound);
+							if (soundConfirmTask)
+							{
+								soundConfirmTask = false;
+								engine->play2D(enterIdGoodSound);
+							}
+							timeVisibleState += diff;
+						}
+						else if (timeVisibleState < 100) {
+							if (soundTaskComplete)
+							{
+								soundTaskComplete = false;
+								engine->play2D(taskCompleteSound);
+							}
+
+							string taskComplete = "Tarea Completada!";
+							SDL_Surface* bg_surface = TTF_RenderText_Blended(gameFontOutline, taskComplete.c_str(), black_color);
+							SDL_Surface* fg_surface = TTF_RenderText_Blended(gameFont, taskComplete.c_str(), white_color);
+							SDL_Rect rect = { 6, 6, fg_surface->w, fg_surface->h };
+
+							/* blit text onto its outline */
+							SDL_SetSurfaceBlendMode(fg_surface, SDL_BLENDMODE_BLEND);
+							SDL_BlitSurface(fg_surface, NULL, bg_surface, &rect);
+							SDL_FreeSurface(fg_surface);
+
+							glBindTexture(GL_TEXTURE_2D, tex);
+							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bg_surface->w, bg_surface->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, bg_surface->pixels);
+							renderQuad(taskCompletePosition);
+							SDL_FreeSurface(bg_surface);
+							timeVisibleState += diff;
+						}
+						else
+						{
+							engine->play2D(panelDisappearSound);
+							renderMap = true;
+							isTwoFactorTask = false;
+							lock_cam = true;
+							soundConfirmTask = true;
+							soundTaskComplete = true;
+							SDL_ShowCursor(SDL_DISABLE);
 						}
 					}
 					else
 					{
-						surfTwoFactor = TTF_RenderText_Blended(digitalFont, errorStatus.c_str(), text_digital_color);
-						if (!engine->isCurrentlyPlaying(enterIdBadSound))
+						surfTwoFactor = TTF_RenderText_Blended(digitalFont, errorStatus.c_str(), white_color);
+						if (timeVisibleState < 40)
 						{
-							engine->play2D(enterIdBadSound);
+							if (soundConfirmTask)
+							{
+								soundConfirmTask = false;
+								engine->play2D(enterIdBadSound);
+							}
+							timeVisibleState += diff;
+						}
+						else
+						{
+							confirmPass = false;
+							soundConfirmTask = true;
+							timeVisibleState = 0;
+							for (int num = 0; num < 5; num++)
+							{
+								twoFactorNumbers[num] = ' ';
+							}
 						}
 					}
 					glBindTexture(GL_TEXTURE_2D, tex);
 					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surfTwoFactor->w, surfTwoFactor->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surfTwoFactor->pixels);
 					renderQuad(twoFactorStatusPosition);
 					SDL_FreeSurface(surfTwoFactor);
-					if (timeVisibleState < 60)
-					{
-						timeVisibleState += diff;
-					}
-					else
-					{
-						engine->play2D(panelDisappearSound);
-						renderMap = true;
-						isTwoFactorTask = false;
-						lock_cam = true;
-						SDL_ShowCursor(SDL_DISABLE);
-					}
 				}
 			}
 
@@ -2145,43 +2198,46 @@ int main(int argc, char *argv[])
 						engine->stopAllSoundsOfSoundSource(mainMenuSound);
 						iniciarSonidos(engine);
 					}
-					else if (actualState == GAME && isTwoFactorTask)
+					else if (actualState == GAME)
 					{
-						char digit = getDigit(x, y);
-						if (digit != ' ')
-						{
-							engine->play2D(enterIdSound);
-							for (int num = 0; num < 5; num++)
-							{
-								if (twoFactorNumbers[num] == ' ')
-								{
-									twoFactorNumbers[num] = digit;
-									break;
-								}
-							}
-						}
-						else
-						{
-							if (getErasePass(x, y))
+						if (isTwoFactorTask) {
+							char digit = getDigit(x, y);
+							if (digit != ' ')
 							{
 								engine->play2D(enterIdSound);
 								for (int num = 0; num < 5; num++)
 								{
-									twoFactorNumbers[num] = ' ';
+									if (twoFactorNumbers[num] == ' ')
+									{
+										twoFactorNumbers[num] = digit;
+										break;
+									}
 								}
 							}
 							else
 							{
-								confirmPass = getConfirmPass(x, y);
+								if (getErasePass(x, y))
+								{
+									engine->play2D(enterIdSound);
+									for (int num = 0; num < 5; num++)
+									{
+										twoFactorNumbers[num] = ' ';
+									}
+								}
+								else
+								{
+									confirmPass = getConfirmPass(x, y);
+								}
 							}
+						}
+						if (cables)
+						{
+							last_click = glm::vec2(x, y);
 						}
 					}
 					cout << "X = " << x << " Y = " << y << endl;
 					cout << "RX = " << getScaledCoords(x, y).x << "RY = " << getScaledCoords(x, y).y << endl;
-					if (cables)
-					{
-						last_click = glm::vec2(x, y);
-					}
+
 				}
 				break;
 			}
@@ -2266,24 +2322,27 @@ int main(int argc, char *argv[])
 					{
 						running = false;
 					}
-					else if (isTwoFactorTask)
-					{
-						engine->play2D(panelDisappearSound);
-						renderMap = true;
-						isTwoFactorTask = false;
-						lock_cam = true;
-						SDL_ShowCursor(SDL_DISABLE);
-					}
-					else
-					{
-						actualState = MAIN_MENU;
-						alpha = 1;
-						transitionCounter = 0;
-						cortoElectricidad = false;
-						pausarSonidos(engine);
-						engine->play2D(mainMenuSound);
-						SDL_ShowCursor(SDL_ENABLE);
-						lock_cam = false;
+					else {
+						if (isTwoFactorTask || cables)
+						{
+							engine->play2D(panelDisappearSound);
+							renderMap = true;
+							isTwoFactorTask = false;
+							cables = false;
+							lock_cam = true;
+							SDL_ShowCursor(SDL_DISABLE);
+						}
+						else
+						{
+							actualState = MAIN_MENU;
+							alpha = 1;
+							transitionCounter = 0;
+							cortoElectricidad = false;
+							pausarSonidos(engine);
+							engine->play2D(mainMenuSound);
+							SDL_ShowCursor(SDL_ENABLE);
+							lock_cam = false;
+						}
 					}
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_a)
@@ -2357,30 +2416,22 @@ int main(int argc, char *argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_f)
 				{
-					if (inRange(camera->getPos(), cableSpots, 0.5f))
-					{
-						cables = !cables;
-						if (cables)
-						{
-							lock_cam = false;
-							SDL_ShowCursor(SDL_ENABLE);
-						}
-						else
-						{
-							lock_cam = true;
-							SDL_ShowCursor(SDL_DISABLE);
-						}
-					}
-					if (inRange(camera->getPos(), oxygenSpots, 0.5f) && !isTwoFactorTask)
-					{
-
+					bool inRangeWires = inRange(camera->getPos(), cableSpots, 0.5f) && !cables;
+					bool inRangeTwoFactor = inRange(camera->getPos(), oxygenSpots, 0.5f) && !isTwoFactorTask;
+					if (inRangeWires || inRangeTwoFactor) {
+						timeVisibleState = 0;
 						engine->play2D(panelAppearSound);
 						renderMap = false;
-						timeVisibleState = 0;
-						confirmPass = false;
-						isTwoFactorTask = true;
 						lock_cam = false;
 						SDL_ShowCursor(SDL_ENABLE);
+					}
+					if (inRangeWires) {
+						cables = true;
+					}
+					if (inRangeTwoFactor)
+					{
+						confirmPass = false;
+						isTwoFactorTask = true;
 						int randomPass = rand() % (98765 - 12345 + 1) + 12345;
 						twoFactorPass = to_string(randomPass);
 						for (int num = 0; num < 5; num++)
