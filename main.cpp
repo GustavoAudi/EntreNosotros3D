@@ -583,9 +583,9 @@ unsigned int loadTexture(string path)
 	return texture1;
 }
 
-void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, string tex)
+void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, unsigned int useTex)
 {
-	unsigned int useTex = loadTexture(tex);
+	//unsigned int useTex = loadTexture(tex);
 	float coords[] = {
 		// positions        // texture Coords
 		top_left.x,
@@ -618,9 +618,9 @@ void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, strin
 	renderQuad(coords);
 }
 
-void renderQuad(Shader shader, float coords[], string tex)
+void renderQuad(Shader shader, float coords[], unsigned int useTex)
 {
-	unsigned int useTex = loadTexture(tex);
+	//unsigned int useTex = loadTexture(tex);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
 	glDisable(GL_DEPTH_TEST);
@@ -692,15 +692,8 @@ int getIndex(vector<T> v, T elem)
 		return -1;
 	}
 }
-void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset, ISoundEngine* engine, ISoundSource* wireSound)
+void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset, ISoundEngine* engine, ISoundSource* wireSound, vector<unsigned int> wires, unsigned int cablesTex)
 {
-	vector<string> wires;
-	string cablesTex = "../Include/minigames/wirepanel.png";
-	wires.push_back("../Include/minigames/rwire.png");
-	wires.push_back("../Include/minigames/bwire.png");
-	wires.push_back("../Include/minigames/ywire.png");
-	wires.push_back("../Include/minigames/pwire.png");
-
 	glm::vec2 top_left = getScaledCoords(SCR_W / 5, SCR_H / 5);
 	glm::vec2 bottom_right = getScaledCoords(SCR_W * 4 / 5, SCR_H * 4 / 5);
 	renderQuad(shader, top_left, bottom_right, cablesTex);
@@ -778,9 +771,8 @@ void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool c
 	}
 }
 
-void renderF(Shader shader)
+void renderF(Shader shader, unsigned int tex)
 {
-	string tex = "../Include/minigames/use.png";
 	glm::vec2 top_left = getScaledCoords(848, 571);
 	glm::vec2 bottom_right = getScaledCoords(984, 682);
 	renderQuad(shader, top_left, bottom_right, tex);
@@ -806,11 +798,11 @@ std::vector<T> Append(std::vector<T>& a, const std::vector<T>& b)
 	return c;
 }
 
-void renderPosHUD(glm::vec3 campos, Shader shader)
+void renderPosHUD(glm::vec3 campos, Shader shader, unsigned int tex)
 {
 	if (inRange(campos, Append(cableSpots, oxygenSpots), 0.5f))
 	{
-		renderF(shader);
+		renderF(shader,tex);
 	}
 }
 
@@ -1142,6 +1134,22 @@ int main(int argc, char* argv[])
 	unsigned int mainMenu = loadTexture("../Include/model/main-menu.png");
 	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
 	unsigned int twoFactorBase = loadTexture("../Include/model/2factor_base.png");
+	unsigned int deadTexture = loadTexture("../Include/model/killBG.png");
+
+	unsigned int cablesTex = loadTexture("../Include/minigames/wirepanel.png");
+	unsigned int rwire = loadTexture("../Include/minigames/rwire.png");
+	unsigned int bwire = loadTexture("../Include/minigames/bwire.png");
+	unsigned int ywire = loadTexture("../Include/minigames/ywire.png");
+	unsigned int pwire = loadTexture("../Include/minigames/pwire.png");
+
+	vector<unsigned int> wires;
+	wires.push_back(rwire);
+	wires.push_back(bwire);
+	wires.push_back(ywire);
+	wires.push_back(pwire);
+
+	unsigned int use = loadTexture("../Include/minigames/use.png");
+
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -1180,7 +1188,7 @@ int main(int argc, char* argv[])
 	modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
 
 	modelsun = glm::mat4(1.0f);
-	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 0.0f)); //modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
+	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 20.0f, 35.0f)); //modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
 	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
 	// GAME STATES
@@ -1596,10 +1604,10 @@ int main(int argc, char* argv[])
 
 			//DRAW SUN
 			skyboxShader.use();
-			modelsun = glm::translate(modelsun, glm::vec3(27.0f, 0.0f, -17.0f));
+			//modelsun = glm::translate(modelsun, glm::vec3(27.0f, 0.0f, -17.0f));
 			modelsun = glm::mat4(glm::rotate(modelsun, glm::radians(0.5f), glm::vec3(1.0, 0.0, 0.0)));
 			//modelsun = glm::translate(modelsun, glm::vec3(0.0f, -0.8f, 1.0f));
-			modelsun = glm::translate(modelsun, glm::vec3(-27.0f, 0.0f, 17.0f));
+			//modelsun = glm::translate(modelsun, glm::vec3(-27.0f, 0.0f, 17.0f));
 			skyboxShader.setMat4("model", modelsun);
 			skyboxShader.setMat4("projection", projection);
 			skyboxShader.setMat4("view", view);
@@ -1751,9 +1759,46 @@ int main(int argc, char* argv[])
 			ourShader.setMat4("normals_matrix", matr_normals);
 			muerto.Draw(ourShader, false, 0, 0);
 
+
+			//DRAW DEL FANTASMA
+			if ((glm::distance(old_pos_camera.x, 18.f) <= 1.0f) && (glm::distance(old_pos_camera.z, -6.0f) <= 1.0f))
+			{ // If se encuentra en la puerta de electricidad
+				se_activa_el_fantasma = true;
+			}
+
+			if (!ghost->gameOver())
+			{
+				if (!ghost->isActive() && se_activa_el_fantasma)
+				{
+					ghost->start(old_pos_camera, diff);
+				}
+				if (ghost->isActive())
+				{
+					ghost->update(old_pos_camera);
+				}
+
+				modelFantasma = glm::mat4(1.0f);
+				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z) + glm::vec3(0.8f, 0.f, 0.4f)); //- glm::vec3(1.1f, 0.f, -0.01f)
+
+				rotatematrix = glm::mat4(1.0f);
+				float angle = glm::acos(glm::dot(glm::normalize(ghost->getDirection()), glm::vec3(0.0, 0.0, 1.0)));
+				if (ghost->getDirection().x < 0)
+				{
+					angle = -angle;
+				}
+				rotatematrix = glm::mat4(glm::rotate(rotatematrix, angle, glm::vec3(0.0, 1.0, 0.0)));
+
+				modelFantasma = modelFantasma * rotatematrix;
+				modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
+			}
+
+
+			ourShader.setMat4("model", modelFantasma);
+			ourShader.setBool("moove", true);
+			fantasma.initBonesForShader(ourShader);
+			fantasma.Draw(ourShader, true, 0, 0);
+
 			//DRAW DEL ASTRONAUTA
-			projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
-			view = glm::lookAt(camera->getPos(), camera->getPos(), camera->getUp());
 
 			modelAnim = glm::mat4(1.f);
 
@@ -1800,42 +1845,6 @@ int main(int argc, char* argv[])
 
 			glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
 
-			//DRAW DEL FANTASMA
-			if ((glm::distance(old_pos_camera.x, 18.f) <= 0.5f) && (glm::distance(old_pos_camera.z, -6.0f) <= 0.5f))
-			{ // If se encuentra en la puerta de electricidad
-				se_activa_el_fantasma = true;
-			}
-
-			if (!ghost->gameOver())
-			{
-				if (!ghost->isActive() && se_activa_el_fantasma)
-				{
-					ghost->start(old_pos_camera, diff);
-				}
-				if (ghost->isActive())
-				{
-					ghost->update(old_pos_camera);
-				}
-
-				modelFantasma = glm::mat4(1.0f);
-				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z)); //- glm::vec3(1.1f, 0.f, -0.01f)
-
-				rotatematrix = glm::mat4(1.0f);
-				float angle = glm::acos(glm::dot(glm::normalize(ghost->getDirection()), glm::vec3(0.0, 0.0, 1.0)));
-				if (ghost->getDirection().x < 0)
-				{
-					angle = -angle;
-				}
-				rotatematrix = glm::mat4(glm::rotate(rotatematrix, angle, glm::vec3(0.0, 1.0, 0.0)));
-
-				modelFantasma = modelFantasma * rotatematrix;
-				modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
-			}
-
-			ourShader.setMat4("model", modelFantasma);
-			ourShader.setBool("moove", true);
-			fantasma.initBonesForShader(ourShader);
-			fantasma.Draw(ourShader, true, 0, 0);
 
 			// DRAW DEL MAPA
 			ShadowDebug.use();
@@ -1887,6 +1896,14 @@ int main(int argc, char* argv[])
 				}
 			}
 
+			if (ghost->gameOver()) {
+
+				renderQuad(ShadowDebug, glm::vec2(-1.0f, 0.6f), glm::vec2(1.0f, -0.6), deadTexture);
+
+				//previousState = TRANSITION;
+			}
+
+
 			// SHOW FPS
 			short fps_to_show;
 			i++;
@@ -1937,7 +1954,7 @@ int main(int argc, char* argv[])
 			// Wires Task
 			if (cables)
 			{
-				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset, engine, wireSound);
+				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset, engine, wireSound, wires, cablesTex);
 				reset = false;
 				bool wiresComplete = true;
 				for (int cable = 0; cable < 4; cable++)
@@ -1980,7 +1997,7 @@ int main(int argc, char* argv[])
 				}
 			}
 			//SHOW Variable HUD
-			renderPosHUD(camera->getPos(), ShadowDebug);
+			renderPosHUD(camera->getPos(), ShadowDebug,use);
 
 			// Two Factor Task
 			if (isTwoFactorTask)

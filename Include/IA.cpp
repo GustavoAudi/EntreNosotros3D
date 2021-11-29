@@ -64,11 +64,3 @@ bool IA::gameOver() {
     return false;
 }
 
-void IA::Rotate(double y, double p) {
-
-    this->dir.x = cos(glm::radians(y)) * cos(glm::radians(p));
-    this->dir.y = sin(glm::radians(p));
-    this->dir.z = sin(glm::radians(y)) * cos(glm::radians(p));
-    this->front = glm::normalize(this->dir);
-}
-
