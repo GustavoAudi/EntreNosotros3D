@@ -473,6 +473,41 @@ bool isInside(float x, float y)
 	return inside;
 }
 
+int getOptionClicked(float x, float y) {
+	glm::vec2 op1P1 = glm::vec2(309, 230);
+	glm::vec2 op1P2 = glm::vec2(502, 206);
+
+	glm::vec2 op2P1 = glm::vec2(310, 304);
+	glm::vec2 op2P2 = glm::vec2(417, 277);
+
+	glm::vec2 op3P1 = glm::vec2(312, 376);
+	glm::vec2 op3P2 = glm::vec2(554, 353);
+
+	glm::vec2 op4P1 = glm::vec2(312, 446);
+	glm::vec2 op4P2 = glm::vec2(553, 418);
+
+	glm::vec2 op5P1 = glm::vec2(312, 518);
+	glm::vec2 op5P2 = glm::vec2(468, 491);
+
+	if (op1P1.x <= x && x <= op1P2.x && op1P1.y >= y && y >= op1P2.y) {
+		return 1;
+	}
+	if (op2P1.x <= x && x <= op2P2.x && op2P1.y >= y && y >= op2P2.y) {
+		return 2;
+	}
+	if (op3P1.x <= x && x <= op3P2.x && op3P1.y >= y && y >= op3P2.y) {
+		return 3;
+	}
+	if (op4P1.x <= x && x <= op4P2.x && op4P1.y >= y && y >= op4P2.y) {
+		return 4;
+	}
+	if (op5P1.x <= x && x <= op5P2.x && op5P1.y >= y && y >= op5P2.y) {
+		return 5;
+	}
+	return 0;
+}
+
+
 // Two Factor Task Functions
 char getDigit(float x, float y)
 {
@@ -917,6 +952,8 @@ int main(int argc, char* argv[])
 
 	SDL_Color black_color = { 0, 0, 0 };
 
+	SDL_Color green_color = { 0, 255, 0 };
+
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
 	gl_context = SDL_GL_CreateContext(window);
@@ -1135,6 +1172,64 @@ int main(int argc, char* argv[])
 		1.0f,
 	};
 
+	// Option Menu Positions
+
+	float optionMenuPositions[] = {
+		// positions        // texture Coords
+		-0.8f + 0.3,0.8f,0.0f,0.0f,1.0f,
+		-0.8f + 0.3,-0.8f,0.0f,0.0f,0.0f,
+		0.2f + 0.3,0.8f,0.0f,1.0f,1.0f,
+		0.2f + 0.3,-0.8f,0.0f,1.0f,0.0f,
+	};
+
+	float optionMenuTitlePositions[] = {
+		// positions        // texture Coords
+		0.06289f + 0.3,0.732f,0.0f,1.0f,0.0f,
+		-0.60429 + 0.3,0.732f,0.0f,0.0f,0.0f,
+		0.06289f + 0.3,0.58f,0.0f,1.0f,1.0f,
+		-0.60429 + 0.3,0.58f,0.0f,0.0f,1.0f,
+	};
+
+	float optionOnePositions[] = {
+		// positions        // texture Coords
+		-0.3125 + 0.3,0.461111,0.0f,1.0f,0.0f,
+		-0.703125 + 0.3,0.461111,0.0f,0.0f,0.0f,
+		-0.3125 + 0.3,0.333333,0.0f,1.0f,1.0f,
+		-0.703125 + 0.3,0.333333,0.0f,0.0f,1.0f,
+	};
+
+	float optionTwoPositions[] = {
+		// positions        // texture Coords
+		-0.3125 + 0.3,0.461111 - 0.2,0.0f,1.0f,0.0f,
+		-0.703125 + 0.3,0.461111 - 0.2,0.0f,0.0f,0.0f,
+		-0.3125 + 0.3,0.333333 - 0.2 + 0.01,0.0f,1.0f,1.0f,
+		-0.703125 + 0.3,0.333333 - 0.2 + 0.01,0.0f,0.0f,1.0f,
+	};
+
+	float optionThreePositions[] = {
+		// positions        // texture Coords
+		-0.3125 + 0.4,0.461111 - 0.4,0.0f,1.0f,0.0f,
+		-0.703125 + 0.3,0.461111 - 0.4,0.0f,0.0f,0.0f,
+		-0.3125 + 0.4,0.333333 - 0.406,0.0f,1.0f,1.0f,
+		-0.703125 + 0.3,0.333333 - 0.406,0.0f,0.0f,1.0f,
+	};
+
+	float optionFourPositions[] = {
+		// positions        // texture Coords
+		-0.3125 + 0.4,0.461111 - 0.6,0.0f,1.0f,0.0f,
+		-0.703125 + 0.3,0.461111 - 0.6,0.0f,0.0f,0.0f,
+		-0.3125 + 0.4,0.333333 - 0.6,0.0f,1.0f,1.0f,
+		-0.703125 + 0.3,0.333333 - 0.6,0.0f,0.0f,1.0f,
+	};
+
+	float optionFivePositions[] = {
+		// positions        // texture Coords
+		-0.3125 + 0.3,0.461111 - 0.8,0.0f,1.0f,0.0f,
+		-0.703125 + 0.3,0.461111 - 0.8,0.0f,0.0f,0.0f,
+		-0.3125 + 0.3,0.333333 - 0.8 + 0.013,0.0f,1.0f,1.0f,
+		-0.703125 + 0.3,0.333333 - 0.8 + 0.013,0.0f,0.0f,1.0f,
+	};
+
 	// load textures
 	unsigned int cubemapTexture = loadCubemap(faces);
 	unsigned int gameTexture = loadTexture("../Include/model/mapa-png.png");
@@ -1142,6 +1237,7 @@ int main(int argc, char* argv[])
 	unsigned int mainMenu = loadTexture("../Include/model/main-menu.png");
 	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
 	unsigned int twoFactorBase = loadTexture("../Include/model/2factor_base.png");
+	unsigned int menuBlackWindows = loadTexture("../Include/model/optionMenuBlack.png");
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -1210,6 +1306,7 @@ int main(int argc, char* argv[])
 
 	// Scene variables
 	SDL_ShowCursor(SDL_ENABLE);
+	bool optionsMenu = false;
 	bool sonido = false;
 	bool soundConfirmTask = true;
 	bool soundTaskComplete = true;
@@ -1292,7 +1389,12 @@ int main(int argc, char* argv[])
 	ISoundSource* taskCompleteSound = engine->addSoundSourceFromFile("../Include/AudioClip/task_Complete.wav");
 	taskCompleteSound->setDefaultVolume(0.2f);
 	taskCompleteSound->forceReloadAtNextUse();
-
+	ISoundSource* optionClickedSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_drillButton.wav");
+	optionClickedSound->setDefaultVolume(0.2f);
+	optionClickedSound->forceReloadAtNextUse();
+	ISoundSource* roundStartSound = engine->addSoundSourceFromFile("../Include/AudioClip/Roundstart_MAIN.wav");
+	roundStartSound->setDefaultVolume(0.2f);
+	roundStartSound->forceReloadAtNextUse();
 
 	engine->play2D(mainMenuSound, true);
 
@@ -2100,6 +2202,101 @@ int main(int argc, char* argv[])
 				}
 			}
 
+			// Options Menu
+			if (optionsMenu) {
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glDepthFunc(GL_LEQUAL);
+				glDisable(GL_DEPTH_TEST);
+				ShadowDebug.use();
+				ShadowDebug.setBool("transparencyIsAvailable", false);
+				ShadowDebug.setFloat("alpha", 0.5f);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, menuBlackWindows);
+				renderQuad(optionMenuPositions);
+
+				ShadowDebug.setBool("transparencyIsAvailable", false);
+				string optionMenu = "Menú De Opciones";
+				SDL_Surface* bg_surface = TTF_RenderText_Blended(gameFontOutline, optionMenu.c_str(), black_color);
+				SDL_Surface* fg_surface = TTF_RenderText_Blended(gameFont, optionMenu.c_str(), white_color);
+				SDL_Rect rect = { 6, 6, fg_surface->w, fg_surface->h };
+
+				/* blit text onto its outline */
+				SDL_SetSurfaceBlendMode(fg_surface, SDL_BLENDMODE_BLEND);
+				SDL_BlitSurface(fg_surface, NULL, bg_surface, &rect);
+				SDL_FreeSurface(fg_surface);
+
+				glBindTexture(GL_TEXTURE_2D, tex);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bg_surface->w, bg_surface->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, bg_surface->pixels);
+				renderQuad(optionMenuTitlePositions);
+				SDL_FreeSurface(bg_surface);
+
+				// Render Options 
+				string option;
+				SDL_Color color = white_color;
+				for (int i = 0; i < 5; i++) {
+					color = white_color;
+					float positionAux[20];
+					switch (i)
+					{
+					case 0: {
+						if (antialiasing) {
+							color = green_color;
+						}
+						option = "Antialiasing";
+						memcpy(positionAux, optionOnePositions, sizeof(float) * 20);
+						break;
+					}
+					case 1: {
+						if (bloom) {
+							color = green_color;
+						}
+						option = "Bloom          ";
+						memcpy(positionAux, optionTwoPositions, sizeof(float) * 20);
+						break;
+					}
+					case 2: {
+						if (first_person) {
+							color = green_color;
+						}
+						option = "Primera persona";
+						memcpy(positionAux, optionThreePositions, sizeof(float) * 20);
+						break;
+					}
+					case 3: {
+						if (specular_map) {
+							color = green_color;
+						}
+						option = "Mapa especular";
+						memcpy(positionAux, optionFourPositions, sizeof(float) * 20);
+						break;
+					}
+					case 4: {
+						if (fixed_pos) {
+							color = green_color;
+						}
+						option = "Modo libre     ";
+						memcpy(positionAux, optionFivePositions, sizeof(float) * 20);
+						break;
+					}
+					}
+
+					ShadowDebug.setBool("transparencyIsAvailable", false);
+					bg_surface = TTF_RenderText_Blended(gameFontOutline, option.c_str(), black_color);
+					fg_surface = TTF_RenderText_Blended(gameFont, option.c_str(), color);
+					rect = { 6, 6, fg_surface->w, fg_surface->h };
+
+					/* blit text onto its outline */
+					SDL_SetSurfaceBlendMode(fg_surface, SDL_BLENDMODE_BLEND);
+					SDL_BlitSurface(fg_surface, NULL, bg_surface, &rect);
+					SDL_FreeSurface(fg_surface);
+
+					glBindTexture(GL_TEXTURE_2D, tex);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bg_surface->w, bg_surface->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, bg_surface->pixels);
+					renderQuad(positionAux);
+					SDL_FreeSurface(bg_surface);
+				}
+			}
+
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS); // set depth function back to
 
@@ -2124,8 +2321,13 @@ int main(int argc, char* argv[])
 			glDisable(GL_DEPTH_TEST);
 			ShadowDebug.use();
 			ShadowDebug.setBool("transparencyIsAvailable", true);
-			if (transitionCounter <= 100)
+			if (transitionCounter <= 120)
 			{
+				if (transitionCounter < 30) {
+					if (!engine->isCurrentlyPlaying(roundStartSound)) {
+						engine->play2D(roundStartSound);
+					}
+				}
 				transitionCounter += diff;
 				alpha -= 0.0003;
 				if (alpha <= 0)
@@ -2200,6 +2402,39 @@ int main(int argc, char* argv[])
 					}
 					else if (actualState == GAME)
 					{
+						if (optionsMenu) {
+							int optionClicked = getOptionClicked(x, y);
+							switch (optionClicked) {
+							case 1: {
+								engine->play2D(optionClickedSound);
+								antialiasing = !antialiasing;
+								break;
+							}
+							case 2: {
+								engine->play2D(optionClickedSound);
+								bloom = !bloom;
+								break;
+							}
+							case 3: {
+								engine->play2D(optionClickedSound);
+								first_person = !first_person;
+								break;
+							}
+							case 4: {
+								engine->play2D(optionClickedSound);
+								specular_map = !specular_map;
+								break;
+							}
+							case 5: {
+								engine->play2D(optionClickedSound);
+								fixed_pos = !fixed_pos;
+								if (!fixed_pos) {
+									camera->setPos(old_pos_camera);
+								}
+								break;
+							}
+							}
+						}
 						if (isTwoFactorTask) {
 							char digit = getDigit(x, y);
 							if (digit != ' ')
@@ -2323,12 +2558,13 @@ int main(int argc, char* argv[])
 						running = false;
 					}
 					else {
-						if (isTwoFactorTask || cables)
+						if (isTwoFactorTask || cables || optionsMenu)
 						{
 							engine->play2D(panelDisappearSound);
 							renderMap = true;
 							isTwoFactorTask = false;
 							cables = false;
+							optionsMenu = false;
 							lock_cam = true;
 							SDL_ShowCursor(SDL_DISABLE);
 						}
@@ -2386,21 +2622,9 @@ int main(int argc, char* argv[])
 				{
 					linterna = !linterna;
 				}
-				if (sdlEvent.key.keysym.sym == SDLK_b)
-				{
-					bloom = !bloom;
-				}
 				if (sdlEvent.key.keysym.sym == SDLK_m)
 				{
 					renderMapComplete = !renderMapComplete;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_v)
-				{
-					antialiasing = !antialiasing;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_1)
-				{
-					specular_map = !specular_map;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_2)
 				{
@@ -2409,10 +2633,6 @@ int main(int argc, char* argv[])
 				if (sdlEvent.key.keysym.sym == SDLK_3)
 				{
 					exposure += 0.02;
-				}
-				if (sdlEvent.key.keysym.sym == SDLK_4)
-				{
-					first_person = !first_person;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_f)
 				{
@@ -2441,12 +2661,6 @@ int main(int argc, char* argv[])
 					}
 					//ghost_moving = !ghost_moving;
 				}
-				if (sdlEvent.key.keysym.sym == SDLK_TAB)
-				{
-					fixed_pos = !fixed_pos;
-					if (!fixed_pos)
-						camera->setPos(old_pos_camera);
-				}
 				if (sdlEvent.key.keysym.sym == SDLK_F11)
 				{
 					if (fullScreen)
@@ -2463,6 +2677,15 @@ int main(int argc, char* argv[])
 						glViewport(0, 0, Width, Height); //update viewport
 					else
 						glViewport(0, 0, SCR_W, SCR_H);
+				}
+				if (sdlEvent.key.keysym.sym == SDLK_p) {
+					if (!optionsMenu) {
+						engine->play2D(panelAppearSound);
+						optionsMenu = true;
+						lock_cam = false;
+						renderMap = false;
+						SDL_ShowCursor(SDL_ENABLE);
+					}
 				}
 				break;
 			}
