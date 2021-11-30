@@ -47,6 +47,21 @@ float r = 0;
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
 
+// GAME STATES
+enum STATES
+{
+	MAIN_MENU,
+	TRANSITION,
+	GAME,
+	END_GAME
+};
+
+void resetGame(STATES actual, STATES previo) {
+	actual = MAIN_MENU;
+
+}
+
+
 void renderQuad(float quadVertices[])
 {
 	{
@@ -1135,6 +1150,7 @@ int main(int argc, char* argv[])
 	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
 	unsigned int twoFactorBase = loadTexture("../Include/model/2factor_base.png");
 	unsigned int deadTexture = loadTexture("../Include/model/killBG.png");
+	unsigned int game_over = loadTexture("../Include/model/defeat.jpg");
 
 	unsigned int cablesTex = loadTexture("../Include/minigames/wirepanel.png");
 	unsigned int rwire = loadTexture("../Include/minigames/rwire.png");
@@ -1191,13 +1207,6 @@ int main(int argc, char* argv[])
 	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 20.0f, 35.0f)); //modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
 	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
-	// GAME STATES
-	enum STATES
-	{
-		MAIN_MENU,
-		TRANSITION,
-		GAME
-	};
 	STATES actualState = MAIN_MENU;
 	STATES previousState = TRANSITION;
 
@@ -1247,7 +1256,8 @@ int main(int argc, char* argv[])
 	int timeAux = 0;
 	int diff = 0;
 	int timeN = 0;
-	bool se_activa_el_fantasma = false;
+	bool se_activa_el_fantasma =  false;
+	float wasted = -1.f;
 
 	// Setup lights
 	glm::vec3 ambient = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -1761,24 +1771,30 @@ int main(int argc, char* argv[])
 
 
 			//DRAW DEL FANTASMA
-			if ((glm::distance(old_pos_camera.x, 18.f) <= 1.0f) && (glm::distance(old_pos_camera.z, -6.0f) <= 1.0f))
+		//	if ((glm::distance(old_pos_camera.x, 18.f) <= 1.0f) && (glm::distance(old_pos_camera.z, -6.0f) <= 1.0f))
 			{ // If se encuentra en la puerta de electricidad
 				se_activa_el_fantasma = true;
 			}
 
 			if (!ghost->gameOver())
 			{
-				if (!ghost->isActive() && se_activa_el_fantasma)
+				if (!ghost->isActive() && se_activa_el_fantasma )
 				{
 					ghost->start(old_pos_camera, diff);
 				}
-				if (ghost->isActive())
+				if (ghost->isActive() )
 				{
-					ghost->update(old_pos_camera);
+					ghost->setSpeed(diff);
+					if (ghost->getDirection().x < 0) {
+						ghost->update(old_pos_camera + glm::vec3(0.0f, 0.f, -0.8f));
+					}
+					else {
+						ghost->update(old_pos_camera + glm::vec3(0.8f, 0.f, 0.4f));
+					}
+					
 				}
-
 				modelFantasma = glm::mat4(1.0f);
-				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z) + glm::vec3(0.8f, 0.f, 0.4f)); //- glm::vec3(1.1f, 0.f, -0.01f)
+				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z) ); //- glm::vec3(1.1f, 0.f, -0.01f)
 
 				rotatematrix = glm::mat4(1.0f);
 				float angle = glm::acos(glm::dot(glm::normalize(ghost->getDirection()), glm::vec3(0.0, 0.0, 1.0)));
@@ -1799,108 +1815,123 @@ int main(int argc, char* argv[])
 			fantasma.Draw(ourShader, true, 0, 0);
 
 			//DRAW DEL ASTRONAUTA
+				modelAnim = glm::mat4(1.f);
 
-			modelAnim = glm::mat4(1.f);
-
-			if (first_person)
-			{
-				glDisable(GL_CULL_FACE);
-				modelAnim = glm::translate(modelAnim, camera->getPos() - camera->getDirection());
-				modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
-				modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
-				modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
-			}
-			else
-			{
-				if (fixed_pos)
+				if (first_person)
 				{
-					modelAnim = glm::translate(modelAnim, old_pos);
-					modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
-				}
-				else
-				{
-					modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
+					glDisable(GL_CULL_FACE);
+					modelAnim = glm::translate(modelAnim, camera->getPos() - camera->getDirection());
 					modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
-					old_yaw = -yaw + 90;
-					old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
-					old_pos_camera = camera->getPos();
-					old_front_camera = camera->getFront();
-				}
-			}
-
-			if (!(mv.moving_forward || mv.moving_back) || first_person)
-			{
-				modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
-			}
-
-			modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
-			ourShader.setMat4("model", modelAnim);
-
-			glm::mat4 matr_normals_cube = glm::mat4(glm::transpose(glm::inverse(modelAnim)));
-			ourShader.setMat4("normals_matrix", matr_normals_cube);
-			ourShader.setBool("anim", true);
-			ourShader.setBool("moove", !first_person && (mv.moving_forward || mv.moving_back));
-			cuerpo1.initBonesForShader(ourShader);
-			cuerpo1.Draw(ourShader, !first_person && (mv.moving_forward || mv.moving_back), 0, 0);
-
-			glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
-
-
-			// DRAW DEL MAPA
-			ShadowDebug.use();
-			ShadowDebug.setBool("transparencyIsAvailable", false);
-			if (renderMap)
-			{
-				float delta_x = (10.0f / (SCR_W / 2.0f));
-				float delta_y = (10.0f / (SCR_H / 2.0f));
-				float mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
-				float mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
-				float marker[] = {
-					// positions        // texture Coords
-					mark_x,
-					mark_y + delta_y,
-					0.0f,
-					0.0f,
-					1.0f,
-					mark_x,
-					mark_y,
-					0.0f,
-					0.0f,
-					0.0f,
-					mark_x + delta_x,
-					mark_y + delta_y,
-					0.0f,
-					1.0f,
-					1.0f,
-					mark_x + delta_x,
-					mark_y,
-					0.0f,
-					1.0f,
-					0.0f,
-				};
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-				glDisable(GL_DEPTH_TEST);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, gameTexture);
-				if (!renderMapComplete)
-				{
-					renderQuad(upRight);
-					glActiveTexture(GL_TEXTURE1);
-					glBindTexture(GL_TEXTURE_2D, mapMarker);
-					renderQuad(marker);
+					modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
+					modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
 				}
 				else
 				{
-					renderQuad(full);
+					if (fixed_pos)
+					{
+						modelAnim = glm::translate(modelAnim, old_pos);
+						modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
+					}
+					else
+					{
+						modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
+						modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
+						old_yaw = -yaw + 90;
+						old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
+						old_pos_camera = camera->getPos();
+						old_front_camera = camera->getFront();
+					}
 				}
+
+				if (!(mv.moving_forward || mv.moving_back) || first_person)
+				{
+					modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
+				}
+
+				modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
+				ourShader.setMat4("model", modelAnim);
+
+				glm::mat4 matr_normals_cube = glm::mat4(glm::transpose(glm::inverse(modelAnim)));
+				ourShader.setMat4("normals_matrix", matr_normals_cube);
+				ourShader.setBool("anim", true);
+				ourShader.setBool("moove", !first_person && (mv.moving_forward || mv.moving_back));
+				cuerpo1.initBonesForShader(ourShader);
+				cuerpo1.Draw(ourShader, !first_person && (mv.moving_forward || mv.moving_back), 0, 0);
+
+				glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
+
+
+
+		if (!ghost->gameOver()) {
+			// DRAW DEL MAPA
+				ShadowDebug.use();
+				ShadowDebug.setBool("transparencyIsAvailable", false);
+				if (renderMap)
+				{
+					float delta_x = (10.0f / (SCR_W / 2.0f));
+					float delta_y = (10.0f / (SCR_H / 2.0f));
+					float mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
+					float mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
+					float marker[] = {
+						// positions        // texture Coords
+						mark_x,
+						mark_y + delta_y,
+						0.0f,
+						0.0f,
+						1.0f,
+						mark_x,
+						mark_y,
+						0.0f,
+						0.0f,
+						0.0f,
+						mark_x + delta_x,
+						mark_y + delta_y,
+						0.0f,
+						1.0f,
+						1.0f,
+						mark_x + delta_x,
+						mark_y,
+						0.0f,
+						1.0f,
+						0.0f,
+					};
+					glBindFramebuffer(GL_FRAMEBUFFER, 0);
+					glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
+					glDisable(GL_DEPTH_TEST);
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, gameTexture);
+					if (!renderMapComplete)
+					{
+						renderQuad(upRight);
+						glActiveTexture(GL_TEXTURE1);
+						glBindTexture(GL_TEXTURE_2D, mapMarker);
+						renderQuad(marker);
+					}
+					else
+					{
+						renderQuad(full);
+					}
+				}
+
+	
 			}
-
-			if (ghost->gameOver()) {
-
-				renderQuad(ShadowDebug, glm::vec2(-1.0f, 0.6f), glm::vec2(1.0f, -0.6), deadTexture);
-
-				//previousState = TRANSITION;
+			else {
+				if (wasted <= 1.0) {
+					wasted += 0.1; 
+					renderQuad(ShadowDebug, glm::vec2(1-2*wasted , wasted - 0.4f), glm::vec2(2-wasted, -wasted + 0.4f), deadTexture);
+				}
+				renderQuad(ShadowDebug, glm::vec2(-2 + wasted, wasted-0.4f), glm::vec2(wasted, -wasted + 0.4f), deadTexture);
+				if (transitionCounter <= 240){
+					transitionCounter += diff;
+					//glBindTexture(GL_TEXTURE_2D, blackWindows);
+					//renderQuad(ShadowDebug, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), blackWindows);
+					//renderQuad(full);
+				}
+				else {
+					transitionCounter = 0;
+					alpha = 0;
+					actualState = END_GAME;
+				}
 			}
 
 
@@ -1936,10 +1967,9 @@ int main(int argc, char* argv[])
 				{
 					transitionCounter += diff;
 					alpha -= 0.01;
-					if (alpha <= 0)
-					{
-						alpha = 0;
-					}
+					if (alpha <= 0){alpha = 0;}
+
+
 					ShadowDebug.setFloat("alpha", alpha);
 				}
 				else
@@ -1950,6 +1980,7 @@ int main(int argc, char* argv[])
 				glBindTexture(GL_TEXTURE_2D, blackWindows);
 				renderQuad(full);
 			}
+
 
 			// Wires Task
 			if (cables)
@@ -2164,6 +2195,52 @@ int main(int argc, char* argv[])
 			renderQuad(full);
 			break;
 		}
+
+		case END_GAME:
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDepthFunc(GL_LEQUAL);
+			glDisable(GL_DEPTH_TEST);
+			ShadowDebug.use();
+			ShadowDebug.setBool("transparencyIsAvailable", true);
+			if (transitionCounter <= 240)
+			{
+				transitionCounter += diff;
+				alpha += 0.001;
+				if (alpha >= 1)
+				{
+					alpha = 1;
+				}
+				ShadowDebug.setFloat("alpha", alpha);
+		
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, game_over);
+				renderQuad(ShadowDebug, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), game_over);
+			}
+			else { 
+				// variables para resetear el juego
+				actualState = MAIN_MENU;
+				alpha = 1;
+				transitionCounter = 0;
+				cortoElectricidad = false;
+				pausarSonidos(engine);
+				engine->play2D(mainMenuSound);
+				SDL_ShowCursor(SDL_ENABLE);
+				lock_cam = false;
+				delete(ghost);
+				ghost = new IA();
+				modelAnim = glm::mat4(1.f);
+				modelAnim = glm::translate(modelAnim, glm::vec3(29.26f, 0.0f, -24.32f));
+				modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
+				modelFantasma = glm::mat4(1.f);
+				modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.2f, -12.70f));
+				modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
+				first_person = false;
+
+			}
+			break;
+		}
+
 		}
 
 		// EVENTS
