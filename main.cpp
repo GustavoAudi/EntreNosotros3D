@@ -1251,7 +1251,7 @@ int main(int argc, char* argv[])
 	unsigned int mainMenu = loadTexture("../Include/model/main-menu.png");
 	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
 	unsigned int twoFactorBase = loadTexture("../Include/model/2factor_base.png");
-	unsigned int menuBlackWindows = loadTexture("../Include/model/optionMenuBlack.png");
+	unsigned int windowsMenuOptions = loadTexture("../Include/model/optionMenu.png");
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -2204,7 +2204,7 @@ int main(int argc, char* argv[])
 				ShadowDebug.setBool("transparencyIsAvailable", false);
 				ShadowDebug.setFloat("alpha", 0.5f);
 				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, menuBlackWindows);
+				glBindTexture(GL_TEXTURE_2D, windowsMenuOptions);
 				renderQuad(optionMenuPositions);
 
 				ShadowDebug.setBool("transparencyIsAvailable", false);
