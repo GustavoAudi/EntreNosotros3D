@@ -474,10 +474,10 @@ bool isInside(float x, float y)
 }
 
 int getOptionClicked(float x, float y) {
-	glm::vec2 op1P1 = glm::vec2(309, 230);
+	glm::vec2 op1P1 = glm::vec2(312, 230);
 	glm::vec2 op1P2 = glm::vec2(502, 206);
 
-	glm::vec2 op2P1 = glm::vec2(310, 304);
+	glm::vec2 op2P1 = glm::vec2(312, 304);
 	glm::vec2 op2P2 = glm::vec2(417, 277);
 
 	glm::vec2 op3P1 = glm::vec2(312, 376);
@@ -488,6 +488,9 @@ int getOptionClicked(float x, float y) {
 
 	glm::vec2 op5P1 = glm::vec2(312, 518);
 	glm::vec2 op5P2 = glm::vec2(468, 491);
+
+	glm::vec2 op6P1 = glm::vec2(309, 590);
+	glm::vec2 op6P2 = glm::vec2(431, 567);
 
 	if (op1P1.x <= x && x <= op1P2.x && op1P1.y >= y && y >= op1P2.y) {
 		return 1;
@@ -503,6 +506,9 @@ int getOptionClicked(float x, float y) {
 	}
 	if (op5P1.x <= x && x <= op5P2.x && op5P1.y >= y && y >= op5P2.y) {
 		return 5;
+	}
+	if (op6P1.x <= x && x <= op6P2.x && op6P1.y >= y && y >= op6P2.y) {
+		return 6;
 	}
 	return 0;
 }
@@ -1230,6 +1236,14 @@ int main(int argc, char* argv[])
 		-0.703125 + 0.3,0.333333 - 0.8 + 0.013,0.0f,0.0f,1.0f,
 	};
 
+	float optionSixPositions[] = {
+		// positions        // texture Coords
+		-0.3125 + 0.3,0.461111 - 1.0,0.0f,1.0f,0.0f,
+		-0.703125 + 0.3,0.461111 - 1.0,0.0f,0.0f,0.0f,
+		-0.3125 + 0.3,0.333333 - 1.0 + 0.013,0.0f,1.0f,1.0f,
+		-0.703125 + 0.3,0.333333 - 1.0 + 0.013,0.0f,0.0f,1.0f,
+	};
+
 	// load textures
 	unsigned int cubemapTexture = loadCubemap(faces);
 	unsigned int gameTexture = loadTexture("../Include/model/mapa-png.png");
@@ -1324,6 +1338,7 @@ int main(int argc, char* argv[])
 	bool first_person = false;
 	bool renderMap = true;
 	bool renderMapComplete = false;
+	bool shadowMapEnable = false;
 	float old_yaw = 0.f;
 	glm::vec3 old_pos = glm::vec3(0.f);
 	glm::vec3 old_pos_camera = camera->getPos();
@@ -1541,6 +1556,7 @@ int main(int argc, char* argv[])
 	ShadowDebug.use();
 	ShadowDebug.setInt("shadowMap", 0);
 
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//																		LOOP PRINCIPAL																				 //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1751,6 +1767,7 @@ int main(int argc, char* argv[])
 			glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
 			sun.Draw(bloomFinal, false, 1, 1);
 
+			// DRAW MODEL	
 			// Preparations for the Shadow Map
 			glViewport(0, 0, shadowMapWidth, shadowMapHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
@@ -1759,21 +1776,13 @@ int main(int argc, char* argv[])
 			// Draw scene for shadow map
 			shadowMapProgram.use();
 			ourModel.Draw(shadowMapProgram, false, 1, 1);
-
 			glViewport(0, 0, SCR_W, SCR_H);
 
-			//DEBUG SHADOW MAP
-			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			/*ShadowDebug.use();
-			glActiveTexture(GL_TEXTURE0 + 0);
-			glBindTexture(GL_TEXTURE_2D, shadowMap);
-			glUniform1i(glGetUniformLocation(ShadowDebug.ID, "shadowMap"), 0);
-			renderQuad(); */
-
 			ourShader.use();
+			glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
 			model = glm::mat4(1.0f);
 			ourShader.setMat4("model", model);
-			glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+			ourShader.setBool("shadowMapEnabled", shadowMapEnable);
 			glActiveTexture(GL_TEXTURE13);
 			glBindTexture(GL_TEXTURE_2D, shadowMap);
 			glUniform1i(glGetUniformLocation(ourShader.ID, "shadowMap"), 13);
@@ -1950,26 +1959,10 @@ int main(int argc, char* argv[])
 				float mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
 				float marker[] = {
 					// positions        // texture Coords
-					mark_x,
-					mark_y + delta_y,
-					0.0f,
-					0.0f,
-					1.0f,
-					mark_x,
-					mark_y,
-					0.0f,
-					0.0f,
-					0.0f,
-					mark_x + delta_x,
-					mark_y + delta_y,
-					0.0f,
-					1.0f,
-					1.0f,
-					mark_x + delta_x,
-					mark_y,
-					0.0f,
-					1.0f,
-					0.0f,
+					mark_x,mark_y + delta_y,0.0f,0.0f,1.0f,
+					mark_x,mark_y,0.0f,0.0f,0.0f,
+					mark_x + delta_x,mark_y + delta_y,0.0f,1.0f,1.0f,
+					mark_x + delta_x,mark_y,0.0f,1.0f,0.0f,
 				};
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
@@ -2233,7 +2226,7 @@ int main(int argc, char* argv[])
 				// Render Options 
 				string option;
 				SDL_Color color = white_color;
-				for (int i = 0; i < 5; i++) {
+				for (int i = 0; i < 6; i++) {
 					color = white_color;
 					float positionAux[20];
 					switch (i)
@@ -2274,8 +2267,16 @@ int main(int argc, char* argv[])
 						if (fixed_pos) {
 							color = green_color;
 						}
-						option = "Modo libre     ";
+						option = "Modo libre    ";
 						memcpy(positionAux, optionFivePositions, sizeof(float) * 20);
+						break;
+					}
+					case 5: {
+						if (shadowMapEnable) {
+							color = green_color;
+						}
+						option = "Sombras       ";
+						memcpy(positionAux, optionSixPositions, sizeof(float) * 20);
 						break;
 					}
 					}
@@ -2431,6 +2432,11 @@ int main(int argc, char* argv[])
 								if (!fixed_pos) {
 									camera->setPos(old_pos_camera);
 								}
+								break;
+							}
+							case 6: {
+								engine->play2D(optionClickedSound);
+								shadowMapEnable = !shadowMapEnable;
 								break;
 							}
 							}
