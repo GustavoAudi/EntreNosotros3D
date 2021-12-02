@@ -1338,7 +1338,7 @@ int main(int argc, char* argv[])
 	bool first_person = false;
 	bool renderMap = true;
 	bool renderMapComplete = false;
-	bool shadowMapEnable = false;
+	bool shadowMapEnabled = false;
 	float old_yaw = 0.f;
 	glm::vec3 old_pos = glm::vec3(0.f);
 	glm::vec3 old_pos_camera = camera->getPos();
@@ -1782,7 +1782,7 @@ int main(int argc, char* argv[])
 			glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
 			model = glm::mat4(1.0f);
 			ourShader.setMat4("model", model);
-			ourShader.setBool("shadowMapEnabled", shadowMapEnable);
+			ourShader.setBool("shadowMapEnabled", shadowMapEnabled);
 			glActiveTexture(GL_TEXTURE13);
 			glBindTexture(GL_TEXTURE_2D, shadowMap);
 			glUniform1i(glGetUniformLocation(ourShader.ID, "shadowMap"), 13);
@@ -2272,7 +2272,7 @@ int main(int argc, char* argv[])
 						break;
 					}
 					case 5: {
-						if (shadowMapEnable) {
+						if (shadowMapEnabled) {
 							color = green_color;
 						}
 						option = "Sombras       ";
@@ -2436,7 +2436,7 @@ int main(int argc, char* argv[])
 							}
 							case 6: {
 								engine->play2D(optionClickedSound);
-								shadowMapEnable = !shadowMapEnable;
+								shadowMapEnabled = !shadowMapEnabled;
 								break;
 							}
 							}
