@@ -22,6 +22,7 @@
 #include <SDL_ttf.h>
 #include <time.h>
 #include <random>
+#include <set>
 using std::cerr;
 
 #define SCR_H 720
@@ -652,20 +653,41 @@ glm::vec2 getScaledCoords(glm::vec2 vec)
 vector<int> colors_left{ 0, 1, 2, 3 };
 vector<int> colors_right{ 0, 1, 2, 3 };
 vector<bool> fixed_cables(4, false);
+bool panel_inPos = false;
+int currentPos = 0;
+int displacementScaling = 120;
+
+vector<string> wires{
+	"../Include/minigames/rwire.png",
+	"../Include/minigames/bwire.png",
+	"../Include/minigames/ywire.png",
+	"../Include/minigames/pwire.png",
+};
 
 vector<glm::vec2> leftCablePos{
 	glm::vec2(210, 227),
 	glm::vec2(210, 317),
-	glm::vec2(210, 407),
+	glm::vec2(210, 406),
 	glm::vec2(210, 495) };
 
 vector<glm::vec2> rightCablePos{
 	glm::vec2(774, 227),
 	glm::vec2(774, 317),
-	glm::vec2(774, 407),
+	glm::vec2(774, 406),
 	glm::vec2(774, 495) };
 
-glm::vec2 cableSize(37, 17);
+glm::vec2 cableSize(38, 17);
+
+
+int closestIndex(glm::vec3 pos, vector<glm::vec3> pointCollection, float distance)
+{
+	for (int i = 0; i < pointCollection.size(); i++)
+	{
+		if (glm::distance((pointCollection[i]), pos) < distance)
+			return i;
+	}
+	return -1;
+}
 
 int closestIndex(glm::vec2 pos, vector<glm::vec2> pointCollection, float distance)
 {
@@ -692,19 +714,8 @@ int getIndex(vector<T> v, T elem)
 		return -1;
 	}
 }
-void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset, ISoundEngine* engine, ISoundSource* wireSound)
+void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset, ISoundEngine* engine, ISoundSource* wireSound, int diff)
 {
-	vector<string> wires;
-	string cablesTex = "../Include/minigames/wirepanel.png";
-	wires.push_back("../Include/minigames/rwire.png");
-	wires.push_back("../Include/minigames/bwire.png");
-	wires.push_back("../Include/minigames/ywire.png");
-	wires.push_back("../Include/minigames/pwire.png");
-
-	glm::vec2 top_left = getScaledCoords(SCR_W / 5, SCR_H / 5);
-	glm::vec2 bottom_right = getScaledCoords(SCR_W * 4 / 5, SCR_H * 4 / 5);
-	renderQuad(shader, top_left, bottom_right, cablesTex);
-
 	if (reset)
 	{
 		std::random_device rd;
@@ -712,68 +723,90 @@ void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool c
 		std::shuffle(colors_left.begin(), colors_left.end(), g);
 		std::shuffle(colors_right.begin(), colors_right.end(), g);
 		fixed_cables = vector<bool>(4, false);
+		panel_inPos = false;
+		currentPos = 0;
 	}
 
-	for (int i = 0; i < 4; i++)
-	{
-		renderQuad(shader, getScaledCoords(leftCablePos[i]), getScaledCoords(leftCablePos[i] + cableSize), wires[colors_left[i]]);
-		renderQuad(shader, getScaledCoords(rightCablePos[i]), getScaledCoords(rightCablePos[i] + cableSize), wires[colors_right[i]]);
+	string cablesTex = "../Include/minigames/wirepanel.png";
+	glm::vec2 top_left;
+	glm::vec2 bottom_right;
+	if (!panel_inPos) {
+		int displacement = SCR_H * 4 / 5 - (((SCR_H * 4 / 5)) / displacementScaling * currentPos);
+		top_left = getScaledCoords(SCR_W / 5, (SCR_H / 5) + displacement);
+		bottom_right = getScaledCoords(SCR_W * 4 / 5, (SCR_H * 4 / 5) + displacement);
+		currentPos += 15 * diff;
+		panel_inPos = currentPos >= displacementScaling;
+	}
+	else {
+		top_left = getScaledCoords(SCR_W / 5, SCR_H / 5);
+		bottom_right = getScaledCoords(SCR_W * 4 / 5, SCR_H * 4 / 5);
 	}
 
-	if (clicked)
-	{
-		int cableId = closestIndex(last_click, leftCablePos, 0.09);
-		if (cableId > -1 && !fixed_cables[cableId])
+	renderQuad(shader, top_left, bottom_right, cablesTex);
+
+
+	if (panel_inPos) {
+		for (int i = 0; i < 4; i++)
 		{
-			glm::vec2 origin = getScaledCoords(leftCablePos[cableId] + glm::vec2(cableSize.x, 0));
-			float width = 0.05;
-			float coords[] = {
-				// positions        // texture Coords
-				origin.x,origin.y,0.0f,0.0f,1.0f,
-				origin.x,origin.y - width,0.0f,0.0f,0.0f,
-				mouse_pos.x,mouse_pos.y,0.0f,1.0f,1.0f,
-				mouse_pos.x,mouse_pos.y - width,0.0f,1.0f,0.0f,
-			};
-			renderQuad(shader, coords, wires[colors_left[cableId]]);
-			int targetId = closestIndex(mouse_pos, rightCablePos, 0.05);
-			if (colors_right[targetId] == colors_left[cableId])
+			renderQuad(shader, getScaledCoords(leftCablePos[i]), getScaledCoords(leftCablePos[i] + cableSize), wires[colors_left[i]]);
+			renderQuad(shader, getScaledCoords(rightCablePos[i]), getScaledCoords(rightCablePos[i] + cableSize), wires[colors_right[i]]);
+		}
+
+		if (clicked)
+		{
+			int cableId = closestIndex(last_click, leftCablePos, 0.09);
+			if (cableId > -1 && !fixed_cables[cableId])
 			{
-				fixed_cables[cableId] = true;
-				engine->play2D(wireSound);
+				glm::vec2 origin = getScaledCoords(leftCablePos[cableId] + glm::vec2(cableSize.x, 0));
+				float width = 0.05;
+				float coords[] = {
+					// positions        // texture Coords
+					origin.x,origin.y,0.0f,0.0f,1.0f,
+					origin.x,origin.y - width,0.0f,0.0f,0.0f,
+					mouse_pos.x,mouse_pos.y,0.0f,1.0f,1.0f,
+					mouse_pos.x,mouse_pos.y - width,0.0f,1.0f,0.0f,
+				};
+				renderQuad(shader, coords, wires[colors_left[cableId]]);
+				int targetId = closestIndex(mouse_pos, rightCablePos, 0.05);
+				if (colors_right[targetId] == colors_left[cableId])
+				{
+					fixed_cables[cableId] = true;
+					engine->play2D(wireSound);
+				}
 			}
 		}
-	}
-	for (int cable = 0; cable < 4; cable++)
-	{
-		if (fixed_cables[cable])
+		for (int cable = 0; cable < 4; cable++)
 		{
-			glm::vec2 origin = getScaledCoords(leftCablePos[cable] + glm::vec2(cableSize.x, 0));
-			glm::vec2 destination = getScaledCoords(rightCablePos[getIndex(colors_right, colors_left[cable])]);
-			float width = 0.048;
-			float coords[] = {
-				// positions        // texture Coords
-				origin.x,
-				origin.y,
-				0.0f,
-				0.0f,
-				1.0f,
-				origin.x,
-				origin.y - width,
-				0.0f,
-				0.0f,
-				0.0f,
-				destination.x,
-				destination.y,
-				0.0f,
-				1.0f,
-				1.0f,
-				destination.x,
-				destination.y - width,
-				0.0f,
-				1.0f,
-				0.0f,
-			};
-			renderQuad(shader, coords, wires[colors_left[cable]]);
+			if (fixed_cables[cable])
+			{
+				glm::vec2 origin = getScaledCoords(leftCablePos[cable] + glm::vec2(cableSize.x, 0));
+				glm::vec2 destination = getScaledCoords(rightCablePos[getIndex(colors_right, colors_left[cable])]);
+				float width = 0.048;
+				float coords[] = {
+					// positions        // texture Coords
+					origin.x,
+					origin.y,
+					0.0f,
+					0.0f,
+					1.0f,
+					origin.x,
+					origin.y - width,
+					0.0f,
+					0.0f,
+					0.0f,
+					destination.x,
+					destination.y,
+					0.0f,
+					1.0f,
+					1.0f,
+					destination.x,
+					destination.y - width,
+					0.0f,
+					1.0f,
+					0.0f,
+				};
+				renderQuad(shader, coords, wires[colors_left[cable]]);
+			}
 		}
 	}
 }
@@ -793,9 +826,21 @@ vector<glm::vec3> cableSpots{
 	glm::vec3(20.628f, 0.31f, -12.8736f),
 	glm::vec3(11.8638f, 0.31f, -16.0048f) };
 
+vector<glm::vec2> cableSpotsMap{
+	glm::vec2(504, 388),
+	glm::vec2(813, 299),
+	glm::vec2(439, 108),
+	glm::vec2(404, 366),
+	glm::vec2(241, 316)};
+
 vector<glm::vec3> oxygenSpots{
 	glm::vec3(36.5912f, 0.31f, -17.9872f),
 	glm::vec3(36.2865f, 0.31f, -14.1531f),
+};
+
+vector<glm::vec2> oxygenSpotsMap{
+	glm::vec2(691, 283),
+	glm::vec2(686, 357),
 };
 
 template <typename T>
@@ -806,14 +851,14 @@ std::vector<T> Append(std::vector<T>& a, const std::vector<T>& b)
 	return c;
 }
 
-void renderPosHUD(glm::vec3 campos, Shader shader)
-{
-	if (inRange(campos, Append(cableSpots, oxygenSpots), 0.5f))
+vector<int> randomUnique(int n, int max) {
+	std::set<int> numbers;
+	while (numbers.size() < n)
 	{
-		renderF(shader);
+		numbers.insert(rand() % max);
 	}
+	return std::vector<int> (numbers.begin(), numbers.end());
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*																	|							 |
@@ -1184,17 +1229,23 @@ int main(int argc, char* argv[])
 	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
 	// GAME STATES
+
 	enum STATES
 	{
+		INIT,
 		MAIN_MENU,
 		TRANSITION,
-		GAME
+		GAME,
+		COMPLETED
 	};
-	STATES actualState = MAIN_MENU;
+	STATES actualState = INIT;
 	STATES previousState = TRANSITION;
+	vector<bool> completedMissions(5, false);
+	vector <int> assignedWire(3);
 
 	// Task Variables
 	// Two Factor
+	int twoFactorMission;
 	bool isTwoFactorTask = false;
 	char twoFactorNumbers[5] = { ' ', ' ', ' ', ' ', ' ' };
 	string twoFactorPass = "12345"; // default
@@ -1202,6 +1253,8 @@ int main(int argc, char* argv[])
 	int timeVisibleState = 0;
 
 	// Wire
+	int currentMission;
+	int missionIndex;
 	bool cables = false;
 	bool btn_down = false;
 	bool reset = false;
@@ -1461,6 +1514,31 @@ int main(int argc, char* argv[])
 
 		switch (actualState)
 		{
+		case INIT: {
+			completedMissions = vector<bool>(5, false); //first three are cables, last two are twoFactor
+			//3 unique int. Position equals to position in completedMissions, number equals to pos in CableSpots
+			assignedWire = randomUnique(3, cableSpots.size()); 
+			actualState = MAIN_MENU;
+			alpha = 1;
+			transitionCounter = 0;
+			cortoElectricidad = false;
+			pausarSonidos(engine);
+			engine->play2D(mainMenuSound);
+			SDL_ShowCursor(SDL_ENABLE);
+			lock_cam = false;
+			delete(ghost);
+			ghost = new IA();
+			camera->setPos(glm::vec3(29.26f, 0.31f, -24.32f));
+			camera->setFront(glm::vec3(0.0f, 0.0f, -1.0f));
+			old_pos = glm::vec3(0.f);
+			old_pos_camera = camera->getPos();
+			old_front_camera = camera->getFront();
+			modelFantasma = glm::mat4(1.f);
+			modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.2f, -12.70f));
+			modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
+			first_person = false;
+			break;
+		}
 		case GAME:
 		{
 			float cameraSpeed = 0.005f * deltaTime; // adjust accordingly
@@ -1844,30 +1922,22 @@ int main(int argc, char* argv[])
 			{
 				float delta_x = (10.0f / (SCR_W / 2.0f));
 				float delta_y = (10.0f / (SCR_H / 2.0f));
-				float mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
-				float mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
+				float mark_x, mark_y;
+				if (renderMapComplete) {
+					mark_x = (camera->getPos().x * (1.0f / 30.0f)) - 0.9;//+ 0.045333f
+					mark_y = -(camera->getPos().z * (1.0f / 20.0f) + 0.7);//- 0.13667f)
+				}
+				else {
+					mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
+					mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
+				}
+
 				float marker[] = {
 					// positions        // texture Coords
-					mark_x,
-					mark_y + delta_y,
-					0.0f,
-					0.0f,
-					1.0f,
-					mark_x,
-					mark_y,
-					0.0f,
-					0.0f,
-					0.0f,
-					mark_x + delta_x,
-					mark_y + delta_y,
-					0.0f,
-					1.0f,
-					1.0f,
-					mark_x + delta_x,
-					mark_y,
-					0.0f,
-					1.0f,
-					0.0f,
+					mark_x, mark_y + delta_y, 0.0f, 0.0f, 1.0f,
+					mark_x, mark_y, 0.0f, 0.0f, 0.0f, 
+					mark_x + delta_x, mark_y + delta_y, 0.0f, 1.0f, 1.0f,
+					mark_x + delta_x, mark_y, 0.0f, 1.0f, 0.0f,
 				};
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
@@ -1884,6 +1954,25 @@ int main(int argc, char* argv[])
 				else
 				{
 					renderQuad(full);
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, mapMarker);
+					renderQuad(marker);
+					//render cable task markers
+					for (int i = 0; i < assignedWire.size(); i++) {
+						if (!completedMissions[i]) {
+							glm::vec2 markerPos = getScaledCoords(cableSpotsMap[assignedWire[i]] - glm::vec2(10, 10));
+							glm::vec2 markerPosFinal = getScaledCoords(cableSpotsMap[assignedWire[i]] + glm::vec2(15, 15));
+							renderQuad(ShadowDebug, markerPos, markerPosFinal, "../Include/model/IconError.png");
+						}
+					}
+					//render twoFactor task markers
+					for (int i = 0; i < 2; i++) {
+						if (!completedMissions[i + 3]) {
+							glm::vec2 markerPos = getScaledCoords(oxygenSpotsMap[i] - glm::vec2(10, 10));
+							glm::vec2 markerPosFinal = getScaledCoords(oxygenSpotsMap[i] + glm::vec2(15, 15));
+							renderQuad(ShadowDebug, markerPos, markerPosFinal, "../Include/model/IconError.png");
+						}
+					}
 				}
 			}
 
@@ -1935,9 +2024,14 @@ int main(int argc, char* argv[])
 			}
 
 			// Wires Task
-			if (cables)
+			currentMission = closestIndex(camera->getPos(), cableSpots, 0.5f);
+			missionIndex = getIndex(assignedWire, currentMission);
+			if (missionIndex != -1 && !completedMissions[missionIndex]) {
+				renderF(ShadowDebug);
+			}
+			if (cables && missionIndex!=-1 && !completedMissions[missionIndex])
 			{
-				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset, engine, wireSound);
+				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset, engine, wireSound, diff);
 				reset = false;
 				bool wiresComplete = true;
 				for (int cable = 0; cable < 4; cable++)
@@ -1976,14 +2070,21 @@ int main(int argc, char* argv[])
 						reset = true;
 						soundTaskComplete = true;
 						SDL_ShowCursor(SDL_DISABLE);
+						completedMissions[missionIndex] = true;
 					}
 				}
 			}
-			//SHOW Variable HUD
-			renderPosHUD(camera->getPos(), ShadowDebug);
+			else {
+				reset = true;
+			}
 
 			// Two Factor Task
-			if (isTwoFactorTask)
+			twoFactorMission = closestIndex(camera->getPos(), oxygenSpots, 0.5f);
+			if (twoFactorMission != -1 && !completedMissions[twoFactorMission +3])
+			{
+				renderF(ShadowDebug);
+			}
+			if (isTwoFactorTask && twoFactorMission != -1 && !completedMissions[twoFactorMission + 3])
 			{
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				glDepthFunc(GL_LEQUAL);
@@ -2068,6 +2169,7 @@ int main(int argc, char* argv[])
 							soundConfirmTask = true;
 							soundTaskComplete = true;
 							SDL_ShowCursor(SDL_DISABLE);
+							completedMissions[twoFactorMission + 3] = true;
 						}
 					}
 					else
@@ -2103,6 +2205,13 @@ int main(int argc, char* argv[])
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS); // set depth function back to
 
+			bool completedGame = true;
+			for (int i = 0; i < completedMissions.size(); i++) {
+				completedGame &= completedMissions[i];
+			}
+			if (completedGame) {
+				actualState = COMPLETED;
+			}
 			break;
 		}
 		case MAIN_MENU:
@@ -2145,6 +2254,10 @@ int main(int argc, char* argv[])
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, mainMenu);
 			renderQuad(full);
+			break;
+		}
+		case COMPLETED: 
+		{
 			break;
 		}
 		}
@@ -2334,14 +2447,7 @@ int main(int argc, char* argv[])
 						}
 						else
 						{
-							actualState = MAIN_MENU;
-							alpha = 1;
-							transitionCounter = 0;
-							cortoElectricidad = false;
-							pausarSonidos(engine);
-							engine->play2D(mainMenuSound);
-							SDL_ShowCursor(SDL_ENABLE);
-							lock_cam = false;
+							actualState = INIT;
 						}
 					}
 				}
@@ -2416,8 +2522,10 @@ int main(int argc, char* argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_f)
 				{
-					bool inRangeWires = inRange(camera->getPos(), cableSpots, 0.5f) && !cables;
-					bool inRangeTwoFactor = inRange(camera->getPos(), oxygenSpots, 0.5f) && !isTwoFactorTask;
+					bool completedWire = missionIndex != -1 && !completedMissions[missionIndex];
+					bool completedTwoFactor = twoFactorMission != -1 && !completedMissions[twoFactorMission + 3];
+					bool inRangeWires = inRange(camera->getPos(), cableSpots, 0.5f) && !cables && completedWire;
+					bool inRangeTwoFactor = inRange(camera->getPos(), oxygenSpots, 0.5f) && !isTwoFactorTask && completedTwoFactor;
 					if (inRangeWires || inRangeTwoFactor) {
 						timeVisibleState = 0;
 						engine->play2D(panelAppearSound);
