@@ -56,10 +56,6 @@ enum STATES
 	END_GAME
 };
 
-void resetGame(STATES actual, STATES previo) {
-	actual = MAIN_MENU;
-
-}
 
 
 void renderQuad(float quadVertices[])
@@ -1150,7 +1146,7 @@ int main(int argc, char* argv[])
 	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
 	unsigned int twoFactorBase = loadTexture("../Include/model/2factor_base.png");
 	unsigned int deadTexture = loadTexture("../Include/model/killBG.png");
-	unsigned int game_over = loadTexture("../Include/model/defeat.jpg");
+	unsigned int game_over = loadTexture("../Include/model/derrota2.png");
 
 	unsigned int cablesTex = loadTexture("../Include/minigames/wirepanel.png");
 	unsigned int rwire = loadTexture("../Include/minigames/rwire.png");
@@ -1771,7 +1767,7 @@ int main(int argc, char* argv[])
 
 
 			//DRAW DEL FANTASMA
-		//	if ((glm::distance(old_pos_camera.x, 18.f) <= 1.0f) && (glm::distance(old_pos_camera.z, -6.0f) <= 1.0f))
+			if ((glm::distance(old_pos_camera.x, 18.f) <= 1.0f) && (glm::distance(old_pos_camera.z, -6.0f) <= 1.0f))
 			{ // If se encuentra en la puerta de electricidad
 				se_activa_el_fantasma = true;
 			}
@@ -1785,20 +1781,14 @@ int main(int argc, char* argv[])
 				if (ghost->isActive() )
 				{
 					ghost->setSpeed(diff);
-					if (ghost->getDirection().x < 0) {
-						ghost->update(old_pos_camera + glm::vec3(0.0f, 0.f, -0.8f));
-					}
-					else {
-						ghost->update(old_pos_camera + glm::vec3(0.8f, 0.f, 0.4f));
-					}
-					
+					ghost->update(old_pos_camera );
 				}
 				modelFantasma = glm::mat4(1.0f);
-				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z) ); //- glm::vec3(1.1f, 0.f, -0.01f)
+				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z) );
 
 				rotatematrix = glm::mat4(1.0f);
 				float angle = glm::acos(glm::dot(glm::normalize(ghost->getDirection()), glm::vec3(0.0, 0.0, 1.0)));
-				if (ghost->getDirection().x < 0)
+				if (ghost->getDirection().x < 0 )
 				{
 					angle = -angle;
 				}
@@ -1815,6 +1805,7 @@ int main(int argc, char* argv[])
 			fantasma.Draw(ourShader, true, 0, 0);
 
 			//DRAW DEL ASTRONAUTA
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 				modelAnim = glm::mat4(1.f);
 
 				if (first_person)
@@ -1859,7 +1850,7 @@ int main(int argc, char* argv[])
 				cuerpo1.Draw(ourShader, !first_person && (mv.moving_forward || mv.moving_back), 0, 0);
 
 				glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
-
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
 		if (!ghost->gameOver()) {
@@ -2229,14 +2220,15 @@ int main(int argc, char* argv[])
 				lock_cam = false;
 				delete(ghost);
 				ghost = new IA();
-				modelAnim = glm::mat4(1.f);
-				modelAnim = glm::translate(modelAnim, glm::vec3(29.26f, 0.0f, -24.32f));
-				modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
+				camera->setPos(glm::vec3(29.26f, 0.31f, -24.32f));
+				camera->setFront(glm::vec3(0.0f, 0.0f, -1.0f));
+				old_pos = glm::vec3(0.f);
+				old_pos_camera = camera->getPos();
+				old_front_camera = camera->getFront();
 				modelFantasma = glm::mat4(1.f);
 				modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.2f, -12.70f));
 				modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
 				first_person = false;
-
 			}
 			break;
 		}
