@@ -846,8 +846,8 @@ void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool c
 
 void renderF(Shader shader, unsigned int tex)
 {
-	glm::vec2 top_left = getScaledCoords(848, 571);
-	glm::vec2 bottom_right = getScaledCoords(984, 682);
+	glm::vec2 top_left = getScaledCoords(820, 520);
+	glm::vec2 bottom_right = getScaledCoords(1024, 720);
 	renderQuad(shader, top_left, bottom_right, tex);
 }
 
@@ -1287,12 +1287,12 @@ int main(int argc, char* argv[])
 	unsigned int mapMarker = loadTexture("../Include/model/marker.png");
 	unsigned int mainMenu = loadTexture("../Include/model/main-menu.png");
 	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
-	unsigned int twoFactorBase = loadTexture("../Include/model/2factor_base.png");
 	unsigned int windowsMenuOptions = loadTexture("../Include/model/optionMenu.png");
 	unsigned int deadTexture = loadTexture("../Include/model/killBG.png");
 	unsigned int game_over = loadTexture("../Include/model/derrota.png");
 	unsigned int game_victory = loadTexture("../Include/model/victoria.png");
 	unsigned int icon_error = loadTexture("../Include/model/IconError.png");
+	unsigned int twoFactorBase = loadTexture("../Include/minigames/2factor_base.png");
 
 	cablesTex = loadTexture("../Include/minigames/wirepanel.png");
 	unsigned int rwire = loadTexture("../Include/minigames/rwire.png");
@@ -1384,6 +1384,7 @@ int main(int argc, char* argv[])
 
 	// Scene variables
 	SDL_ShowCursor(SDL_ENABLE);
+	bool soundKill = true;
 	bool optionsMenu = false;
 	bool sonido = false;
 	bool soundConfirmTask = true;
@@ -1475,6 +1476,15 @@ int main(int argc, char* argv[])
 	ISoundSource* roundStartSound = engine->addSoundSourceFromFile("../Include/AudioClip/Roundstart_MAIN.wav");
 	roundStartSound->setDefaultVolume(0.2f);
 	roundStartSound->forceReloadAtNextUse();
+	ISoundSource* endGameSound = engine->addSoundSourceFromFile("../Include/AudioClip/victory_impostor.wav");
+	endGameSound->setDefaultVolume(0.2f);
+	endGameSound->forceReloadAtNextUse();
+	ISoundSource* completeGameSound = engine->addSoundSourceFromFile("../Include/AudioClip/victory_crew.wav");
+	completeGameSound->setDefaultVolume(0.2f);
+	completeGameSound->forceReloadAtNextUse();
+	ISoundSource* ghostKillSound = engine->addSoundSourceFromFile("../Include/AudioClip/impostor_kill.wav");
+	ghostKillSound->setDefaultVolume(0.2f);
+	ghostKillSound->forceReloadAtNextUse();
 
 	ISoundSource* pasos[8];
 	cargarSonidoPasos(engine, pasos);
@@ -1651,6 +1661,7 @@ int main(int argc, char* argv[])
 			transitionCounter = 0;
 			cortoElectricidad = false;
 			pausarSonidos(engine);
+			engine->stopAllSounds();
 			engine->play2D(mainMenuSound, true);
 			SDL_ShowCursor(SDL_ENABLE);
 			lock_cam = false;
@@ -1667,6 +1678,7 @@ int main(int argc, char* argv[])
 			modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
 			first_person = false;
 			fixed_pos = false;
+			soundKill = true;
 			break;
 		}
 		case GAME:
@@ -2104,6 +2116,10 @@ int main(int argc, char* argv[])
 
 			}
 			else {
+				if (soundKill) {
+					engine->play2D(ghostKillSound);
+					soundKill = false;
+				}
 				if (wasted <= 1.0) {
 					wasted += 0.1;
 					renderQuad(ShadowDebug, glm::vec2(1 - 2 * wasted, wasted - 0.4f), glm::vec2(2 - wasted, -wasted + 0.4f), deadTexture);
@@ -2115,8 +2131,8 @@ int main(int argc, char* argv[])
 				else {
 					transitionCounter = 0;
 					alpha = 0;
+					engine->play2D(endGameSound);
 					actualState = END_GAME;
-
 				}
 			}
 
@@ -2458,6 +2474,7 @@ int main(int argc, char* argv[])
 				actualState = COMPLETED;
 				alpha = 0;
 				transitionCounter = 0;
+				engine->play2D(completeGameSound);
 			}
 			break;
 		}
@@ -2515,10 +2532,9 @@ int main(int argc, char* argv[])
 			glDisable(GL_DEPTH_TEST);
 			ShadowDebug.use();
 			ShadowDebug.setBool("transparencyIsAvailable", true);
-			if (transitionCounter <= 240)
+			if (engine->isCurrentlyPlaying(completeGameSound))
 			{
-				transitionCounter += diff;
-				alpha += 0.001;
+				alpha += 0.00005;
 				if (alpha >= 1)
 				{
 					alpha = 1;
@@ -2541,10 +2557,9 @@ int main(int argc, char* argv[])
 			glDisable(GL_DEPTH_TEST);
 			ShadowDebug.use();
 			ShadowDebug.setBool("transparencyIsAvailable", true);
-			if (transitionCounter <= 240)
+			if (engine->isCurrentlyPlaying(endGameSound))
 			{
-				transitionCounter += diff;
-				alpha += 0.001;
+				alpha += 0.00005;
 				if (alpha >= 1)
 				{
 					alpha = 1;
@@ -2774,10 +2789,11 @@ int main(int argc, char* argv[])
 						running = false;
 					}
 					else {
-						if (isTwoFactorTask || cables || optionsMenu)
+						if (isTwoFactorTask || cables || optionsMenu || renderMapComplete)
 						{
 							engine->play2D(panelDisappearSound);
 							renderMap = true;
+							renderMapComplete = false;
 							isTwoFactorTask = false;
 							cables = false;
 							optionsMenu = false;
@@ -2833,6 +2849,7 @@ int main(int argc, char* argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_m)
 				{
+					engine->play2D((renderMapComplete) ? panelDisappearSound : panelAppearSound);
 					renderMapComplete = !renderMapComplete;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_2)
@@ -2870,7 +2887,6 @@ int main(int argc, char* argv[])
 							twoFactorNumbers[num] = ' ';
 						}
 					}
-					//ghost_moving = !ghost_moving;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_F11)
 				{
