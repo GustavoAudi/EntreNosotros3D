@@ -2133,7 +2133,6 @@ int main(int argc, char* argv[])
 					alpha = 0;
 					engine->play2D(endGameSound);
 					actualState = END_GAME;
-
 				}
 			}
 
@@ -2790,10 +2789,11 @@ int main(int argc, char* argv[])
 						running = false;
 					}
 					else {
-						if (isTwoFactorTask || cables || optionsMenu)
+						if (isTwoFactorTask || cables || optionsMenu || renderMapComplete)
 						{
 							engine->play2D(panelDisappearSound);
 							renderMap = true;
+							renderMapComplete = false;
 							isTwoFactorTask = false;
 							cables = false;
 							optionsMenu = false;
@@ -2849,6 +2849,7 @@ int main(int argc, char* argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_m)
 				{
+					engine->play2D((renderMapComplete) ? panelDisappearSound : panelAppearSound);
 					renderMapComplete = !renderMapComplete;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_2)
@@ -2886,7 +2887,6 @@ int main(int argc, char* argv[])
 							twoFactorNumbers[num] = ' ';
 						}
 					}
-					//ghost_moving = !ghost_moving;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_F11)
 				{
