@@ -33,8 +33,7 @@ public:
     float getSpeed();
     bool isActive();
     bool gameOver();
-    
-    void Rotate(double y, double p);
+
 
 private:
     glm::vec3 pos;
