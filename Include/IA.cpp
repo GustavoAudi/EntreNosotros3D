@@ -29,11 +29,12 @@ void IA::setDirection(glm::vec3 dir) {
     this->dir = dir;
 }
 void IA::setSpeed(float s) {
-    this->speed = s;
+    this->speed = 0.02f * s;
 }
 void IA::start(glm::vec3 tar, int diff) {
+    //diff = 0;
     this->active = true;
-    this->speed = 0.02f * diff;
+    this->speed = 0.01f;// *diff;
     update(tar);
 }
 void IA::update(glm::vec3 target) {
@@ -50,25 +51,16 @@ void IA::update(glm::vec3 target) {
 glm::vec3 IA::getPos() { return this->pos; }
 glm::vec3 IA::getFront() { return this->front; }
 glm::vec3 IA::getTarget() { return this->target; }
-glm::vec3 IA::getDirection() { return this->dir; }
+glm::vec3 IA::getDirection() { return glm::normalize(this->dir); }
 float IA::getSpeed() { return this->speed; }
 bool IA::isActive() { return this->active; }
 
 bool IA::gameOver() { 
     if ((glm::distance(this->target.x, this->pos.x) <= this->distanceGameOver) && (glm::distance(this->target.z, this->pos.z) <= this->distanceGameOver)){
-        //cout << "Game over" << endl;
         this->active = false;
         this->dir = glm::vec3(0.f);
         return true; //true
     }
     return false;
-}
-
-void IA::Rotate(double y, double p) {
-
-    this->dir.x = cos(glm::radians(y)) * cos(glm::radians(p));
-    this->dir.y = sin(glm::radians(p));
-    this->dir.z = sin(glm::radians(y)) * cos(glm::radians(p));
-    this->front = glm::normalize(this->dir);
 }
 

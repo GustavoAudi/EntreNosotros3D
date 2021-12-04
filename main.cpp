@@ -584,9 +584,9 @@ unsigned int loadTexture(string path)
 	return texture1;
 }
 
-void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, string tex)
+void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, unsigned int useTex)
 {
-	unsigned int useTex = loadTexture(tex);
+	//unsigned int useTex = loadTexture(tex);
 	float coords[] = {
 		// positions        // texture Coords
 		top_left.x,
@@ -619,9 +619,9 @@ void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, strin
 	renderQuad(coords);
 }
 
-void renderQuad(Shader shader, float coords[], string tex)
+void renderQuad(Shader shader, float coords[], unsigned int useTex)
 {
-	unsigned int useTex = loadTexture(tex);
+	//unsigned int useTex = loadTexture(tex);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
 	glDisable(GL_DEPTH_TEST);
@@ -649,20 +649,14 @@ glm::vec2 getScaledCoords(glm::vec2 vec)
 	return glm::vec2((2.f * vec.x / SCR_W) - 1.f, ((-2.f * vec.y / SCR_H) + 1.f));
 }
 
-
+vector<unsigned int> wires;
+unsigned int cablesTex;
 vector<int> colors_left{ 0, 1, 2, 3 };
 vector<int> colors_right{ 0, 1, 2, 3 };
 vector<bool> fixed_cables(4, false);
 bool panel_inPos = false;
 int currentPos = 0;
 int displacementScaling = 120;
-
-vector<string> wires{
-	"../Include/minigames/rwire.png",
-	"../Include/minigames/bwire.png",
-	"../Include/minigames/ywire.png",
-	"../Include/minigames/pwire.png",
-};
 
 vector<glm::vec2> leftCablePos{
 	glm::vec2(210, 227),
@@ -714,6 +708,7 @@ int getIndex(vector<T> v, T elem)
 		return -1;
 	}
 }
+
 void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool clicked, bool reset, ISoundEngine* engine, ISoundSource* wireSound, int diff)
 {
 	if (reset)
@@ -727,7 +722,6 @@ void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool c
 		currentPos = 0;
 	}
 
-	string cablesTex = "../Include/minigames/wirepanel.png";
 	glm::vec2 top_left;
 	glm::vec2 bottom_right;
 	if (!panel_inPos) {
@@ -811,9 +805,8 @@ void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool c
 	}
 }
 
-void renderF(Shader shader)
+void renderF(Shader shader, unsigned int tex)
 {
-	string tex = "../Include/minigames/use.png";
 	glm::vec2 top_left = getScaledCoords(848, 571);
 	glm::vec2 bottom_right = getScaledCoords(984, 682);
 	renderQuad(shader, top_left, bottom_right, tex);
@@ -831,7 +824,7 @@ vector<glm::vec2> cableSpotsMap{
 	glm::vec2(813, 299),
 	glm::vec2(439, 108),
 	glm::vec2(404, 366),
-	glm::vec2(241, 316)};
+	glm::vec2(241, 316) };
 
 vector<glm::vec3> oxygenSpots{
 	glm::vec3(36.5912f, 0.31f, -17.9872f),
@@ -851,13 +844,14 @@ std::vector<T> Append(std::vector<T>& a, const std::vector<T>& b)
 	return c;
 }
 
+
 vector<int> randomUnique(int n, int max) {
 	std::set<int> numbers;
 	while (numbers.size() < n)
 	{
 		numbers.insert(rand() % max);
 	}
-	return std::vector<int> (numbers.begin(), numbers.end());
+	return std::vector<int>(numbers.begin(), numbers.end());
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1187,6 +1181,23 @@ int main(int argc, char* argv[])
 	unsigned int mainMenu = loadTexture("../Include/model/main-menu.png");
 	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
 	unsigned int twoFactorBase = loadTexture("../Include/model/2factor_base.png");
+	unsigned int deadTexture = loadTexture("../Include/model/killBG.png");
+	unsigned int game_over = loadTexture("../Include/model/derrota2.png");
+	unsigned int icon_error = loadTexture("../Include/model/IconError.png");
+
+	cablesTex = loadTexture("../Include/minigames/wirepanel.png");
+	unsigned int rwire = loadTexture("../Include/minigames/rwire.png");
+	unsigned int bwire = loadTexture("../Include/minigames/bwire.png");
+	unsigned int ywire = loadTexture("../Include/minigames/ywire.png");
+	unsigned int pwire = loadTexture("../Include/minigames/pwire.png");
+
+	wires.push_back(rwire);
+	wires.push_back(bwire);
+	wires.push_back(ywire);
+	wires.push_back(pwire);
+
+	unsigned int use = loadTexture("../Include/minigames/use.png");
+
 
 	// INITIALIZE VARIABLES
 	SDL_DisplayMode DM;
@@ -1225,7 +1236,7 @@ int main(int argc, char* argv[])
 	modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
 
 	modelsun = glm::mat4(1.0f);
-	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 0.0f)); //modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
+	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 20.0f, 35.0f)); //modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
 	modelsun = glm::scale(modelsun, glm::vec3(0.3f, 0.3f, 0.3f));
 
 	// GAME STATES
@@ -1236,8 +1247,10 @@ int main(int argc, char* argv[])
 		MAIN_MENU,
 		TRANSITION,
 		GAME,
-		COMPLETED
+		COMPLETED,
+		END_GAME
 	};
+
 	STATES actualState = INIT;
 	STATES previousState = TRANSITION;
 	vector<bool> completedMissions(5, false);
@@ -1293,6 +1306,7 @@ int main(int argc, char* argv[])
 	int diff = 0;
 	int timeN = 0;
 	bool se_activa_el_fantasma = false;
+	float wasted = -1.f;
 
 	// Setup lights
 	glm::vec3 ambient = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -1517,7 +1531,7 @@ int main(int argc, char* argv[])
 		case INIT: {
 			completedMissions = vector<bool>(5, false); //first three are cables, last two are twoFactor
 			//3 unique int. Position equals to position in completedMissions, number equals to pos in CableSpots
-			assignedWire = randomUnique(3, cableSpots.size()); 
+			assignedWire = randomUnique(3, cableSpots.size());
 			actualState = MAIN_MENU;
 			alpha = 1;
 			transitionCounter = 0;
@@ -1674,10 +1688,10 @@ int main(int argc, char* argv[])
 
 			//DRAW SUN
 			skyboxShader.use();
-			modelsun = glm::translate(modelsun, glm::vec3(27.0f, 0.0f, -17.0f));
+			//modelsun = glm::translate(modelsun, glm::vec3(27.0f, 0.0f, -17.0f));
 			modelsun = glm::mat4(glm::rotate(modelsun, glm::radians(0.5f), glm::vec3(1.0, 0.0, 0.0)));
 			//modelsun = glm::translate(modelsun, glm::vec3(0.0f, -0.8f, 1.0f));
-			modelsun = glm::translate(modelsun, glm::vec3(-27.0f, 0.0f, 17.0f));
+			//modelsun = glm::translate(modelsun, glm::vec3(-27.0f, 0.0f, 17.0f));
 			skyboxShader.setMat4("model", modelsun);
 			skyboxShader.setMat4("projection", projection);
 			skyboxShader.setMat4("view", view);
@@ -1829,10 +1843,48 @@ int main(int argc, char* argv[])
 			ourShader.setMat4("normals_matrix", matr_normals);
 			muerto.Draw(ourShader, false, 0, 0);
 
-			//DRAW DEL ASTRONAUTA
-			projection = glm::perspective(glm::radians(zoom), (float)SCR_W / (float)SCR_H, 0.5f, 100.f);
-			view = glm::lookAt(camera->getPos(), camera->getPos(), camera->getUp());
 
+			//DRAW DEL FANTASMA
+			if ((glm::distance(old_pos_camera.x, 18.f) <= 1.0f) && (glm::distance(old_pos_camera.z, -6.0f) <= 1.0f))
+			{ // If se encuentra en la puerta de electricidad
+				se_activa_el_fantasma = true;
+			}
+
+			if (!ghost->gameOver())
+			{
+				if (!ghost->isActive() && se_activa_el_fantasma)
+				{
+					ghost->start(old_pos_camera, diff);
+				}
+				if (ghost->isActive())
+				{
+					ghost->setSpeed(diff);
+					ghost->update(old_pos_camera);
+				}
+				modelFantasma = glm::mat4(1.0f);
+				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z));
+
+				rotatematrix = glm::mat4(1.0f);
+				float angle = glm::acos(glm::dot(glm::normalize(ghost->getDirection()), glm::vec3(0.0, 0.0, 1.0)));
+				if (ghost->getDirection().x < 0)
+				{
+					angle = -angle;
+				}
+				rotatematrix = glm::mat4(glm::rotate(rotatematrix, angle, glm::vec3(0.0, 1.0, 0.0)));
+
+				modelFantasma = modelFantasma * rotatematrix;
+				modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
+			}
+
+
+			ourShader.setMat4("model", modelFantasma);
+			ourShader.setBool("moove", true);
+			fantasma.initBonesForShader(ourShader);
+			fantasma.Draw(ourShader, true, 0, 0);
+
+
+			//DRAW DEL ASTRONAUTA
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			modelAnim = glm::mat4(1.f);
 
 			if (first_person)
@@ -1877,104 +1929,92 @@ int main(int argc, char* argv[])
 			cuerpo1.Draw(ourShader, !first_person && (mv.moving_forward || mv.moving_back), 0, 0);
 
 			glEnable(GL_CULL_FACE); // enable back face culling - try this and see what happens!
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-			//DRAW DEL FANTASMA
-			if ((glm::distance(old_pos_camera.x, 18.f) <= 0.5f) && (glm::distance(old_pos_camera.z, -6.0f) <= 0.5f))
-			{ // If se encuentra en la puerta de electricidad
-				se_activa_el_fantasma = true;
+
+			if (!ghost->gameOver()) {
+				// DRAW DEL MAPA
+				ShadowDebug.use();
+				ShadowDebug.setBool("transparencyIsAvailable", false);
+				if (renderMap)
+				{
+					float delta_x = (10.0f / (SCR_W / 2.0f));
+					float delta_y = (10.0f / (SCR_H / 2.0f));
+					float mark_x, mark_y;
+					if (renderMapComplete) {
+						mark_x = (camera->getPos().x * (1.0f / 30.0f)) - 0.9;//+ 0.045333f
+						mark_y = -(camera->getPos().z * (1.0f / 20.0f) + 0.7);//- 0.13667f)
+					}
+					else {
+						mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
+						mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
+					}
+
+					float marker[] = {
+						// positions        // texture Coords
+						mark_x, mark_y + delta_y, 0.0f, 0.0f, 1.0f,
+						mark_x, mark_y, 0.0f, 0.0f, 0.0f,
+						mark_x + delta_x, mark_y + delta_y, 0.0f, 1.0f, 1.0f,
+						mark_x + delta_x, mark_y, 0.0f, 1.0f, 0.0f,
+					};
+					glBindFramebuffer(GL_FRAMEBUFFER, 0);
+					glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
+					glDisable(GL_DEPTH_TEST);
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, gameTexture);
+					if (!renderMapComplete)
+					{
+						renderQuad(upRight);
+						glActiveTexture(GL_TEXTURE1);
+						glBindTexture(GL_TEXTURE_2D, mapMarker);
+						renderQuad(marker);
+					}
+					else
+					{
+						renderQuad(full);
+						glActiveTexture(GL_TEXTURE1);
+						glBindTexture(GL_TEXTURE_2D, mapMarker);
+						renderQuad(marker);
+						//render cable task markers
+						for (int i = 0; i < assignedWire.size(); i++) {
+							if (!completedMissions[i]) {
+								glm::vec2 markerPos = getScaledCoords(cableSpotsMap[assignedWire[i]] - glm::vec2(10, 10));
+								glm::vec2 markerPosFinal = getScaledCoords(cableSpotsMap[assignedWire[i]] + glm::vec2(15, 15));
+								renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
+							}
+						}
+						//render twoFactor task markers
+						for (int i = 0; i < 2; i++) {
+							if (!completedMissions[i + 3]) {
+								glm::vec2 markerPos = getScaledCoords(oxygenSpotsMap[i] - glm::vec2(10, 10));
+								glm::vec2 markerPosFinal = getScaledCoords(oxygenSpotsMap[i] + glm::vec2(15, 15));
+								renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
+							}
+						}
+					}
+				}
+
 			}
-
-			if (!ghost->gameOver())
-			{
-				if (!ghost->isActive() && se_activa_el_fantasma)
-				{
-					ghost->start(old_pos_camera, diff);
+			else {
+				if (wasted <= 1.0) {
+					wasted += 0.1;
+					renderQuad(ShadowDebug, glm::vec2(1 - 2 * wasted, wasted - 0.4f), glm::vec2(2 - wasted, -wasted + 0.4f), deadTexture);
 				}
-				if (ghost->isActive())
-				{
-					ghost->update(old_pos_camera);
-				}
-
-				modelFantasma = glm::mat4(1.0f);
-				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z)); //- glm::vec3(1.1f, 0.f, -0.01f)
-
-				rotatematrix = glm::mat4(1.0f);
-				float angle = glm::acos(glm::dot(glm::normalize(ghost->getDirection()), glm::vec3(0.0, 0.0, 1.0)));
-				if (ghost->getDirection().x < 0)
-				{
-					angle = -angle;
-				}
-				rotatematrix = glm::mat4(glm::rotate(rotatematrix, angle, glm::vec3(0.0, 1.0, 0.0)));
-
-				modelFantasma = modelFantasma * rotatematrix;
-				modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
-			}
-
-			ourShader.setMat4("model", modelFantasma);
-			ourShader.setBool("moove", true);
-			fantasma.initBonesForShader(ourShader);
-			fantasma.Draw(ourShader, true, 0, 0);
-
-			// DRAW DEL MAPA
-			ShadowDebug.use();
-			ShadowDebug.setBool("transparencyIsAvailable", false);
-			if (renderMap)
-			{
-				float delta_x = (10.0f / (SCR_W / 2.0f));
-				float delta_y = (10.0f / (SCR_H / 2.0f));
-				float mark_x, mark_y;
-				if (renderMapComplete) {
-					mark_x = (camera->getPos().x * (1.0f / 30.0f)) - 0.9;//+ 0.045333f
-					mark_y = -(camera->getPos().z * (1.0f / 20.0f) + 0.7);//- 0.13667f)
+				renderQuad(ShadowDebug, glm::vec2(-2 + wasted, wasted - 0.4f), glm::vec2(wasted, -wasted + 0.4f), deadTexture);
+				if (transitionCounter <= 240) {
+					transitionCounter += diff;
+					//glBindTexture(GL_TEXTURE_2D, blackWindows);
+					//renderQuad(ShadowDebug, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), blackWindows);
+					//renderQuad(full);
 				}
 				else {
-					mark_x = (camera->getPos().x * (1.0f / 60.0f)) + 0.045333f;
-					mark_y = -(camera->getPos().z * (1.0f / 40.0f) - 0.13667f);
-				}
+					transitionCounter = 0;
+					alpha = 0;
+					actualState = END_GAME;
 
-				float marker[] = {
-					// positions        // texture Coords
-					mark_x, mark_y + delta_y, 0.0f, 0.0f, 1.0f,
-					mark_x, mark_y, 0.0f, 0.0f, 0.0f, 
-					mark_x + delta_x, mark_y + delta_y, 0.0f, 1.0f, 1.0f,
-					mark_x + delta_x, mark_y, 0.0f, 1.0f, 0.0f,
-				};
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-				glDisable(GL_DEPTH_TEST);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, gameTexture);
-				if (!renderMapComplete)
-				{
-					renderQuad(upRight);
-					glActiveTexture(GL_TEXTURE1);
-					glBindTexture(GL_TEXTURE_2D, mapMarker);
-					renderQuad(marker);
-				}
-				else
-				{
-					renderQuad(full);
-					glActiveTexture(GL_TEXTURE1);
-					glBindTexture(GL_TEXTURE_2D, mapMarker);
-					renderQuad(marker);
-					//render cable task markers
-					for (int i = 0; i < assignedWire.size(); i++) {
-						if (!completedMissions[i]) {
-							glm::vec2 markerPos = getScaledCoords(cableSpotsMap[assignedWire[i]] - glm::vec2(10, 10));
-							glm::vec2 markerPosFinal = getScaledCoords(cableSpotsMap[assignedWire[i]] + glm::vec2(15, 15));
-							renderQuad(ShadowDebug, markerPos, markerPosFinal, "../Include/model/IconError.png");
-						}
-					}
-					//render twoFactor task markers
-					for (int i = 0; i < 2; i++) {
-						if (!completedMissions[i + 3]) {
-							glm::vec2 markerPos = getScaledCoords(oxygenSpotsMap[i] - glm::vec2(10, 10));
-							glm::vec2 markerPosFinal = getScaledCoords(oxygenSpotsMap[i] + glm::vec2(15, 15));
-							renderQuad(ShadowDebug, markerPos, markerPosFinal, "../Include/model/IconError.png");
-						}
-					}
 				}
 			}
+
 
 			// SHOW FPS
 			short fps_to_show;
@@ -2008,10 +2048,9 @@ int main(int argc, char* argv[])
 				{
 					transitionCounter += diff;
 					alpha -= 0.01;
-					if (alpha <= 0)
-					{
-						alpha = 0;
-					}
+					if (alpha <= 0) { alpha = 0; }
+
+
 					ShadowDebug.setFloat("alpha", alpha);
 				}
 				else
@@ -2023,15 +2062,17 @@ int main(int argc, char* argv[])
 				renderQuad(full);
 			}
 
+
 			// Wires Task
 			currentMission = closestIndex(camera->getPos(), cableSpots, 0.5f);
 			missionIndex = getIndex(assignedWire, currentMission);
 			if (missionIndex != -1 && !completedMissions[missionIndex]) {
-				renderF(ShadowDebug);
+				renderF(ShadowDebug, use);
 			}
-			if (cables && missionIndex!=-1 && !completedMissions[missionIndex])
+			if (cables && missionIndex != -1 && !completedMissions[missionIndex])
 			{
 				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset, engine, wireSound, diff);
+
 				reset = false;
 				bool wiresComplete = true;
 				for (int cable = 0; cable < 4; cable++)
@@ -2074,15 +2115,12 @@ int main(int argc, char* argv[])
 					}
 				}
 			}
-			else {
-				reset = true;
-			}
 
 			// Two Factor Task
 			twoFactorMission = closestIndex(camera->getPos(), oxygenSpots, 0.5f);
-			if (twoFactorMission != -1 && !completedMissions[twoFactorMission +3])
+			if (twoFactorMission != -1 && !completedMissions[twoFactorMission + 3])
 			{
-				renderF(ShadowDebug);
+				renderF(ShadowDebug, use);
 			}
 			if (isTwoFactorTask && twoFactorMission != -1 && !completedMissions[twoFactorMission + 3])
 			{
@@ -2256,8 +2294,53 @@ int main(int argc, char* argv[])
 			renderQuad(full);
 			break;
 		}
-		case COMPLETED: 
+		case COMPLETED:
 		{
+			break;
+		}
+		case END_GAME:
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDepthFunc(GL_LEQUAL);
+			glDisable(GL_DEPTH_TEST);
+			ShadowDebug.use();
+			ShadowDebug.setBool("transparencyIsAvailable", true);
+			if (transitionCounter <= 240)
+			{
+				transitionCounter += diff;
+				alpha += 0.001;
+				if (alpha >= 1)
+				{
+					alpha = 1;
+				}
+				ShadowDebug.setFloat("alpha", alpha);
+
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, game_over);
+				renderQuad(ShadowDebug, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), game_over);
+			}
+			else {
+				// variables para resetear el juego
+				actualState = MAIN_MENU;
+				alpha = 1;
+				transitionCounter = 0;
+				cortoElectricidad = false;
+				pausarSonidos(engine);
+				engine->play2D(mainMenuSound);
+				SDL_ShowCursor(SDL_ENABLE);
+				lock_cam = false;
+				delete(ghost);
+				ghost = new IA();
+				camera->setPos(glm::vec3(29.26f, 0.31f, -24.32f));
+				camera->setFront(glm::vec3(0.0f, 0.0f, -1.0f));
+				old_pos = glm::vec3(0.f);
+				old_pos_camera = camera->getPos();
+				old_front_camera = camera->getFront();
+				modelFantasma = glm::mat4(1.f);
+				modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.2f, -12.70f));
+				modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
+				first_person = false;
+			}
 			break;
 		}
 		}
