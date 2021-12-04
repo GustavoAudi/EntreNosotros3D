@@ -586,7 +586,6 @@ unsigned int loadTexture(string path)
 
 void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, unsigned int useTex)
 {
-	//unsigned int useTex = loadTexture(tex);
 	float coords[] = {
 		// positions        // texture Coords
 		top_left.x,
@@ -621,7 +620,6 @@ void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, unsig
 
 void renderQuad(Shader shader, float coords[], unsigned int useTex)
 {
-	//unsigned int useTex = loadTexture(tex);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
 	glDisable(GL_DEPTH_TEST);
@@ -1182,7 +1180,8 @@ int main(int argc, char* argv[])
 	unsigned int blackWindows = loadTexture("../Include/model/black-windows.png");
 	unsigned int twoFactorBase = loadTexture("../Include/model/2factor_base.png");
 	unsigned int deadTexture = loadTexture("../Include/model/killBG.png");
-	unsigned int game_over = loadTexture("../Include/model/derrota2.png");
+	unsigned int game_over = loadTexture("../Include/model/derrota.png");
+	unsigned int game_victory = loadTexture("../Include/model/victoria.png");
 	unsigned int icon_error = loadTexture("../Include/model/IconError.png");
 
 	cablesTex = loadTexture("../Include/minigames/wirepanel.png");
@@ -1360,9 +1359,6 @@ int main(int argc, char* argv[])
 	taskCompleteSound->setDefaultVolume(0.2f);
 	taskCompleteSound->forceReloadAtNextUse();
 
-
-	engine->play2D(mainMenuSound, true);
-
 	ISoundSource* pasos[8];
 	cargarSonidoPasos(engine, pasos);
 	int ultimoPaso = 0;
@@ -1537,7 +1533,7 @@ int main(int argc, char* argv[])
 			transitionCounter = 0;
 			cortoElectricidad = false;
 			pausarSonidos(engine);
-			engine->play2D(mainMenuSound);
+			engine->play2D(mainMenuSound, true);
 			SDL_ShowCursor(SDL_ENABLE);
 			lock_cam = false;
 			delete(ghost);
@@ -1547,10 +1543,12 @@ int main(int argc, char* argv[])
 			old_pos = glm::vec3(0.f);
 			old_pos_camera = camera->getPos();
 			old_front_camera = camera->getFront();
+			se_activa_el_fantasma = false;
 			modelFantasma = glm::mat4(1.f);
 			modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.2f, -12.70f));
 			modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
 			first_person = false;
+			fixed_pos = false;
 			break;
 		}
 		case GAME:
@@ -1882,7 +1880,6 @@ int main(int argc, char* argv[])
 			fantasma.initBonesForShader(ourShader);
 			fantasma.Draw(ourShader, true, 0, 0);
 
-
 			//DRAW DEL ASTRONAUTA
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			modelAnim = glm::mat4(1.f);
@@ -2003,9 +2000,6 @@ int main(int argc, char* argv[])
 				renderQuad(ShadowDebug, glm::vec2(-2 + wasted, wasted - 0.4f), glm::vec2(wasted, -wasted + 0.4f), deadTexture);
 				if (transitionCounter <= 240) {
 					transitionCounter += diff;
-					//glBindTexture(GL_TEXTURE_2D, blackWindows);
-					//renderQuad(ShadowDebug, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), blackWindows);
-					//renderQuad(full);
 				}
 				else {
 					transitionCounter = 0;
@@ -2014,7 +2008,6 @@ int main(int argc, char* argv[])
 
 				}
 			}
-
 
 			// SHOW FPS
 			short fps_to_show;
@@ -2249,6 +2242,8 @@ int main(int argc, char* argv[])
 			}
 			if (completedGame) {
 				actualState = COMPLETED;
+				alpha = 0;
+				transitionCounter = 0;
 			}
 			break;
 		}
@@ -2296,6 +2291,28 @@ int main(int argc, char* argv[])
 		}
 		case COMPLETED:
 		{
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDepthFunc(GL_LEQUAL);
+			glDisable(GL_DEPTH_TEST);
+			ShadowDebug.use();
+			ShadowDebug.setBool("transparencyIsAvailable", true);
+			if (transitionCounter <= 240)
+			{
+				transitionCounter += diff;
+				alpha += 0.001;
+				if (alpha >= 1)
+				{
+					alpha = 1;
+				}
+				ShadowDebug.setFloat("alpha", alpha);
+
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, game_victory);
+				renderQuad(ShadowDebug, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), game_victory);
+			}
+			else {
+				actualState = INIT;
+			}
 			break;
 		}
 		case END_GAME:
@@ -2320,26 +2337,7 @@ int main(int argc, char* argv[])
 				renderQuad(ShadowDebug, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), game_over);
 			}
 			else {
-				// variables para resetear el juego
-				actualState = MAIN_MENU;
-				alpha = 1;
-				transitionCounter = 0;
-				cortoElectricidad = false;
-				pausarSonidos(engine);
-				engine->play2D(mainMenuSound);
-				SDL_ShowCursor(SDL_ENABLE);
-				lock_cam = false;
-				delete(ghost);
-				ghost = new IA();
-				camera->setPos(glm::vec3(29.26f, 0.31f, -24.32f));
-				camera->setFront(glm::vec3(0.0f, 0.0f, -1.0f));
-				old_pos = glm::vec3(0.f);
-				old_pos_camera = camera->getPos();
-				old_front_camera = camera->getFront();
-				modelFantasma = glm::mat4(1.f);
-				modelFantasma = glm::translate(modelFantasma, glm::vec3(20.3f, 0.2f, -12.70f));
-				modelFantasma = glm::scale(modelFantasma, glm::vec3(0.15f, 0.15f, 0.15f));
-				first_person = false;
+				actualState = INIT;
 			}
 			break;
 		}
@@ -2347,7 +2345,7 @@ int main(int argc, char* argv[])
 
 		// EVENTS
 		while (SDL_PollEvent(&sdlEvent))
-		{ //usar SDL_WaitEvent?
+		{ 
 			switch (sdlEvent.type)
 			{
 			case SDL_MOUSEMOTION:
@@ -2651,7 +2649,7 @@ int main(int argc, char* argv[])
 					auto Width = DM.w;
 					auto Height = DM.h;
 					if (fullScreen)
-						glViewport(0, 0, Width, Height); //update viewport
+						glViewport(0, 0, Width, Height); 
 					else
 						glViewport(0, 0, SCR_W, SCR_H);
 				}
@@ -2662,10 +2660,7 @@ int main(int argc, char* argv[])
 				SDL_WarpMouseInWindow(window, SCR_W / 2, SCR_H / 2);
 		}
 
-		SDL_GL_SwapWindow(window); // swap buffers
-								   /*if (diff > 0) {
-			SDL_Delay(diff);
-		}*/
+		SDL_GL_SwapWindow(window); 
 	}
 
 	cleanup();
