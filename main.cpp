@@ -1485,6 +1485,8 @@ int main(int argc, char* argv[])
 	ISoundSource* ghostKillSound = engine->addSoundSourceFromFile("../Include/AudioClip/impostor_kill.wav");
 	ghostKillSound->setDefaultVolume(0.2f);
 	ghostKillSound->forceReloadAtNextUse();
+	ISoundSource* ghostSound = engine->addSoundSourceFromFile("../Include/AudioClip/ghost.wav");
+	ghostSound->forceReloadAtNextUse();
 
 	ISoundSource* pasos[8];
 	cargarSonidoPasos(engine, pasos);
@@ -1981,6 +1983,12 @@ int main(int argc, char* argv[])
 				{
 					ghost->setSpeed(diff);
 					ghost->update(old_pos_camera);
+					if (distance(old_pos_camera, ghost->getPos()) < 5) {
+						if (!engine->isCurrentlyPlaying(ghostSound)) {
+							engine->play3D(ghostSound, vec3df(ghost->getPos().x, ghost->getPos().y, ghost->getPos().z), false, false, true);
+						}
+					}
+					
 				}
 				modelFantasma = glm::mat4(1.0f);
 				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z));
