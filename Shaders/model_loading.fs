@@ -175,6 +175,10 @@ void main()
           BrightColor = vec4(0.0, 0.0, 0.0, transparent);
    
  result *= vec3(1-ShadowCalculation(fragPosLight,norm, light_dir.direction));
+ //float noise = fract(sin(dot(FragPos.xy,vec2(12.9898,78.233)))* 43378.34 );
+ //result.r += noise;
+ //result.g += noise;
+ //result.b += noise;
       FragColor = vec4(result,transparent);   
       
 }
