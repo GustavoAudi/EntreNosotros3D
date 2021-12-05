@@ -629,26 +629,10 @@ void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, unsig
 {
 	float coords[] = {
 		// positions        // texture Coords
-		top_left.x,
-		top_left.y,
-		0.0f,
-		0.0f,
-		1.0f,
-		top_left.x,
-		bottom_right.y,
-		0.0f,
-		0.0f,
-		0.0f,
-		bottom_right.x,
-		top_left.y,
-		0.0f,
-		1.0f,
-		1.0f,
-		bottom_right.x,
-		bottom_right.y,
-		0.0f,
-		1.0f,
-		0.0f,
+		top_left.x,top_left.y,0.0f,0.0f,1.0f,
+		top_left.x,bottom_right.y,0.0f,0.0f,0.0f,
+		bottom_right.x,top_left.y,0.0f,1.0f,1.0f,
+		bottom_right.x,bottom_right.y,0.0f,1.0f,0.0f,
 	};
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
@@ -817,26 +801,10 @@ void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool c
 				float width = 0.048;
 				float coords[] = {
 					// positions        // texture Coords
-					origin.x,
-					origin.y,
-					0.0f,
-					0.0f,
-					1.0f,
-					origin.x,
-					origin.y - width,
-					0.0f,
-					0.0f,
-					0.0f,
-					destination.x,
-					destination.y,
-					0.0f,
-					1.0f,
-					1.0f,
-					destination.x,
-					destination.y - width,
-					0.0f,
-					1.0f,
-					0.0f,
+					origin.x,origin.y,0.0f,0.0f,1.0f,
+					origin.x,origin.y - width,0.0f,0.0f,0.0f,
+					destination.x,destination.y,0.0f,1.0f,1.0f,
+					destination.x,destination.y - width,0.0f,1.0f,0.0f,
 				};
 				renderQuad(shader, coords, wires[colors_left[cable]]);
 			}
@@ -882,8 +850,6 @@ vector<glm::vec3> medbaySpots{
 vector<glm::vec2> medbaySpotsMap{
 	glm::vec2(411, 325)
 };
-
-
 
 template <typename T>
 std::vector<T> Append(std::vector<T>& a, const std::vector<T>& b)
@@ -1052,8 +1018,6 @@ int main(int argc, char* argv[])
 	skyboxShader.setInt("sun", 0);
 	skyboxShader.setInt("skybox", 1);
 
-	//stbi_set_flip_vertically_on_load(true);
-
 	// SETUP MODELS
 	Model ourModel("../Include/model/c.obj");
 	Model cuerpo1("../Include/model/astronaut.dae");
@@ -1155,74 +1119,26 @@ int main(int argc, char* argv[])
 
 	float twoFactorPosition[] = {
 		// positions        // texture Coords
-		0.03125,
-		0.671111,
-		0.0f,
-		1.0f,
-		0.0f,
-		-0.541016,
-		0.671111,
-		0.0f,
-		0.0f,
-		0.0f,
-		0.03125,
-		0.540556,
-		0.0f,
-		1.0f,
-		1.0f,
-		-0.541016,
-		0.540556,
-		0.0f,
-		0.0f,
-		1.0f,
+		0.03125,0.671111,0.0f,1.0f,0.0f,
+		-0.541016,0.671111,0.0f,0.0f,0.0f,
+		0.03125,0.540556,0.0f,1.0f,1.0f,
+		-0.541016,0.540556,0.0f,0.0f,1.0f,
 	};
 
 	float twoFactorPositionPass[] = {
 		// positions        // texture Coords
-		0.291016,
-		0.133333,
-		0.0f,
-		0.0f,
-		1.0f,
-		0.488281,
-		0.133333,
-		0.0f,
-		1.0f,
-		1.0f,
-		0.291016,
-		0.238889,
-		0.0f,
-		0.0f,
-		0.0f,
-		0.488281,
-		0.238889,
-		0.0f,
-		1.0f,
-		0.0f,
+		0.291016,0.133333,0.0f,0.0f,1.0f,
+		0.488281,0.133333,0.0f,1.0f,1.0f,
+		0.291016,0.238889,0.0f,0.0f,0.0f,
+		0.488281,0.238889,0.0f,1.0f,0.0f,
 	};
 
 	float twoFactorStatusPosition[] = {
 		// positions        // texture Coords
-		0.03125,
-		0.383111,
-		0.0f,
-		1.0f,
-		0.0f,
-		-0.541016,
-		0.383111,
-		0.0f,
-		0.0f,
-		0.0f,
-		0.03125,
-		0.252556,
-		0.0f,
-		1.0f,
-		1.0f,
-		-0.541016,
-		0.252556,
-		0.0f,
-		0.0f,
-		1.0f,
+		0.03125,0.383111,0.0f,1.0f,0.0f,
+		-0.541016,0.383111,0.0f,0.0f,0.0f,
+		0.03125,0.252556,0.0f,1.0f,1.0f,
+		-0.541016,0.252556,0.0f,0.0f,1.0f,
 	};
 
 	// Option Menu Positions
@@ -2248,10 +2164,10 @@ int main(int argc, char* argv[])
 				if (transitionCounter <= 130)
 				{
 					transitionCounter += diff;
-					alpha -= 0.01;
-					if (alpha <= 0) { alpha = 0; }
-
-
+					alpha -= diff / 75.0f;
+					if (alpha <= 0) {
+						alpha = 0;
+					}
 					ShadowDebug.setFloat("alpha", alpha);
 				}
 				else
@@ -2591,7 +2507,7 @@ int main(int argc, char* argv[])
 					}
 				}
 				transitionCounter += diff;
-				alpha -= 0.0003;
+				alpha -= diff / 75.0f;
 				if (alpha <= 0)
 				{
 					alpha = 0;
@@ -2620,7 +2536,7 @@ int main(int argc, char* argv[])
 			ShadowDebug.setBool("transparencyIsAvailable", true);
 			if (engine->isCurrentlyPlaying(completeGameSound))
 			{
-				alpha += 0.00005;
+				alpha += diff / 300.0f;
 				if (alpha >= 1)
 				{
 					alpha = 1;
@@ -2645,7 +2561,7 @@ int main(int argc, char* argv[])
 			ShadowDebug.setBool("transparencyIsAvailable", true);
 			if (engine->isCurrentlyPlaying(endGameSound))
 			{
-				alpha += 0.00005;
+				alpha += diff / 300.0f;
 				if (alpha >= 1)
 				{
 					alpha = 1;
