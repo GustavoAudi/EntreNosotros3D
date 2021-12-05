@@ -382,8 +382,6 @@ float ShadowCalculation(vec4 fragPosLight,vec3 normal, vec3 lightDirection)
 
 		// Smoothens out the shadows
 
-
-
 		int sampleRadius = 2;
 		vec2 pixelSize = 1.0 / textureSize(shadowMap, 0);
 		for(int y = -sampleRadius; y <= sampleRadius; y++)
@@ -415,9 +413,7 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir,vec4 fragPosLight)
     vec3 diffuse  = light.diffuse  * diff * vec3(texture(texture_diffuse1, TexCoords));
     vec3 specular = light.specular * spec * material.Specular;
 
-    // calculate shadow
-    float shadow = ShadowCalculation(fragPosLight, normal, light.direction);
-    return (diffuse * (1.0f - shadow + ambient) + specular*(1.0f - shadow)); 
+    return (diffuse * (1.0f + ambient) + specular*(1.0f)); 
 }
 
 
