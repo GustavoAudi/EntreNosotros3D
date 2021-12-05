@@ -1000,7 +1000,7 @@ int main(int argc, char* argv[])
 	Shader blur("../Shaders/blur.vs", "../Shaders/blur.fs");
 	Shader bloomFinal("../Shaders/blur.vs", "../Shaders/bloom_final.fs");
 	Shader shadowMapProgram("../Shaders/shadow.vs", "../Shaders/shadow.fs");
-	Shader ShadowDebug("../Shaders/debugShadow.vs", "../Shaders/debugShadow.fs");
+	Shader billboards("../Shaders/billboards.vs", "../Shaders/billboards.fs");
 
 	blur.use();
 	blur.setInt("image", 0);
@@ -1008,11 +1008,11 @@ int main(int argc, char* argv[])
 	bloomFinal.setInt("scene", 0);
 	bloomFinal.setInt("bloomBlur", 1);
 
-	ShadowDebug.use();
-	ShadowDebug.setInt("game", 1);
+	billboards.use();
+	billboards.setInt("game", 1);
 	float alpha = 1.0;
-	ShadowDebug.setFloat("alpha", alpha);
-	ShadowDebug.setBool("transparencyIsAvailable", true);
+	billboards.setFloat("alpha", alpha);
+	billboards.setBool("transparencyIsAvailable", true);
 
 	skyboxShader.use();
 	skyboxShader.setInt("sun", 0);
@@ -1562,8 +1562,8 @@ int main(int argc, char* argv[])
 	glm::mat4 modelShadow = glm::mat4(1.f);
 	shadowMapProgram.setMat4("model", modelShadow);
 
-	ShadowDebug.use();
-	ShadowDebug.setInt("shadowMap", 0);
+	billboards.use();
+	billboards.setInt("shadowMap", 0);
 
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1965,8 +1965,8 @@ int main(int argc, char* argv[])
 							soundTaskComplete = false;
 							engine->play2D(taskCompleteSound);
 						}
-						ShadowDebug.use();
-						ShadowDebug.setBool("transparencyIsAvailable", false);
+						billboards.use();
+						billboards.setBool("transparencyIsAvailable", false);
 						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 						string taskComplete = "Tarea Completada!";
 						SDL_Surface* bg_surface = TTF_RenderText_Blended(gameFontOutline, taskComplete.c_str(), black_color);
@@ -2044,8 +2044,8 @@ int main(int argc, char* argv[])
 
 			if (!ghost->gameOver()) {
 				// DRAW DEL MAPA
-				ShadowDebug.use();
-				ShadowDebug.setBool("transparencyIsAvailable", false);
+				billboards.use();
+				billboards.setBool("transparencyIsAvailable", false);
 				if (renderMap && !first_person)
 				{
 					float delta_x = (10.0f / (SCR_W / 2.0f));
@@ -2090,7 +2090,7 @@ int main(int argc, char* argv[])
 							if (!completedMissions[i]) {
 								glm::vec2 markerPos = getScaledCoords(cableSpotsMap[assignedWire[i]] - glm::vec2(10, 10));
 								glm::vec2 markerPosFinal = getScaledCoords(cableSpotsMap[assignedWire[i]] + glm::vec2(15, 15));
-								renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
+								renderQuad(billboards, markerPos, markerPosFinal, icon_error);
 							}
 						}
 						//render twoFactor task markers
@@ -2098,14 +2098,14 @@ int main(int argc, char* argv[])
 							if (!completedMissions[i + 3]) {
 								glm::vec2 markerPos = getScaledCoords(oxygenSpotsMap[i] - glm::vec2(10, 10));
 								glm::vec2 markerPosFinal = getScaledCoords(oxygenSpotsMap[i] + glm::vec2(15, 15));
-								renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
+								renderQuad(billboards, markerPos, markerPosFinal, icon_error);
 							}
 						}
 						//render medbay task markers
 						if (!completedMissions[5]) {
 							glm::vec2 markerPos = getScaledCoords(medbaySpotsMap[0] - glm::vec2(10, 10));
 							glm::vec2 markerPosFinal = getScaledCoords(medbaySpotsMap[0] + glm::vec2(15, 15));
-							renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
+							renderQuad(billboards, markerPos, markerPosFinal, icon_error);
 						}
 					}
 				}
@@ -2118,9 +2118,9 @@ int main(int argc, char* argv[])
 				}
 				if (wasted <= 1.0) {
 					wasted += 0.1;
-					renderQuad(ShadowDebug, glm::vec2(1 - 2 * wasted, wasted - 0.4f), glm::vec2(2 - wasted, -wasted + 0.4f), deadTexture);
+					renderQuad(billboards, glm::vec2(1 - 2 * wasted, wasted - 0.4f), glm::vec2(2 - wasted, -wasted + 0.4f), deadTexture);
 				}
-				renderQuad(ShadowDebug, glm::vec2(-2 + wasted, wasted - 0.4f), glm::vec2(wasted, -wasted + 0.4f), deadTexture);
+				renderQuad(billboards, glm::vec2(-2 + wasted, wasted - 0.4f), glm::vec2(wasted, -wasted + 0.4f), deadTexture);
 				if (transitionCounter <= 240) {
 					transitionCounter += diff;
 				}
@@ -2158,8 +2158,8 @@ int main(int argc, char* argv[])
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				glDepthFunc(GL_LEQUAL);
 				glDisable(GL_DEPTH_TEST);
-				ShadowDebug.use();
-				ShadowDebug.setBool("transparencyIsAvailable", true);
+				billboards.use();
+				billboards.setBool("transparencyIsAvailable", true);
 				if (transitionCounter <= 130)
 				{
 					transitionCounter += diff;
@@ -2167,7 +2167,7 @@ int main(int argc, char* argv[])
 					if (alpha <= 0) {
 						alpha = 0;
 					}
-					ShadowDebug.setFloat("alpha", alpha);
+					billboards.setFloat("alpha", alpha);
 				}
 				else
 				{
@@ -2182,11 +2182,11 @@ int main(int argc, char* argv[])
 			currentMission = closestIndex(camera->getPos(), cableSpots, 0.5f);
 			missionIndex = getIndex(assignedWire, currentMission);
 			if (missionIndex != -1 && !completedMissions[missionIndex]) {
-				renderF(ShadowDebug, use);
+				renderF(billboards, use);
 			}
 			if (cables && missionIndex != -1 && !completedMissions[missionIndex])
 			{
-				playCables(ShadowDebug, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset, engine, wireSound, diff);
+				playCables(billboards, getScaledCoords(last_click), getScaledCoords(mouse_pos), btn_down, reset, engine, wireSound, diff);
 
 				reset = false;
 				bool wiresComplete = true;
@@ -2235,21 +2235,21 @@ int main(int argc, char* argv[])
 			scannerMission = closestIndex(camera->getPos(), medbaySpots, 1.f);
 			if (scannerMission != -1 && !completedMissions[5])
 			{
-				renderF(ShadowDebug, use);
+				renderF(billboards, use);
 			}
 			// Two Factor Task
 			twoFactorMission = closestIndex(camera->getPos(), oxygenSpots, 0.5f);
 			if (twoFactorMission != -1 && !completedMissions[twoFactorMission + 3])
 			{
-				renderF(ShadowDebug, use);
+				renderF(billboards, use);
 			}
 			if (isTwoFactorTask && twoFactorMission != -1 && !completedMissions[twoFactorMission + 3])
 			{
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				glDepthFunc(GL_LEQUAL);
 				glDisable(GL_DEPTH_TEST);
-				ShadowDebug.use();
-				ShadowDebug.setBool("transparencyIsAvailable", false);
+				billboards.use();
+				billboards.setBool("transparencyIsAvailable", false);
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, twoFactorBase);
 				renderQuad(full);
@@ -2366,14 +2366,14 @@ int main(int argc, char* argv[])
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				glDepthFunc(GL_LEQUAL);
 				glDisable(GL_DEPTH_TEST);
-				ShadowDebug.use();
-				ShadowDebug.setBool("transparencyIsAvailable", false);
-				ShadowDebug.setFloat("alpha", 0.5f);
+				billboards.use();
+				billboards.setBool("transparencyIsAvailable", false);
+				billboards.setFloat("alpha", 0.5f);
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, windowsMenuOptions);
 				renderQuad(optionMenuPositions);
 
-				ShadowDebug.setBool("transparencyIsAvailable", false);
+				billboards.setBool("transparencyIsAvailable", false);
 				string optionMenu = "Menú De Opciones";
 				SDL_Surface* bg_surface = TTF_RenderText_Blended(gameFontOutline, optionMenu.c_str(), black_color);
 				SDL_Surface* fg_surface = TTF_RenderText_Blended(gameFont, optionMenu.c_str(), white_color);
@@ -2447,7 +2447,7 @@ int main(int argc, char* argv[])
 					}
 					}
 
-					ShadowDebug.setBool("transparencyIsAvailable", false);
+					billboards.setBool("transparencyIsAvailable", false);
 					bg_surface = TTF_RenderText_Blended(gameFontOutline, option.c_str(), black_color);
 					fg_surface = TTF_RenderText_Blended(gameFont, option.c_str(), color);
 					rect = { 6, 6, fg_surface->w, fg_surface->h };
@@ -2484,8 +2484,8 @@ int main(int argc, char* argv[])
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDepthFunc(GL_LEQUAL);
 			glDisable(GL_DEPTH_TEST);
-			ShadowDebug.use();
-			ShadowDebug.setBool("transparencyIsAvailable", false);
+			billboards.use();
+			billboards.setBool("transparencyIsAvailable", false);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, mainMenu);
 			renderQuad(full);
@@ -2496,8 +2496,8 @@ int main(int argc, char* argv[])
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDepthFunc(GL_LEQUAL);
 			glDisable(GL_DEPTH_TEST);
-			ShadowDebug.use();
-			ShadowDebug.setBool("transparencyIsAvailable", true);
+			billboards.use();
+			billboards.setBool("transparencyIsAvailable", true);
 			if (transitionCounter <= 120)
 			{
 				if (transitionCounter < 30) {
@@ -2511,7 +2511,7 @@ int main(int argc, char* argv[])
 				{
 					alpha = 0;
 				}
-				ShadowDebug.setFloat("alpha", alpha);
+				billboards.setFloat("alpha", alpha);
 			}
 			else
 			{
@@ -2531,8 +2531,8 @@ int main(int argc, char* argv[])
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDepthFunc(GL_LEQUAL);
 			glDisable(GL_DEPTH_TEST);
-			ShadowDebug.use();
-			ShadowDebug.setBool("transparencyIsAvailable", true);
+			billboards.use();
+			billboards.setBool("transparencyIsAvailable", true);
 			if (engine->isCurrentlyPlaying(completeGameSound))
 			{
 				alpha += diff / 300.0f;
@@ -2540,11 +2540,11 @@ int main(int argc, char* argv[])
 				{
 					alpha = 1;
 				}
-				ShadowDebug.setFloat("alpha", alpha);
+				billboards.setFloat("alpha", alpha);
 
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, game_victory);
-				renderQuad(ShadowDebug, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), game_victory);
+				renderQuad(billboards, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), game_victory);
 			}
 			else {
 				actualState = INIT;
@@ -2556,8 +2556,8 @@ int main(int argc, char* argv[])
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDepthFunc(GL_LEQUAL);
 			glDisable(GL_DEPTH_TEST);
-			ShadowDebug.use();
-			ShadowDebug.setBool("transparencyIsAvailable", true);
+			billboards.use();
+			billboards.setBool("transparencyIsAvailable", true);
 			if (engine->isCurrentlyPlaying(endGameSound))
 			{
 				alpha += diff / 300.0f;
@@ -2565,11 +2565,11 @@ int main(int argc, char* argv[])
 				{
 					alpha = 1;
 				}
-				ShadowDebug.setFloat("alpha", alpha);
+				billboards.setFloat("alpha", alpha);
 
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, game_over);
-				renderQuad(ShadowDebug, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), game_over);
+				renderQuad(billboards, glm::vec2(-1.f, 1.0f), glm::vec2(1.f, -1.0), game_over);
 			}
 			else {
 				actualState = INIT;
