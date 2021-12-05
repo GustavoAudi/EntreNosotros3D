@@ -104,10 +104,6 @@ void main()
       light_dir.diffuse = vec3(0.2, 0.05 , 0.05);
       light_dir.specular = vec3(0.1, 0.05 , 0.05);
       result = CalcDirLight(light_dir,norm,viewDir,fragPosLight);
-      
-      //vec3 pos = vec3(25.0f, 40.0f, 35.0f);
-      //light_dir.direction = normalize(pos - FragPos);
-
    
       if(!apagon){   
            for(int i = 0; i < NR_POINT_LIGHTS; i++){
@@ -116,10 +112,7 @@ void main()
       }
 
       for(int i = 0; i < NR_SPOT_LIGHTS; i++){
-         float distance = length(spotLights[i].position - viewPos);
-         if(distance < 8f){
-              result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
-         }
+         result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
       }
 
       
