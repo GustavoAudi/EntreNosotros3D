@@ -876,7 +876,6 @@ vector<glm::vec2> oxygenSpotsMap{
 };
 
 vector<glm::vec3> medbaySpots{
-	glm::vec3(36.5912f, 0.31f, -17.9872f),
 	glm::vec3(20.7554f, 0.31f, -15.6497f)
 };
 
