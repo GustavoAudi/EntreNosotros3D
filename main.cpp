@@ -1503,7 +1503,6 @@ int main(int argc, char* argv[])
 	ghostKillSound->setDefaultVolume(0.2f);
 	ghostKillSound->forceReloadAtNextUse();
 	ISoundSource* scanSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_medbayscan.wav");
-	scanSound->setDefaultVolume(0.2f);
 	scanSound->forceReloadAtNextUse();
 	ISoundSource* ghostSound = engine->addSoundSourceFromFile("../Include/AudioClip/ghost.wav");
 	ghostSound->forceReloadAtNextUse();
@@ -2040,20 +2039,47 @@ int main(int argc, char* argv[])
 					engine->play2D(scanSound);
 					soundScan = false;
 				}
-				if (engine->isCurrentlyPlaying(scanSound)) {
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-					modelAnim = glm::translate(modelAnim, glm::vec3(20.7, 0.2, -15.8));
-					medicRot = glm::rotate(medicRot, 0.01f * diff, glm::vec3(0.0, 1.0, 0.0));
-					modelAnim = modelAnim * medicRot;
-				}
-				else {
-					completedMissions[5] = true;
-					medic_Scan = false;
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				modelAnim = glm::translate(modelAnim, glm::vec3(20.7, 0.2, -15.8));
+				medicRot = glm::rotate(medicRot, 0.01f * diff, glm::vec3(0.0, 1.0, 0.0));
+				modelAnim = modelAnim * medicRot;
+				if (!engine->isCurrentlyPlaying(scanSound)) {
+					if (timeVisibleState < 80) {
+						if (soundTaskComplete)
+						{
+							soundTaskComplete = false;
+							engine->play2D(taskCompleteSound);
+						}
+						ShadowDebug.use();
+						ShadowDebug.setBool("transparencyIsAvailable", false);
+						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+						string taskComplete = "Tarea Completada!";
+						SDL_Surface* bg_surface = TTF_RenderText_Blended(gameFontOutline, taskComplete.c_str(), black_color);
+						SDL_Surface* fg_surface = TTF_RenderText_Blended(gameFont, taskComplete.c_str(), white_color);
+						SDL_Rect rect = { 6, 6, fg_surface->w, fg_surface->h };
 
+						/* blit text onto its outline */
+						SDL_SetSurfaceBlendMode(fg_surface, SDL_BLENDMODE_BLEND);
+						SDL_BlitSurface(fg_surface, NULL, bg_surface, &rect);
+						SDL_FreeSurface(fg_surface);
+						glActiveTexture(GL_TEXTURE1);
+						glBindTexture(GL_TEXTURE_2D, tex);
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bg_surface->w, bg_surface->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, bg_surface->pixels);
+						renderQuad(taskCompletePosition);
+						SDL_FreeSurface(bg_surface);
+						timeVisibleState += diff;
+						ourShader.use();
+						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+					}
+					else {
+						renderMap = true;
+						soundTaskComplete = true;
+						completedMissions[5] = true;
+						medic_Scan = false;
+					}
 				}
 			}
 			else {
-			
 				if (first_person)
 				{
 					glDisable(GL_CULL_FACE);
@@ -2163,9 +2189,9 @@ int main(int argc, char* argv[])
 						}
 						//render medbay task markers
 						if (!completedMissions[5]) {
-								glm::vec2 markerPos = getScaledCoords(medbaySpotsMap[0] - glm::vec2(10, 10));
-								glm::vec2 markerPosFinal = getScaledCoords(medbaySpotsMap[0] + glm::vec2(15, 15));
-								renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
+							glm::vec2 markerPos = getScaledCoords(medbaySpotsMap[0] - glm::vec2(10, 10));
+							glm::vec2 markerPosFinal = getScaledCoords(medbaySpotsMap[0] + glm::vec2(15, 15));
+							renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
 						}
 					}
 				}
@@ -2238,7 +2264,6 @@ int main(int argc, char* argv[])
 				renderQuad(full);
 			}
 
-
 			// Wires Task
 			currentMission = closestIndex(camera->getPos(), cableSpots, 0.5f);
 			missionIndex = getIndex(assignedWire, currentMission);
@@ -2294,7 +2319,7 @@ int main(int argc, char* argv[])
 
 			// Scanner task
 			scannerMission = closestIndex(camera->getPos(), medbaySpots, 1.f);
-			if (scannerMission!= -1 && !completedMissions[5])
+			if (scannerMission != -1 && !completedMissions[5])
 			{
 				renderF(ShadowDebug, use);
 			}
@@ -2941,7 +2966,10 @@ int main(int argc, char* argv[])
 						cables = true;
 					}
 					if (inRangeScan) {
+						renderMap = false;
+						timeVisibleState = 0;
 						medic_Scan = true;
+						soundScan = true;
 					}
 					if (inRangeTwoFactor)
 					{
