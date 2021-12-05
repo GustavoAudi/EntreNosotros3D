@@ -875,6 +875,17 @@ vector<glm::vec2> oxygenSpotsMap{
 	glm::vec2(686, 357),
 };
 
+vector<glm::vec3> medbaySpots{
+	glm::vec3(36.5912f, 0.31f, -17.9872f),
+	glm::vec3(20.7554f, 0.31f, -15.6497f)
+};
+
+vector<glm::vec2> medbaySpotsMap{
+	glm::vec2(411, 325)
+};
+
+
+
 template <typename T>
 std::vector<T> Append(std::vector<T>& a, const std::vector<T>& b)
 {
@@ -1362,10 +1373,13 @@ int main(int argc, char* argv[])
 
 	STATES actualState = INIT;
 	STATES previousState = TRANSITION;
-	vector<bool> completedMissions(5, false);
+	vector<bool> completedMissions(6, false);
 	vector <int> assignedWire(3);
 
 	// Task Variables
+	// MedBay
+	int scannerMission;
+
 	// Two Factor
 	int twoFactorMission;
 	bool isTwoFactorTask = false;
@@ -1420,7 +1434,6 @@ int main(int argc, char* argv[])
 	int timeN = 0;
 	bool se_activa_el_fantasma = false;
 	bool medic_Scan = false;
-	bool medic_Scan_available = true;
 	float wasted = -1.f;
 
 	// Setup lights
@@ -1662,7 +1675,7 @@ int main(int argc, char* argv[])
 		switch (actualState)
 		{
 		case INIT: {
-			completedMissions = vector<bool>(5, false); //first three are cables, last two are twoFactor
+			completedMissions = vector<bool>(6, false); //first three are cables, last two are twoFactor
 			//3 unique int. Position equals to position in completedMissions, number equals to pos in CableSpots
 			assignedWire = randomUnique(3, cableSpots.size());
 			actualState = MAIN_MENU;
@@ -1688,7 +1701,6 @@ int main(int argc, char* argv[])
 			first_person = false;
 			fixed_pos = false;
 			soundKill = true;
-			medic_Scan = true;
 			break;
 		}
 		case GAME:
@@ -1796,7 +1808,7 @@ int main(int argc, char* argv[])
 				count = 0;
 			}
 
-			if (!ghost->gameOver() && !cables && !isTwoFactorTask) {
+			if (!ghost->gameOver() && !cables && !isTwoFactorTask && !medic_Scan) {
 				move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
 			}
 
@@ -2023,24 +2035,20 @@ int main(int argc, char* argv[])
 
 			//DRAW DEL ASTRONAUTA
 			modelAnim = glm::mat4(1.f);
-			if (medic_Scan_available && glm::distance(camera->getPos(), glm::vec3(20.7, 0.0, -15.8)) <= 1.0f) {
-				//renderF(ShadowDebug, use);
-				if (medic_Scan) {
-					if (soundScan) {
-						engine->play2D(scanSound);
-						soundScan = false;
-					}
-					if (engine->isCurrentlyPlaying(scanSound)) {
-						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-						modelAnim = glm::translate(modelAnim, glm::vec3(20.7, 0.2, -15.8));
-						medicRot = glm::rotate(medicRot, 0.01f * diff, glm::vec3(0.0, 1.0, 0.0));
-						//fixed_pos = true;
-						modelAnim = modelAnim * medicRot;
-					}
-					else {
-						medic_Scan_available = false;
-						//fixed_pos = false;
-					}
+			if (medic_Scan) {
+				if (soundScan) {
+					engine->play2D(scanSound);
+					soundScan = false;
+				}
+				if (engine->isCurrentlyPlaying(scanSound)) {
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+					modelAnim = glm::translate(modelAnim, glm::vec3(20.7, 0.2, -15.8));
+					medicRot = glm::rotate(medicRot, 0.01f * diff, glm::vec3(0.0, 1.0, 0.0));
+					modelAnim = modelAnim * medicRot;
+				}
+				else {
+					completedMissions[5] = true;
+					medic_Scan = false;
 
 				}
 			}
@@ -2152,6 +2160,12 @@ int main(int argc, char* argv[])
 								glm::vec2 markerPosFinal = getScaledCoords(oxygenSpotsMap[i] + glm::vec2(15, 15));
 								renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
 							}
+						}
+						//render medbay task markers
+						if (!completedMissions[5]) {
+								glm::vec2 markerPos = getScaledCoords(medbaySpotsMap[0] - glm::vec2(10, 10));
+								glm::vec2 markerPosFinal = getScaledCoords(medbaySpotsMap[0] + glm::vec2(15, 15));
+								renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
 						}
 					}
 				}
@@ -2278,6 +2292,12 @@ int main(int argc, char* argv[])
 				}
 			}
 
+			// Scanner task
+			scannerMission = closestIndex(camera->getPos(), medbaySpots, 1.f);
+			if (scannerMission!= -1 && !completedMissions[5])
+			{
+				renderF(ShadowDebug, use);
+			}
 			// Two Factor Task
 			twoFactorMission = closestIndex(camera->getPos(), oxygenSpots, 0.5f);
 			if (twoFactorMission != -1 && !completedMissions[twoFactorMission + 3])
@@ -2858,13 +2878,13 @@ int main(int argc, char* argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_s)
 				{
-					if (!ghost->gameOver() && !cables && !isTwoFactorTask) {
+					if (!ghost->gameOver() && !cables && !isTwoFactorTask && !medic_Scan) {
 						mv.moving_back = true;
 					}
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_w)
 				{
-					if (!ghost->gameOver() && !cables && !isTwoFactorTask) {
+					if (!ghost->gameOver() && !cables && !isTwoFactorTask && !medic_Scan) {
 						mv.moving_forward = true;
 					}
 				}
@@ -2904,9 +2924,10 @@ int main(int argc, char* argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_f)
 				{
-					medic_Scan = true;
+					bool completedScan = !completedMissions[5];
 					bool completedWire = missionIndex != -1 && !completedMissions[missionIndex];
 					bool completedTwoFactor = twoFactorMission != -1 && !completedMissions[twoFactorMission + 3];
+					bool inRangeScan = inRange(camera->getPos(), medbaySpots, 1.f) && !medic_Scan && completedScan;
 					bool inRangeWires = inRange(camera->getPos(), cableSpots, 0.5f) && !cables && completedWire;
 					bool inRangeTwoFactor = inRange(camera->getPos(), oxygenSpots, 0.5f) && !isTwoFactorTask && completedTwoFactor;
 					if (inRangeWires || inRangeTwoFactor) {
@@ -2918,6 +2939,9 @@ int main(int argc, char* argv[])
 					}
 					if (inRangeWires) {
 						cables = true;
+					}
+					if (inRangeScan) {
+						medic_Scan = true;
 					}
 					if (inRangeTwoFactor)
 					{
