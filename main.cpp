@@ -629,26 +629,10 @@ void renderQuad(Shader shader, glm::vec2 top_left, glm::vec2 bottom_right, unsig
 {
 	float coords[] = {
 		// positions        // texture Coords
-		top_left.x,
-		top_left.y,
-		0.0f,
-		0.0f,
-		1.0f,
-		top_left.x,
-		bottom_right.y,
-		0.0f,
-		0.0f,
-		0.0f,
-		bottom_right.x,
-		top_left.y,
-		0.0f,
-		1.0f,
-		1.0f,
-		bottom_right.x,
-		bottom_right.y,
-		0.0f,
-		1.0f,
-		0.0f,
+		top_left.x,top_left.y,0.0f,0.0f,1.0f,
+		top_left.x,bottom_right.y,0.0f,0.0f,0.0f,
+		bottom_right.x,top_left.y,0.0f,1.0f,1.0f,
+		bottom_right.x,bottom_right.y,0.0f,1.0f,0.0f,
 	};
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
@@ -817,26 +801,10 @@ void playCables(Shader shader, glm::vec2 last_click, glm::vec2 mouse_pos, bool c
 				float width = 0.048;
 				float coords[] = {
 					// positions        // texture Coords
-					origin.x,
-					origin.y,
-					0.0f,
-					0.0f,
-					1.0f,
-					origin.x,
-					origin.y - width,
-					0.0f,
-					0.0f,
-					0.0f,
-					destination.x,
-					destination.y,
-					0.0f,
-					1.0f,
-					1.0f,
-					destination.x,
-					destination.y - width,
-					0.0f,
-					1.0f,
-					0.0f,
+					origin.x,origin.y,0.0f,0.0f,1.0f,
+					origin.x,origin.y - width,0.0f,0.0f,0.0f,
+					destination.x,destination.y,0.0f,1.0f,1.0f,
+					destination.x,destination.y - width,0.0f,1.0f,0.0f,
 				};
 				renderQuad(shader, coords, wires[colors_left[cable]]);
 			}
@@ -873,6 +841,14 @@ vector<glm::vec3> oxygenSpots{
 vector<glm::vec2> oxygenSpotsMap{
 	glm::vec2(691, 283),
 	glm::vec2(686, 357),
+};
+
+vector<glm::vec3> medbaySpots{
+	glm::vec3(20.7554f, 0.31f, -15.6497f)
+};
+
+vector<glm::vec2> medbaySpotsMap{
+	glm::vec2(411, 325)
 };
 
 template <typename T>
@@ -1042,8 +1018,6 @@ int main(int argc, char* argv[])
 	skyboxShader.setInt("sun", 0);
 	skyboxShader.setInt("skybox", 1);
 
-	//stbi_set_flip_vertically_on_load(true);
-
 	// SETUP MODELS
 	Model ourModel("../Include/model/c.obj");
 	Model cuerpo1("../Include/model/astronaut.dae");
@@ -1145,74 +1119,26 @@ int main(int argc, char* argv[])
 
 	float twoFactorPosition[] = {
 		// positions        // texture Coords
-		0.03125,
-		0.671111,
-		0.0f,
-		1.0f,
-		0.0f,
-		-0.541016,
-		0.671111,
-		0.0f,
-		0.0f,
-		0.0f,
-		0.03125,
-		0.540556,
-		0.0f,
-		1.0f,
-		1.0f,
-		-0.541016,
-		0.540556,
-		0.0f,
-		0.0f,
-		1.0f,
+		0.03125,0.671111,0.0f,1.0f,0.0f,
+		-0.541016,0.671111,0.0f,0.0f,0.0f,
+		0.03125,0.540556,0.0f,1.0f,1.0f,
+		-0.541016,0.540556,0.0f,0.0f,1.0f,
 	};
 
 	float twoFactorPositionPass[] = {
 		// positions        // texture Coords
-		0.291016,
-		0.133333,
-		0.0f,
-		0.0f,
-		1.0f,
-		0.488281,
-		0.133333,
-		0.0f,
-		1.0f,
-		1.0f,
-		0.291016,
-		0.238889,
-		0.0f,
-		0.0f,
-		0.0f,
-		0.488281,
-		0.238889,
-		0.0f,
-		1.0f,
-		0.0f,
+		0.291016,0.133333,0.0f,0.0f,1.0f,
+		0.488281,0.133333,0.0f,1.0f,1.0f,
+		0.291016,0.238889,0.0f,0.0f,0.0f,
+		0.488281,0.238889,0.0f,1.0f,0.0f,
 	};
 
 	float twoFactorStatusPosition[] = {
 		// positions        // texture Coords
-		0.03125,
-		0.383111,
-		0.0f,
-		1.0f,
-		0.0f,
-		-0.541016,
-		0.383111,
-		0.0f,
-		0.0f,
-		0.0f,
-		0.03125,
-		0.252556,
-		0.0f,
-		1.0f,
-		1.0f,
-		-0.541016,
-		0.252556,
-		0.0f,
-		0.0f,
-		1.0f,
+		0.03125,0.383111,0.0f,1.0f,0.0f,
+		-0.541016,0.383111,0.0f,0.0f,0.0f,
+		0.03125,0.252556,0.0f,1.0f,1.0f,
+		-0.541016,0.252556,0.0f,0.0f,1.0f,
 	};
 
 	// Option Menu Positions
@@ -1342,6 +1268,7 @@ int main(int argc, char* argv[])
 	glm::mat4 modelAnim = glm::mat4(1.0f);
 	modelAnim = glm::translate(modelAnim, glm::vec3(29.26f, 0.0f, -24.32f));
 	modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
+	glm::mat4 medicRot = glm::mat4(1.0f);
 
 	modelsun = glm::mat4(1.0f);
 	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 20.0f, 35.0f)); //modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
@@ -1361,10 +1288,13 @@ int main(int argc, char* argv[])
 
 	STATES actualState = INIT;
 	STATES previousState = TRANSITION;
-	vector<bool> completedMissions(5, false);
+	vector<bool> completedMissions(6, false);
 	vector <int> assignedWire(3);
 
 	// Task Variables
+	// MedBay
+	int scannerMission;
+
 	// Two Factor
 	int twoFactorMission;
 	bool isTwoFactorTask = false;
@@ -1384,6 +1314,7 @@ int main(int argc, char* argv[])
 
 	// Scene variables
 	SDL_ShowCursor(SDL_ENABLE);
+	bool soundScan = true;
 	bool soundKill = true;
 	bool optionsMenu = false;
 	bool sonido = false;
@@ -1417,6 +1348,7 @@ int main(int argc, char* argv[])
 	int diff = 0;
 	int timeN = 0;
 	bool se_activa_el_fantasma = false;
+	bool medic_Scan = false;
 	float wasted = -1.f;
 
 	// Setup lights
@@ -1485,6 +1417,8 @@ int main(int argc, char* argv[])
 	ISoundSource* ghostKillSound = engine->addSoundSourceFromFile("../Include/AudioClip/impostor_kill.wav");
 	ghostKillSound->setDefaultVolume(0.2f);
 	ghostKillSound->forceReloadAtNextUse();
+	ISoundSource* scanSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_medbayscan.wav");
+	scanSound->forceReloadAtNextUse();
 	ISoundSource* ghostSound = engine->addSoundSourceFromFile("../Include/AudioClip/ghost.wav");
 	ghostSound->forceReloadAtNextUse();
 
@@ -1655,7 +1589,7 @@ int main(int argc, char* argv[])
 		switch (actualState)
 		{
 		case INIT: {
-			completedMissions = vector<bool>(5, false); //first three are cables, last two are twoFactor
+			completedMissions = vector<bool>(6, false); //first three are cables, last two are twoFactor
 			//3 unique int. Position equals to position in completedMissions, number equals to pos in CableSpots
 			assignedWire = randomUnique(3, cableSpots.size());
 			actualState = MAIN_MENU;
@@ -1788,7 +1722,7 @@ int main(int argc, char* argv[])
 				count = 0;
 			}
 
-			if (!ghost->gameOver() && !cables && !isTwoFactorTask) {
+			if (!ghost->gameOver() && !cables && !isTwoFactorTask && !medic_Scan) {
 				move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
 			}
 
@@ -2015,37 +1949,85 @@ int main(int argc, char* argv[])
 
 			//DRAW DEL ASTRONAUTA
 			modelAnim = glm::mat4(1.f);
+			if (medic_Scan) {
+				if (soundScan) {
+					engine->play2D(scanSound);
+					soundScan = false;
+				}
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				modelAnim = glm::translate(modelAnim, glm::vec3(20.7, 0.2, -15.8));
+				medicRot = glm::rotate(medicRot, 0.01f * diff, glm::vec3(0.0, 1.0, 0.0));
+				modelAnim = modelAnim * medicRot;
+				if (!engine->isCurrentlyPlaying(scanSound)) {
+					if (timeVisibleState < 80) {
+						if (soundTaskComplete)
+						{
+							soundTaskComplete = false;
+							engine->play2D(taskCompleteSound);
+						}
+						ShadowDebug.use();
+						ShadowDebug.setBool("transparencyIsAvailable", false);
+						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+						string taskComplete = "Tarea Completada!";
+						SDL_Surface* bg_surface = TTF_RenderText_Blended(gameFontOutline, taskComplete.c_str(), black_color);
+						SDL_Surface* fg_surface = TTF_RenderText_Blended(gameFont, taskComplete.c_str(), white_color);
+						SDL_Rect rect = { 6, 6, fg_surface->w, fg_surface->h };
 
-			if (first_person)
-			{
-				glDisable(GL_CULL_FACE);
-				modelAnim = glm::translate(modelAnim, camera->getPos() - camera->getDirection());
-				modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
-				modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
-				modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
+						/* blit text onto its outline */
+						SDL_SetSurfaceBlendMode(fg_surface, SDL_BLENDMODE_BLEND);
+						SDL_BlitSurface(fg_surface, NULL, bg_surface, &rect);
+						SDL_FreeSurface(fg_surface);
+						glActiveTexture(GL_TEXTURE1);
+						glBindTexture(GL_TEXTURE_2D, tex);
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bg_surface->w, bg_surface->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, bg_surface->pixels);
+						renderQuad(taskCompletePosition);
+						SDL_FreeSurface(bg_surface);
+						timeVisibleState += diff;
+						ourShader.use();
+						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+					}
+					else {
+						renderMap = true;
+						soundTaskComplete = true;
+						completedMissions[5] = true;
+						medic_Scan = false;
+					}
+				}
 			}
-			else
-			{
-				if (fixed_pos)
+			else {
+				if (first_person)
 				{
-					modelAnim = glm::translate(modelAnim, old_pos);
-					modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
+					glDisable(GL_CULL_FACE);
+					modelAnim = glm::translate(modelAnim, camera->getPos() - camera->getDirection());
+					modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
+					modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
+					modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
 				}
 				else
 				{
-					modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
-					modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
-					old_yaw = -yaw + 90;
-					old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
-					old_pos_camera = camera->getPos();
-					old_front_camera = camera->getFront();
+					if (fixed_pos)
+					{
+						modelAnim = glm::translate(modelAnim, old_pos);
+						modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
+					}
+					else
+					{
+						modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
+						modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
+						old_yaw = -yaw + 90;
+						old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
+						old_pos_camera = camera->getPos();
+						old_front_camera = camera->getFront();
+					}
 				}
-			}
+
+			} //aca el else del wire
 
 			if (!(mv.moving_forward || mv.moving_back) || first_person)
 			{
 				modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
 			}
+
 
 			modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
 			ourShader.setMat4("model", modelAnim);
@@ -2120,6 +2102,12 @@ int main(int argc, char* argv[])
 								renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
 							}
 						}
+						//render medbay task markers
+						if (!completedMissions[5]) {
+							glm::vec2 markerPos = getScaledCoords(medbaySpotsMap[0] - glm::vec2(10, 10));
+							glm::vec2 markerPosFinal = getScaledCoords(medbaySpotsMap[0] + glm::vec2(15, 15));
+							renderQuad(ShadowDebug, markerPos, markerPosFinal, icon_error);
+						}
 					}
 				}
 
@@ -2176,10 +2164,10 @@ int main(int argc, char* argv[])
 				if (transitionCounter <= 130)
 				{
 					transitionCounter += diff;
-					alpha -= 0.01;
-					if (alpha <= 0) { alpha = 0; }
-
-
+					alpha -= diff / 75.0f;
+					if (alpha <= 0) {
+						alpha = 0;
+					}
 					ShadowDebug.setFloat("alpha", alpha);
 				}
 				else
@@ -2190,7 +2178,6 @@ int main(int argc, char* argv[])
 				glBindTexture(GL_TEXTURE_2D, blackWindows);
 				renderQuad(full);
 			}
-
 
 			// Wires Task
 			currentMission = closestIndex(camera->getPos(), cableSpots, 0.5f);
@@ -2245,6 +2232,12 @@ int main(int argc, char* argv[])
 				}
 			}
 
+			// Scanner task
+			scannerMission = closestIndex(camera->getPos(), medbaySpots, 1.f);
+			if (scannerMission != -1 && !completedMissions[5])
+			{
+				renderF(ShadowDebug, use);
+			}
 			// Two Factor Task
 			twoFactorMission = closestIndex(camera->getPos(), oxygenSpots, 0.5f);
 			if (twoFactorMission != -1 && !completedMissions[twoFactorMission + 3])
@@ -2514,7 +2507,7 @@ int main(int argc, char* argv[])
 					}
 				}
 				transitionCounter += diff;
-				alpha -= 0.0003;
+				alpha -= diff / 75.0f;
 				if (alpha <= 0)
 				{
 					alpha = 0;
@@ -2543,7 +2536,7 @@ int main(int argc, char* argv[])
 			ShadowDebug.setBool("transparencyIsAvailable", true);
 			if (engine->isCurrentlyPlaying(completeGameSound))
 			{
-				alpha += 0.00005;
+				alpha += diff / 300.0f;
 				if (alpha >= 1)
 				{
 					alpha = 1;
@@ -2568,7 +2561,7 @@ int main(int argc, char* argv[])
 			ShadowDebug.setBool("transparencyIsAvailable", true);
 			if (engine->isCurrentlyPlaying(endGameSound))
 			{
-				alpha += 0.00005;
+				alpha += diff / 300.0f;
 				if (alpha >= 1)
 				{
 					alpha = 1;
@@ -2825,13 +2818,13 @@ int main(int argc, char* argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_s)
 				{
-					if (!ghost->gameOver() && !cables && !isTwoFactorTask) {
+					if (!ghost->gameOver() && !cables && !isTwoFactorTask && !medic_Scan) {
 						mv.moving_back = true;
 					}
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_w)
 				{
-					if (!ghost->gameOver() && !cables && !isTwoFactorTask) {
+					if (!ghost->gameOver() && !cables && !isTwoFactorTask && !medic_Scan) {
 						mv.moving_forward = true;
 					}
 				}
@@ -2871,8 +2864,10 @@ int main(int argc, char* argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_f)
 				{
+					bool completedScan = !completedMissions[5];
 					bool completedWire = missionIndex != -1 && !completedMissions[missionIndex];
 					bool completedTwoFactor = twoFactorMission != -1 && !completedMissions[twoFactorMission + 3];
+					bool inRangeScan = inRange(camera->getPos(), medbaySpots, 1.f) && !medic_Scan && completedScan;
 					bool inRangeWires = inRange(camera->getPos(), cableSpots, 0.5f) && !cables && completedWire;
 					bool inRangeTwoFactor = inRange(camera->getPos(), oxygenSpots, 0.5f) && !isTwoFactorTask && completedTwoFactor;
 					if (inRangeWires || inRangeTwoFactor) {
@@ -2884,6 +2879,12 @@ int main(int argc, char* argv[])
 					}
 					if (inRangeWires) {
 						cables = true;
+					}
+					if (inRangeScan) {
+						renderMap = false;
+						timeVisibleState = 0;
+						medic_Scan = true;
+						soundScan = true;
 					}
 					if (inRangeTwoFactor)
 					{
