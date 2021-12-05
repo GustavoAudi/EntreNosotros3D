@@ -1342,6 +1342,7 @@ int main(int argc, char* argv[])
 	glm::mat4 modelAnim = glm::mat4(1.0f);
 	modelAnim = glm::translate(modelAnim, glm::vec3(29.26f, 0.0f, -24.32f));
 	modelAnim = glm::scale(modelAnim, glm::vec3(0.2f, 0.2f, 0.2f));
+	glm::mat4 medicRot = glm::mat4(1.0f);
 
 	modelsun = glm::mat4(1.0f);
 	modelsun = glm::translate(modelsun, glm::vec3(25.0f, 20.0f, 35.0f)); //modelsun = glm::translate(modelsun, glm::vec3(25.0f, 35.0f, 35.0f)); //glm::vec3(25.0f, 20.0f, 50.0f));
@@ -1384,6 +1385,7 @@ int main(int argc, char* argv[])
 
 	// Scene variables
 	SDL_ShowCursor(SDL_ENABLE);
+	bool soundScan = true;
 	bool soundKill = true;
 	bool optionsMenu = false;
 	bool sonido = false;
@@ -1417,6 +1419,8 @@ int main(int argc, char* argv[])
 	int diff = 0;
 	int timeN = 0;
 	bool se_activa_el_fantasma = false;
+	bool medic_Scan = false;
+	bool medic_Scan_available = true;
 	float wasted = -1.f;
 
 	// Setup lights
@@ -1485,6 +1489,10 @@ int main(int argc, char* argv[])
 	ISoundSource* ghostKillSound = engine->addSoundSourceFromFile("../Include/AudioClip/impostor_kill.wav");
 	ghostKillSound->setDefaultVolume(0.2f);
 	ghostKillSound->forceReloadAtNextUse();
+	ISoundSource* scanSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_medbayscan.wav");
+	scanSound->setDefaultVolume(0.2f);
+	scanSound->forceReloadAtNextUse();
+	
 
 	ISoundSource* pasos[8];
 	cargarSonidoPasos(engine, pasos);
@@ -1679,6 +1687,7 @@ int main(int argc, char* argv[])
 			first_person = false;
 			fixed_pos = false;
 			soundKill = true;
+			medic_Scan = true;
 			break;
 		}
 		case GAME:
@@ -2004,39 +2013,63 @@ int main(int argc, char* argv[])
 			fantasma.Draw(ourShader, true, 0, 0);
 
 			//DRAW DEL ASTRONAUTA
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			modelAnim = glm::mat4(1.f);
+			if (medic_Scan_available && glm::distance(camera->getPos(), glm::vec3(20.7, 0.0, -15.8)) <= 1.0f) {
+				//renderF(ShadowDebug, use);
+				if (medic_Scan) {
+					if (soundScan) {
+						engine->play2D(scanSound);
+						soundScan = false;
+					}
+					if (engine->isCurrentlyPlaying(scanSound)) {
+						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+						modelAnim = glm::translate(modelAnim, glm::vec3(20.7, 0.2, -15.8));
+						medicRot = glm::rotate(medicRot, 0.01f * diff, glm::vec3(0.0, 1.0, 0.0));
+						//fixed_pos = true;
+						modelAnim = modelAnim * medicRot;
+					}
+					else {
+						medic_Scan_available = false;
+						//fixed_pos = false;
+					}
 
-			if (first_person)
-			{
-				glDisable(GL_CULL_FACE);
-				modelAnim = glm::translate(modelAnim, camera->getPos() - camera->getDirection());
-				modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
-				modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
-				modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
+				}
 			}
-			else
-			{
-				if (fixed_pos)
+			else {
+			
+				if (first_person)
 				{
-					modelAnim = glm::translate(modelAnim, old_pos);
-					modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
+					glDisable(GL_CULL_FACE);
+					modelAnim = glm::translate(modelAnim, camera->getPos() - camera->getDirection());
+					modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
+					modelAnim = glm::rotate(modelAnim, glm::radians(pitch), glm::vec3(-1.0, 0.0, 0.0));
+					modelAnim = glm::translate(modelAnim, -glm::vec3(0.f, 0.25f, -0.06f));
 				}
 				else
 				{
-					modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
-					modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
-					old_yaw = -yaw + 90;
-					old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
-					old_pos_camera = camera->getPos();
-					old_front_camera = camera->getFront();
+					if (fixed_pos)
+					{
+						modelAnim = glm::translate(modelAnim, old_pos);
+						modelAnim = glm::rotate(modelAnim, glm::radians(old_yaw), glm::vec3(0.0, 1.0, 0.0));
+					}
+					else
+					{
+						modelAnim = glm::translate(modelAnim, glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z));
+						modelAnim = glm::rotate(modelAnim, glm::radians(-yaw + 90), glm::vec3(0.0, 1.0, 0.0));
+						old_yaw = -yaw + 90;
+						old_pos = glm::vec3(camera->getPos().x, camera->getPos().y - 0.3, camera->getPos().z);
+						old_pos_camera = camera->getPos();
+						old_front_camera = camera->getFront();
+					}
 				}
-			}
+
+			} //aca el else del wire
 
 			if (!(mv.moving_forward || mv.moving_back) || first_person)
 			{
 				modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
 			}
+
 
 			modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
 			ourShader.setMat4("model", modelAnim);
@@ -2862,6 +2895,7 @@ int main(int argc, char* argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_f)
 				{
+					medic_Scan = true;
 					bool completedWire = missionIndex != -1 && !completedMissions[missionIndex];
 					bool completedTwoFactor = twoFactorMission != -1 && !completedMissions[twoFactorMission + 3];
 					bool inRangeWires = inRange(camera->getPos(), cableSpots, 0.5f) && !cables && completedWire;
