@@ -1492,7 +1492,8 @@ int main(int argc, char* argv[])
 	ISoundSource* scanSound = engine->addSoundSourceFromFile("../Include/AudioClip/panel_medbayscan.wav");
 	scanSound->setDefaultVolume(0.2f);
 	scanSound->forceReloadAtNextUse();
-	
+	ISoundSource* ghostSound = engine->addSoundSourceFromFile("../Include/AudioClip/ghost.wav");
+	ghostSound->forceReloadAtNextUse();
 
 	ISoundSource* pasos[8];
 	cargarSonidoPasos(engine, pasos);
@@ -1795,7 +1796,9 @@ int main(int argc, char* argv[])
 				count = 0;
 			}
 
-			move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
+			if (!ghost->gameOver() && !cables && !isTwoFactorTask) {
+				move(mv, camera, cameraSpeed, ourModel, engine, pasos, ultimoPaso, fixed_pos);
+			}
 
 			if (linterna)
 			{
@@ -1990,6 +1993,12 @@ int main(int argc, char* argv[])
 				{
 					ghost->setSpeed(diff);
 					ghost->update(old_pos_camera);
+					if (distance(old_pos_camera, ghost->getPos()) < 5) {
+						if (!engine->isCurrentlyPlaying(ghostSound)) {
+							engine->play3D(ghostSound, vec3df(ghost->getPos().x, ghost->getPos().y, ghost->getPos().z), false, false, true);
+						}
+					}
+
 				}
 				modelFantasma = glm::mat4(1.0f);
 				modelFantasma = glm::translate(modelFantasma, glm::vec3(ghost->getPos().x, 0.f, ghost->getPos().z));
@@ -2089,7 +2098,7 @@ int main(int argc, char* argv[])
 				// DRAW DEL MAPA
 				ShadowDebug.use();
 				ShadowDebug.setBool("transparencyIsAvailable", false);
-				if (renderMap)
+				if (renderMap && !first_person)
 				{
 					float delta_x = (10.0f / (SCR_W / 2.0f));
 					float delta_y = (10.0f / (SCR_H / 2.0f));
@@ -2822,7 +2831,7 @@ int main(int argc, char* argv[])
 						running = false;
 					}
 					else {
-						if (isTwoFactorTask || cables || optionsMenu || renderMapComplete)
+						if (isTwoFactorTask || cables || optionsMenu || (renderMapComplete && !first_person))
 						{
 							engine->play2D(panelDisappearSound);
 							renderMap = true;
@@ -2849,11 +2858,15 @@ int main(int argc, char* argv[])
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_s)
 				{
-					mv.moving_back = true;
+					if (!ghost->gameOver() && !cables && !isTwoFactorTask) {
+						mv.moving_back = true;
+					}
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_w)
 				{
-					mv.moving_forward = true;
+					if (!ghost->gameOver() && !cables && !isTwoFactorTask) {
+						mv.moving_forward = true;
+					}
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_SPACE)
 				{
@@ -2870,19 +2883,15 @@ int main(int argc, char* argv[])
 					cortoElectricidad = !cortoElectricidad;
 					count = 0;
 				}
-				if (sdlEvent.key.keysym.sym == SDLK_e)
-				{
-					if (camera->getPos().x > 33.1f && camera->getPos().x < 33.5f && camera->getPos().z < -24.0f && camera->getPos().z > -24.9f)
-						if (camera->getFront().x > 0.5f && camera->getFront().x < 0.7f && camera->getFront().z < -0.6f && camera->getFront().z > -0.8f)
-							cortoElectricidad = !cortoElectricidad;
-				}
 				if (sdlEvent.key.keysym.sym == SDLK_l)
 				{
 					linterna = !linterna;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_m)
 				{
-					engine->play2D((renderMapComplete) ? panelDisappearSound : panelAppearSound);
+					if (!first_person) {
+						engine->play2D((renderMapComplete) ? panelDisappearSound : panelAppearSound);
+					}
 					renderMapComplete = !renderMapComplete;
 				}
 				if (sdlEvent.key.keysym.sym == SDLK_2)
