@@ -1904,7 +1904,7 @@ int main(int argc, char* argv[])
 
 
 			//DRAW DEL FANTASMA
-			if ((glm::distance(old_pos_camera.x, 18.f) <= 1.0f) && (glm::distance(old_pos_camera.z, -6.0f) <= 1.0f))
+			if ((glm::distance(camera->getPos().x, 18.f) <= 1.0f) && (glm::distance(camera->getPos().z, -6.0f) <= 1.0f))
 			{ // If se encuentra en la puerta de electricidad
 				se_activa_el_fantasma = true;
 			}
@@ -1913,13 +1913,13 @@ int main(int argc, char* argv[])
 			{
 				if (!ghost->isActive() && se_activa_el_fantasma)
 				{
-					ghost->start(old_pos_camera, diff);
+					ghost->start(camera->getPos(), diff);
 				}
 				if (ghost->isActive())
 				{
 					ghost->setSpeed(diff);
-					ghost->update(old_pos_camera);
-					if (distance(old_pos_camera, ghost->getPos()) < 5) {
+					ghost->update(camera->getPos());
+					if (distance(camera->getPos(), ghost->getPos()) < 5) {
 						if (!engine->isCurrentlyPlaying(ghostSound)) {
 							engine->play3D(ghostSound, vec3df(ghost->getPos().x, ghost->getPos().y, ghost->getPos().z), false, false, true);
 						}
@@ -2021,13 +2021,12 @@ int main(int argc, char* argv[])
 					}
 				}
 
-			} //aca el else del wire
+			}
 
 			if (!(mv.moving_forward || mv.moving_back) || first_person)
 			{
 				modelAnim = glm::mat4(glm::rotate(modelAnim, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0)));
 			}
-
 
 			modelAnim = glm::scale(modelAnim, glm::vec3(0.13f));
 			ourShader.setMat4("model", modelAnim);
