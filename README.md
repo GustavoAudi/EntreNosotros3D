@@ -324,8 +324,6 @@ Dentro de las posibles mejoras a la aplicación se encuentran:
 
 # Referencias
 
-Código fuente - https://github.com/GustavoAudi/EntreNosotros3D
-
 SDL - https://www.libsdl.org/
 
 irrKlang - https://www.ambiera.com/irrklang/
