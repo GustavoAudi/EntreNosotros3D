@@ -2,11 +2,14 @@
 
 ## Módulo Taller Among Us - 3D
 
-Ignacio Bianchi Ci: 4795584-2.
+[![Linkedin](https://i.stack.imgur.com/gVE0j.png) Ignacio Bianchi](https://www.linkedin.com/in/ignacio-bianchi-4355061a2/)
+&nbsp;
 
-Santiago Curi Ci: 4933079-9.
+[![Linkedin](https://i.stack.imgur.com/gVE0j.png) Santiago Curi](https://www.linkedin.com/in/santiago-curi/)
+&nbsp;
 
-Gustavo Audi Ci: 4786029-1.
+[![Linkedin](https://i.stack.imgur.com/gVE0j.png) Gustavo Audi](https://www.linkedin.com/in/gustavo-audi-rouco-1135a110a/)
+&nbsp;
 
 ## Configuración del ambiente
 
