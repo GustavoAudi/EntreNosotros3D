@@ -8,6 +8,17 @@ Santiago Curi Ci: 4933079-9.
 
 Gustavo Audi Ci: 4786029-1.
 
+## Configuración del ambiente
+
+Para correr la solución, es necesario tener instalado una versión de [Microsoft Visual Studio](https://visualstudio.microsoft.com/es/downloads/) en Windows.
+
+- Abrir la solución **AmongUS_CGA.sln** que se encuentra dentro de la carpeta **EntreNosotros3D**
+- En la barra de herramientas, elija Release en el cuadro de lista Configuraciones de soluciones.
+
+  ![](https://docs.microsoft.com/es-es/visualstudio/debugger/media/toolbarbuildconfiguration.png?view=vs-2022)
+- Ejecutar la solución dando click en 'Depurador local de Windows'.
+- Disfrutar del juego.
+
 # Introducción
 
 El presente trabajo se trata de una aplicación de visualización de un entorno 3D en tiempo real basado en el juego “Among Us”. Among Us es un juego multijugador en 2D situado en una nave espacial. Los jugadores toman el rol de sus tripulantes, debiendo realizar tareas (minijuegos) para mejorar el funcionamiento de la misma. Dentro de los jugadores existen los llamados “impostores” los cuales a priori parecen ser tripulantes ordinarios, con la diferencia de que su misión es eliminar al resto sin ser descubiertos. El juego finaliza una vez que todas las misiones hayan sido completadas, o que todos los tripulantes hayan sido eliminados.
