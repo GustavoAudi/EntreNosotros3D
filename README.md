@@ -1,4 +1,4 @@
-﻿# Entre Nosotros 3D
+# Entre Nosotros 3D
 
 ## Módulo Taller Among Us - 3D
 
@@ -27,7 +27,7 @@ El juego cuenta con una cámara controlada por el ratón, con lógica basada en 
 
 Los modos se alternan con el menú de opciones implementado en esta iteración, accesible con la tecla ‘p’. El desplazamiento en ambos modos duplica su velocidad al presionar LShift.
 
-![](Images\StatefulCam.jpeg)
+![](Images/StatefulCam.jpeg)
 
 ## Time-based logic
 
@@ -53,7 +53,7 @@ Para acelerar la consulta de colisiones (el cómputo lineal era inviable, inclus
 
 Debido a que algunos polígonos eran muy grandes, asociar un polígono al octante correspondiente a cada uno de sus vértices no era suficiente, ocasionando “huecos” intermedios. Para evitar esto, se calcularon los volúmenes acotantes alineados a los ejes y se iteró en el rango entero correspondiente, añadiendo el polígono problemático a todos los octantes en el intervalo.
 
-![](Images\MeshColision.jpeg)
+![](Images/MeshColision.jpeg)
 
 ## Assimp model parsing
 
@@ -71,14 +71,14 @@ Pueden observarse luces puntuales en las salas principales, luces de foco en los
 
 luces direccionales en la linterna del observador.
 
-![](Images\Lights1.jpeg)
-![](Images\Lights2.jpeg)
+![](Images/Lights1.jpeg)
+![](Images/Lights2.jpeg)
 
 ## Dynamic lighting (On & off, color switching, lantern)
 
 Para activar la luz dinámica (que simula ser la linterna del personaje) cuya posición se encuentra en el observador se debe presionar la tecla “L”. A su vez apretando la tecla “X” se apagan todas las luces de la escena a excepción de las de emergencias situadas en uno de los pasillos de la nave, que continúan parpadeando de forma progresiva.
 
-![](Images\DynamicLighting.jpeg)
+![](Images/DynamicLighting.jpeg)
 
 ## Gloss mapping (From greyscaled texture)
 
@@ -86,7 +86,7 @@ Debido a que el modelo no cuenta con texturas de Gloss Mapping, y para evitar el
 
 En la imagen a continuación se observa el reflejo sobre el piso interrumpido en la textura oscura.
 
-![](Images\GlossMapping.png)
+![](Images/GlossMapping.png)
 
 ## Spatial sound (360°, proximity scaled)
 
@@ -96,19 +96,19 @@ Se utilizó la biblioteca Irrklang para la implementación de sonidos. Los mismo
 
 La escena comienza renderizando una caja de 1 unidad de lado, sobre la que se mapea la textura de la skybox, en un shader independiente que no incluye shading. De esta forma es posible renderizar el fondo de la skybox para que funcione correctamente con el alpha Blending.
 
-![](Images\Skybox.jpeg)
+![](Images/Skybox.jpeg)
 
 ## Alpha blending (textures & materials, sorted blending)
 
 Cada material tiene un valor de “Dissolve” (Siendo 1 completamente transparente, y 0 completamente opaco). Para el renderizado de transparencias, se ordenaron las mallas de forma que las opacas se renderizan en primer lugar, y posteriormente las que tengan algún nivel de transparencia. Esto funciona tanto para materiales como para texturas con canal alpha.
 
-![](Images\AlphaBlending.jpeg)
+![](Images/AlphaBlending.jpeg)
 
 ## Animations (skeletal)
 
 La animación esqueletal o animación basada en huesos es una técnica la cual separa el objeto animado en dos principales componentes: La superficie del objeto y un conjunto de huesos (“bones”) interconectados. Estos huesos están alineados a ciertos vértices o zonas del objeto y tienen un peso (“weight”) que determina qué tanto se transforma la superficie de la malla a partir del movimiento de los huesos.
 
-![](Images\Animations.jpeg)
+![](Images/Animations.jpeg)
 
 ## Alpha LOD
 
@@ -118,7 +118,7 @@ Se implementó una función rudimentaria de Level of Detail, en la cual el model
 
 De forma análoga al Level of Detail, el color del fragmento en el shader es oscurecido en función de su valor de profundidad en el z-buffer. Observamos que para el correcto funcionamiento no puede modificarse el z-buffer manualmente.
 
-![](Images\DistanceFog.jpeg)
+![](Images/DistanceFog.jpeg)
 
 # Algoritmos y técnicas implementadas
 
@@ -128,18 +128,18 @@ Se describe en esta sección el conjunto de funcionalidades implementadas en el 
 
 Es una técnica para simular artefactos ópticos que se producen en las cámaras reales en fuentes de luz intensas. El bloom es un efecto de post-procesamiento para lograr brillo en fuentes de luz o cualquier objeto con un componente emisivo (Ej. monitores). Existen varios algoritmos que de diversas maneras buscan generar este efecto. Nuestra implementación hace un primer recorrido de la escena y guarda en dos buffers diferentes los colores propios de la escena y aquellos fragmentos que excede cierto umbral de brillo. A este último se le hace un proceso de difuminado llamado “blur”. Para lograr dicho proceso se utilizó el filtro Gaussiano de dos pasos con la implementación de ping-pong framebuffers, estos son un par de buffers usados para alternar e ir afectando la imagen de brillos con distinto efecto.Observar en la siguiente imagen.
 
-![](Images\Bloom1.png)
+![](Images/Bloom1.png)
 
 Una vez finalizado el proceso de blur, se combina el resultado con los valores de la escena original generando así nuestra imágen final renderizada en la pantalla. En las figuras se observa el reactor sin y con el efecto de bloom.
 
-![](Images\Bloom2.jpeg)
-![](Images\Bloom3.jpeg)
+![](Images/Bloom2.jpeg)
+![](Images/Bloom3.jpeg)
 
 ## Sombras
 
 Para simular la existencia de sombras estáticas en la escena se utilizó la técnica “Shadow mapping”. La idea es renderizar la escena desde el punto de vista de la fuente de luz generadora de la sombra deseada. Mediante este pasaje se guardan los valores de profundidad de cada fragmento visible en una textura llamada depth map o shadow map. Finalmente estos valores de profundidad son utilizados por el shader que realiza los cálculos de todas las luces de la escena, para así multiplicando los componentes difusos y especulares, obtener que un fragmento no sea completamente negro en caso de encontrarse detras de un objeto.
 
-![](Images\Sombras.jpeg)
+![](Images/Sombras.jpeg)
 
 ## AntiAliasing
 
@@ -147,8 +147,8 @@ El Anti-Aliasing es un filtro de postprocesado, y que por tanto se realiza despu
 
 A continuación se representa el antes y el después del antialiasing.
 
-![](Images\Antialiasing1.png)
-![](Images\Antialiasing2.png)
+![](Images/Antialiasing1.png)
+![](Images/Antialiasing2.png)
 
 ## HUD estáticos
 
@@ -161,8 +161,8 @@ Se implementó la superposición de imágenes 2D en la escena para resolver múl
 - Pantallas de victoria cuando el jugador completa todas las tareas disponibles; derrota y muerte cuando el jugador es alcanzado por el fantasma.
 - Menú de opciones interactivo para activar/desactivar las funcionalidades.
 
-![](Images\HUD1.jpeg)
-![](Images\HUD2.png)
+![](Images/HUD1.jpeg)
+![](Images/HUD2.png)
 
 ## Texto en pantalla
 
@@ -179,8 +179,8 @@ Para el cómputo de la posición de este último es necesario realizar dos trans
 
 Las funciones que implementan este cambio de sistema de coordenadas son utilizadas para el renderizado de otros artefactos 2D en posiciones arbitrarias de la pantalla.
 
-![](Images\Minimapa1.png)
-![](Images\Minimapa2.jpeg)
+![](Images/Minimapa1.png)
+![](Images/Minimapa2.jpeg)
 
 ## Menú de opciones
 
@@ -190,7 +190,7 @@ Se dispone de un menú con opciones, accesible con la tecla ‘P’, que permite
 
 Se implementa un modo de cámara desde el interior del modelo jugador. Esta funcionalidad es accesible desde el menú de opciones, y ofrece una experiencia más inmersiva del juego. Destacamos la visualización de la colección de luces desde el interior del cristal cóncavo que compone el modelo. En este modo se aprecia la deformación de las luces y el punto especular.
 
-![](Images\PrimeraPersona.jpeg)
+![](Images/PrimeraPersona.jpeg)
 
 ## Minijuegos
 
@@ -198,15 +198,15 @@ El juego cuenta con 3 minijuegos implementados, 2 de ellos interactivos. Para ju
 
 - **Cables** : De un conjunto total de 5 ubicaciones, se sortean aleatoria y uniformemente 3 de ellas. El objetivo del minijuego es conectar los cables del lado izquierdo con el color correspondiente del lado derecho. Para ello, se debe hacer click izquierdo sobre el lado izquierdo del cable y arrastrar el cursor (con el clic presionado) hasta el extremo derecho correspondiente. La misión finaliza una vez que los 4 cables han sido conectados. Las permutaciones de colores de cada misión son aleatorias.
 
-  ![](Images\Cables.jpeg)
+  ![](Images/Cables.jpeg)
 
 - Two-Factor: Hay dos misiones de este tipo en cada partida. En cada una se sortea un código aleatorio de 5 dígitos, y debe introducirse en el pad numérico, haciendo click en cada número y finalmente en el botón verde para confirmar. Si los códigos coinciden, la misión finaliza exitosamente.
 
-  ![](Images\TwoFactor.jpeg)
+  ![](Images/TwoFactor.jpeg)
 
 - Scan: Esta misión se realiza en cada partida, y consiste en ir al punto de escaneo en “MedBay” (Enfermería). El jugador es escaneado por 6 segundos, durante los cuales el modelo se vuelve wireframe y rota a velocidad constante sobre la plataforma de escaneo, mientras se escucha el sonido emitido por la plataforma activada.
 
-  ![](Images\Scan.png)
+  ![](Images/Scan.png)
 
 La condición de victoria se alcanza una vez que las 6 misiones fueron completadas, y se activa la pantalla de victoria correspondiente.
 
