@@ -1,6 +1,6 @@
 # Entre Nosotros 3D
 
-## Módulo Taller Among Us - 3D
+## Módulo Taller
 
 [![Linkedin](https://i.stack.imgur.com/gVE0j.png) Ignacio Bianchi](https://www.linkedin.com/in/ignacio-bianchi-4355061a2/)
 &nbsp;
